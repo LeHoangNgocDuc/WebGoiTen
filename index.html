@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác 3D V5.0</title>
+  <title>Lớp học tương tác 3D V6.0</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'global'}};</script>
@@ -160,10 +160,13 @@
         <p class="muted"><b>V5.0 dùng cố định URL trực tiếp trong index.html.</b> Không còn đọc URL từ localStorage nên tránh dùng nhầm link cũ.</p>
         <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
           <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
-          <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1R7Ja6EOaRgNDo5oI0HN9oTukXgna6gUZl8p7agFX-YbBlhDLRKF92LWpzyCIlV4W/exec';</code>
+          <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
+
+// V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
+const API_PROXY_URL = '/api/sheet';</code>
         </div>
         <label>URL mà index.html đang sử dụng</label><input id="apiUrl" class="input" readonly>
-        <div class="row" style="margin-top:12px"><button class="btn good" onclick="testApi()">🔌 Kiểm tra và nạp dữ liệu</button><button class="btn ghost" onclick="openApiTest()">↗ Mở API ping</button><button class="btn ghost" onclick="copyApiUrl()">📋 Copy URL</button></div>
+        <div class="row" style="margin-top:12px"><button class="btn good" onclick="testApi()">🔌 Kiểm tra và nạp dữ liệu</button><button class="btn ghost" onclick="openProxyTest()">↗ Test proxy</button><button class="btn ghost" onclick="openDirectApiTest()">↗ Test Apps Script trực tiếp</button></div>
         <div id="apiStatus" class="data-status" style="margin-top:14px"><span class="status-dot"></span>Chưa kiểm tra.</div>
         <pre id="apiDiag" style="white-space:pre-wrap;color:#a9bed9;background:#071427;padding:12px;border-radius:13px;min-height:95px;overflow:auto"></pre>
       </div>
@@ -172,8 +175,8 @@
         <p class="muted"><b>1.</b> Mở đúng Google Sheet → Extensions → Apps Script → dán Code.gs mới.</p>
         <p class="muted"><b>2.</b> Trên thanh chọn hàm <b>setup</b> → Run → cấp quyền. Chỉ làm 1 lần.</p>
         <p class="muted"><b>3.</b> Deploy → Manage deployments → Edit → <b>New version</b> → Execute as Me → Who has access: Anyone.</p>
-        <p class="muted"><b>4.</b> Mở <b>index.html</b> → tìm chữ <b>DÁN LINK GOOGLE APPS SCRIPT WEB APP</b> → thay URL trong biến <b>APPS_SCRIPT_URL</b>.</p>
-        <p class="muted"><b>5.</b> Upload index.html lên GitHub/Vercel → chờ Ready → nhấn <b>Ctrl + F5</b> → bấm <b>Kiểm tra và nạp dữ liệu</b>.</p>
+        <p class="muted"><b>4.</b> GitHub/Vercel phải có thêm file <b>api/sheet.js</b>. Đây là proxy giúp tránh lỗi gọi trực tiếp Google từ trình duyệt.</p>
+        <p class="muted"><b>5.</b> Upload <b>index.html</b> và thư mục <b>api/sheet.js</b> lên GitHub/Vercel → chờ Ready → Ctrl+F5 → Kiểm tra và nạp dữ liệu.</p>
       </div>
     </div>
   </section>
@@ -189,13 +192,16 @@
 // KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
 // ============================================================================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
+
+// V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
+const API_PROXY_URL = '/api/sheet';
 // ============================================================================
 // 🔴🔴🔴 HẾT VÙNG DÁN LINK - KHÔNG SỬA CÁC DÒNG BÊN DƯỚI 🔴🔴🔴
 // ============================================================================
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v50_students',history:'class3d_v50_history',bank:'class3d_v50_bank',className:'class3d_v50_class',selection:'class3d_v50_selection'};
-const APP_VERSION='5.0.0';
+const APP_VERSION='6.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let questionBank=safeLoad(LS.bank,[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'')).filter(validQuestion);
@@ -243,25 +249,79 @@ function wait(ms){return new Promise(r=>setTimeout(r,ms))}
 $('#excelFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});const lower=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim().toLowerCase(),v]));students=rows.map((r,i)=>{r=lower(r);return normalizeStudent({id:r.id||i+1,stt:r.stt||r['số thứ tự']||i+1,name:r.name||r['họ và tên']||r['họ tên']||r['tên']||'',className:r.classname||r['lớp']||r.lop||currentClass(),active:true},i)}).filter(s=>s.name);saveLocal();populateClasses();renderAll();toast(`Đã nạp ${students.length} học sinh từ Excel.`)}catch(err){toast('Không đọc được Excel: '+err.message)}finally{e.target.value=''}});
 
 function getApi(){
-  const u=String(APPS_SCRIPT_URL||'').trim();
-  if(!u || !/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec(?:\?.*)?$/.test(u)) return '';
-  return u;
+  return String(API_PROXY_URL||'').trim();
 }
 function copyApiUrl(){
-  const u=getApi();
-  if(!u)return toast('APPS_SCRIPT_URL chưa hợp lệ. Hãy sửa ở đầu index.html.');
+  const u=APPS_SCRIPT_URL;
   if(navigator.clipboard?.writeText){navigator.clipboard.writeText(u).then(()=>toast('Đã copy URL Apps Script.')).catch(()=>toast(u));}
   else toast(u);
 }
-function apiJsonp(action,params={}){return new Promise((resolve,reject)=>{const base=getApi();if(!base)return reject(new Error('APPS_SCRIPT_URL chưa hợp lệ. Hãy sửa URL ở đầu index.html.'));const cb='v5cb_'+Date.now()+'_'+Math.floor(Math.random()*99999);const script=document.createElement('script');let finished=false;const cleanup=()=>{if(finished)return;finished=true;delete window[cb];script.remove();clearTimeout(timer)};window[cb]=data=>{cleanup();resolve(data)};script.onerror=()=>{cleanup();reject(new Error('Không tải được API. Hãy kiểm tra deployment “Anyone” và URL /exec.'))};const q=new URLSearchParams({action,prefix:cb,_:Date.now().toString(),...params});script.src=base+(base.includes('?')?'&':'?')+q.toString();document.head.appendChild(script);const timer=setTimeout(()=>{cleanup();reject(new Error('API không phản hồi sau 18 giây. Hãy chạy setup() và deploy New version.'))},18000)})}
-async function apiPost(payload){const base=getApi();if(!base)return false;try{await fetch(base,{method:'POST',mode:'no-cors',cache:'no-store',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify(payload)});return true}catch(err){console.error(err);return false}}
+async function apiGet(action,params={}){
+  const q=new URLSearchParams({action,_:Date.now().toString(),...params});
+  const url=getApi()+'?'+q.toString();
+  let r;
+  try{
+    r=await fetch(url,{method:'GET',cache:'no-store',headers:{'Accept':'application/json'}});
+  }catch(err){
+    throw new Error('Không gọi được proxy Vercel /api/sheet: '+err.message);
+  }
+  const text=await r.text();
+  let data;
+  try{data=JSON.parse(text)}catch{
+    throw new Error('Proxy không trả về JSON. HTTP '+r.status+'. Nội dung: '+text.slice(0,160));
+  }
+  if(!r.ok||data?.ok===false)throw new Error(data?.error||('HTTP '+r.status));
+  return data;
+}
+async function apiPost(payload){
+  let r;
+  try{
+    r=await fetch(getApi(),{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
+  }catch(err){
+    toast('Không ghi được qua proxy: '+err.message);return false;
+  }
+  let data=null;try{data=await r.json()}catch{}
+  if(!r.ok||data?.ok===false){toast(data?.error||('Ghi dữ liệu thất bại HTTP '+r.status));return false}
+  return true;
+}
 function setApiStatus(ok,msg,diag=''){const el=$('#apiStatus');el.className='data-status '+(ok?'ok':'err');el.innerHTML=`<span class="status-dot ${ok?'ok':'err'}"></span>${esc(msg)}`;$('#apiDiag').textContent=diag}
-async function testApi(){const fixedApi=getApi();if(!fixedApi){setApiStatus(false,'APPS_SCRIPT_URL chưa hợp lệ.','Mở index.html → tìm DÁN LINK GOOGLE APPS SCRIPT WEB APP → dán đúng URL /exec.');return toast('APPS_SCRIPT_URL chưa hợp lệ.');}setApiStatus(false,'Đang kiểm tra...','');try{const ping=await apiJsonp('ping');if(!ping?.ok)throw new Error(ping?.error||'Ping thất bại.');const stu=await apiJsonp('students');if(!stu?.ok)throw new Error(stu?.error||'Không đọc được Students.');students=(stu.students||[]).map(normalizeStudent).filter(s=>s.name);saveLocal();populateClasses();let qCount='?';try{const qb=await apiJsonp('questions');if(qb?.ok){qCount=(qb.questions||[]).length;if(!questionBank.length&&qCount){questionBank=(qb.questions||[]).map((q,i)=>normalizeQuestion(q,i,'Google Sheet')).filter(validQuestion);saveLocal();refreshQuestionFilters()}}}catch{}
-  renderAll();setApiStatus(true,`Kết nối thành công: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}\nCâu hỏi đọc được: ${qCount}\nHeaders: ${(ping.studentHeaders||[]).join(' | ')}`);toast(`Đã kết nối và nạp ${students.length} học sinh.`)}catch(err){setApiStatus(false,err.message,`Lỗi: ${err.message}\n\nKiểm tra: 1) chạy setup() một lần; 2) Deploy New version; 3) Execute as Me; 4) Anyone; 5) URL kết thúc /exec.`);toast(err.message)}}
-function openApiTest(){const u=getApi();if(!u)return toast('APPS_SCRIPT_URL chưa hợp lệ trong index.html.');window.open(u+(u.includes('?')?'&':'?')+'action=ping','_blank')}
-async function loadStudentsFromSheet(silent=false){if(loadingStudents)return false;loadingStudents=true;try{const d=await apiJsonp('students');if(!d?.ok)throw new Error(d?.error||'Không đọc được Students.');students=(d.students||[]).map(normalizeStudent).filter(s=>s.name);saveLocal();populateClasses();calledIds.clear();currentStudent=null;$('#studentName').textContent='SẴN SÀNG?';$('#scoreControls').classList.add('hide');renderAll();if(!silent)toast(`Đã nạp ${students.length} học sinh từ Sheet.`);return true}catch(err){setStudentStatus(err.message,false);if(!silent)toast(err.message);return false}finally{loadingStudents=false}}
-async function syncStudents(){if(!students.length)return toast('Danh sách web đang trống; không ghi đè Sheet.');if(!confirm(`Ghi ${students.length} học sinh lên sheet Students?`))return;await apiPost({action:'saveStudents',students});await wait(900);const ok=await loadStudentsFromSheet(true);toast(ok?'Đã ghi và kiểm tra lại Students.':'Đã gửi dữ liệu nhưng chưa đọc kiểm tra được.')}
-async function loadHistoryFromSheet(){try{const d=await apiJsonp('history');if(!d?.ok)throw new Error(d?.error||'Không đọc được History.');historyData=d.history||[];saveLocal();renderAll();toast('Đã tải lịch sử.')}catch(err){toast(err.message)}}
+async function testApi(){
+  setApiStatus(false,'Đang kiểm tra proxy và Apps Script...','');
+  try{
+    const alive=await apiGet('alive');
+    const ping=await apiGet('ping');
+    const stu=await apiGet('students');
+    students=(stu.students||[]).map(normalizeStudent).filter(s=>s.name);
+    saveLocal();populateClasses();
+    let qCount='?';
+    try{
+      const qb=await apiGet('questions');
+      qCount=(qb.questions||[]).length;
+      if(!questionBank.length&&qCount){questionBank=(qb.questions||[]).map((q,i)=>normalizeQuestion(q,i,'Google Sheet')).filter(validQuestion);saveLocal();refreshQuestionFilters()}
+    }catch{}
+    renderAll();
+    setApiStatus(true,`Kết nối thành công: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nProxy: OK\nApps Script alive: ${alive.version||'?'}\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}\nCâu hỏi đọc được: ${qCount}\nHeaders: ${(ping.studentHeaders||[]).join(' | ')}`);
+    toast(`Đã kết nối và nạp ${students.length} học sinh.`)
+  }catch(err){
+    setApiStatus(false,err.message,`Lỗi: ${err.message}\n\nNếu lỗi nói Apps Script trả về HTML/trang đăng nhập: deployment chưa thực sự công khai hoặc tài khoản trường chặn "Anyone".\nNếu alive OK nhưng ping lỗi: chạy setup() hoặc điền SPREADSHEET_ID trong Code.gs.\nNếu proxy 404: GitHub/Vercel thiếu file api/sheet.js.`);
+    toast(err.message)
+  }
+}
+function openProxyTest(){window.open(getApi()+'?action=ping','_blank')}
+function openDirectApiTest(){window.open(APPS_SCRIPT_URL+'?action=alive','_blank')}
+async function loadStudentsFromSheet(silent=false){
+  if(loadingStudents)return false;loadingStudents=true;
+  try{
+    const d=await apiGet('students');
+    students=(d.students||[]).map(normalizeStudent).filter(s=>s.name);
+    saveLocal();populateClasses();calledIds.clear();currentStudent=null;
+    $('#studentName').textContent='SẴN SÀNG?';$('#scoreControls').classList.add('hide');renderAll();
+    if(!silent)toast(`Đã nạp ${students.length} học sinh từ Sheet.`);return true
+  }catch(err){setStudentStatus(err.message,false);if(!silent)toast(err.message);return false}
+  finally{loadingStudents=false}
+}
+async function syncStudents(){if(!students.length)return toast('Danh sách web đang trống; không ghi đè Sheet.');if(!confirm(`Ghi ${students.length} học sinh lên sheet Students?`))return;const sent=await apiPost({action:'saveStudents',students});if(!sent)return;await wait(500);const ok=await loadStudentsFromSheet(true);toast(ok?'Đã ghi và kiểm tra lại Students.':'Đã gửi dữ liệu nhưng chưa đọc kiểm tra được.')}
+async function loadHistoryFromSheet(){try{const d=await apiGet('history');historyData=d.history||[];saveLocal();renderAll();toast('Đã tải lịch sử.')}catch(err){toast(err.message)}}
 
 function normalizeQuestion(q,i=0,source=''){
   q=q||{};let opts=q.Options??q.options??q.answers??[];let optionPairs=[];
@@ -285,7 +345,7 @@ $('#gradeSelect').addEventListener('change',()=>refreshQuestionFilters({grade:$(
 $('#jsonFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());const rows=Array.isArray(data)?data:(Array.isArray(data.questions)?data.questions:[]);const imported=rows.map((q,i)=>normalizeQuestion(q,i,f.name)).filter(validQuestion);if(!imported.length)throw new Error('Không tìm thấy câu hỏi hợp lệ.');mergeQuestions(imported);const first=imported[0];refreshQuestionFilters({grade:first.grade,chapter:first.chapter,topic:first.topic});if(getApi()){await saveQuestionChunks(imported);await wait(800)}renderAll();toast(`Đã nạp ${imported.length} câu từ ${f.name}.`)}catch(err){toast('JSON lỗi: '+err.message)}finally{e.target.value=''}});
 async function saveQuestionChunks(items){for(let i=0;i<items.length;i+=40){const ok=await apiPost({action:'saveQuestions',questions:items.slice(i,i+40)});if(!ok)throw new Error('Không gửi được QuestionBank.');await wait(180)}}
 async function syncQuestionBank(){if(!questionBank.length)return toast('Chưa có câu hỏi.');try{await saveQuestionChunks(questionBank);toast(`Đã gửi ${questionBank.length} câu hỏi lên Sheet.`)}catch(err){toast(err.message)}}
-async function loadQuestionBankFromSheet(silent=false){try{const d=await apiJsonp('questions');if(!d?.ok)throw new Error(d?.error||'Không đọc được QuestionBank.');const arr=(d.questions||[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'Google Sheet')).filter(validQuestion);mergeQuestions(arr);refreshQuestionFilters();renderAll();if(!silent)toast(`Đã nạp ${arr.length} câu từ Sheet.`);return true}catch(err){if(!silent)toast(err.message);return false}}
+async function loadQuestionBankFromSheet(silent=false){try{const d=await apiGet('questions');if(!d?.ok)throw new Error(d?.error||'Không đọc được QuestionBank.');const arr=(d.questions||[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'Google Sheet')).filter(validQuestion);mergeQuestions(arr);refreshQuestionFilters();renderAll();if(!silent)toast(`Đã nạp ${arr.length} câu từ Sheet.`);return true}catch(err){if(!silent)toast(err.message);return false}}
 
 function stripUrls(text){return String(text||'').replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').trim()}
 function extractImages(text){return(String(text||'').match(/https?:\/\/[^\s]+?\.(?:png|jpe?g|webp|gif)(?:\?[^\s]*)?/gi)||[]).map(u=>u.replace(/[),.;]+$/,''))}
@@ -328,22 +388,17 @@ class Game3D{
 function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()}
 
 async function bootstrap(){
-  const api=getApi();
   $('#apiUrl').value=APPS_SCRIPT_URL||'';
   populateClasses();refreshQuestionFilters();renderAll();
-  if(!api){
-    setApiStatus(false,'APPS_SCRIPT_URL chưa hợp lệ.','Mở index.html → tìm khối 🔴 DÁN LINK GOOGLE APPS SCRIPT WEB APP (/exec) TẠI ĐÂY → dán đúng URL /exec.');
-    return;
-  }
   try{
-    const ping=await apiJsonp('ping');
-    if(!ping?.ok)throw new Error(ping?.error||'Ping API thất bại.');
-    setApiStatus(true,`Đã nhận API V${ping.version||'?'}. Đang nạp dữ liệu...`,`URL: ${api}\nSheet: ${ping.spreadsheetName||''}\nStudents rows: ${ping.studentRows}`);
+    const alive=await apiGet('alive');
+    const ping=await apiGet('ping');
+    setApiStatus(true,`Proxy và Apps Script hoạt động. Đang nạp dữ liệu...`,`Frontend V${APP_VERSION}\nApps Script alive V${alive.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nStudents rows: ${ping.studentRows}`);
     await loadStudentsFromSheet(true);
     if(!questionBank.length)await loadQuestionBankFromSheet(true);
-    setApiStatus(true,`Kết nối sẵn sàng: ${students.length} học sinh.`,`URL: ${api}\nFrontend V${APP_VERSION}\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}`);
+    setApiStatus(true,`Kết nối sẵn sàng: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nProxy: OK\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}`);
   }catch(err){
-    setApiStatus(false,'Chưa kết nối được: '+err.message,`URL đang dùng: ${api}\n\nKiểm tra: setup() → Run → Deploy New version → Execute as Me → Anyone.`);
+    setApiStatus(false,'Chưa kết nối được: '+err.message,`Lỗi: ${err.message}\n\n1) Nếu /api/sheet 404: thiếu file api/sheet.js trên GitHub.\n2) Nếu Apps Script trả về HTML/login: deployment chưa public.\n3) Nếu alive OK nhưng ping lỗi: chạy setup() hoặc điền SPREADSHEET_ID.`);
   }
   renderAll();
 }

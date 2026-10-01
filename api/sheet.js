@@ -1,7 +1,7 @@
-// VERCEL SERVERLESS PROXY - V6
+// VERCEL SERVERLESS PROXY - V7
 // -----------------------------------------------------------------------------
 // 🔴🔴🔴 APPS SCRIPT URL: nếu Google cấp URL /exec mới, sửa đúng dòng dưới đây.
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx9li7r1k2GzrWqW3V1gmbcJ9Ysw9PVohS01Mhi0MTqAxYX_Fda91xd-Q3GQZRNnbhO/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJGI14qSGHWHJWVi75tMzKcir_uU8OoxajKt2VDbPLtz4krl-uJWbgSjABX81r6yOE/exec';
 // -----------------------------------------------------------------------------
 
 module.exports = async function handler(req, res) {
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
       redirect: 'follow',
       headers: {
         'Accept': 'application/json,text/plain,*/*',
-        'User-Agent': 'Classroom-Vercel-Proxy/6.0'
+        'User-Agent': 'Classroom-Vercel-Proxy/7.0'
       }
     };
 

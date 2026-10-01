@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác 3D V6.0</title>
+  <title>Lớp học tương tác 3D V7.0</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'global'}};</script>
@@ -24,6 +24,28 @@
     .points{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#07172b;border:1px solid rgba(255,255,255,.06);padding:14px;border-radius:16px}.stat b{display:block;font-size:24px;margin-top:4px}.tablewrap{max-height:540px;overflow:auto;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}th{position:sticky;top:0;background:#0c1b31;color:#c5d7ee;z-index:2}.drop{border:1.5px dashed rgba(72,220,255,.45);border-radius:17px;padding:22px;text-align:center;background:rgba(72,220,255,.04)}
     .data-status{margin-top:12px;padding:11px 12px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);color:#bcd0eb;font-size:13px}.data-status.ok{border-color:rgba(63,224,161,.35);color:#8df3ca}.data-status.err{border-color:rgba(255,102,130,.35);color:#ff9caf}.status-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;background:#60718c}.status-dot.ok{background:var(--good);box-shadow:0 0 14px rgba(63,224,161,.7)}.status-dot.err{background:var(--bad);box-shadow:0 0 14px rgba(255,102,130,.65)}
     .toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:13px 16px;border-radius:14px;background:#0d1b31;border:1px solid var(--line);box-shadow:var(--shadow);opacity:0;transform:translateY(18px);pointer-events:none;transition:.25s;max-width:480px}.toast.show{opacity:1;transform:none}
+
+    /* WHEEL OF NAMES 3D */
+    .wheel-card{min-height:650px;position:relative;overflow:hidden;padding:14px;background:
+      radial-gradient(circle at 50% 22%,rgba(83,231,255,.14),transparent 32%),
+      radial-gradient(circle at 50% 80%,rgba(124,93,255,.12),transparent 36%),
+      linear-gradient(180deg,#10213a,#071425 78%)}
+    .wheel-head{position:absolute;left:16px;right:16px;top:14px;z-index:8;display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:none}
+    .wheel-wrap{position:absolute;inset:58px 10px 88px;perspective:1200px;display:grid;place-items:center}
+    #wheelCanvas{display:block;width:100%;height:100%;min-height:500px;filter:drop-shadow(0 30px 45px rgba(0,0,0,.52))}
+    .wheel-pointer{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:9;width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:0;border-top:52px solid #ffd45f;filter:drop-shadow(0 8px 7px rgba(0,0,0,.45));pointer-events:none}
+    .wheel-pointer:after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff7c9;left:-8px;top:10px;box-shadow:0 0 18px rgba(255,212,95,.85)}
+    .wheel-result{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:10;width:min(86%,760px);text-align:center;padding:10px 18px;border-radius:18px;background:rgba(4,12,24,.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);box-shadow:0 16px 45px rgba(0,0,0,.4)}
+    .wheel-result .student-name{font-size:clamp(30px,4.2vw,62px);margin:0;letter-spacing:-1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wheel-actions{position:absolute;left:0;right:0;bottom:18px;z-index:12;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .spin-btn{font-size:20px!important;padding:15px 28px!important;box-shadow:0 12px 28px rgba(66,190,255,.22),inset 0 0 0 1px rgba(255,255,255,.12)!important}
+    .spin-btn.spinning{animation:spinGlow .55s ease-in-out infinite alternate}
+    @keyframes spinGlow{to{filter:brightness(1.22);box-shadow:0 0 38px rgba(89,219,255,.52),0 0 58px rgba(124,93,255,.32)}}
+    .control-card{display:flex;flex-direction:column;gap:12px}.score-session{border-radius:18px;padding:14px;background:linear-gradient(180deg,rgba(7,23,43,.96),rgba(6,18,35,.96));border:1px solid rgba(255,212,95,.22)}
+    .score-session.empty{opacity:.68}.selected-student{font-size:23px;font-weight:950;line-height:1.2;margin:2px 0 4px}.call-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.score-big{font-size:27px;text-align:center;font-weight:950}.quick-scores{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}.quick-score{padding:9px 5px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#112640;color:#fff;font-weight:900;cursor:pointer}.quick-score:hover{background:#1a3960;transform:translateY(-1px)}
+    .score-history{margin-top:10px;max-height:150px;overflow:auto;display:grid;gap:6px}.score-record{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:#07172b;border:1px solid rgba(255,255,255,.07);padding:8px 9px;border-radius:11px;font-size:12px}.score-record strong{color:#ffe192;font-size:16px}.score-empty{font-size:12px;color:var(--muted);padding:8px 0}.reward-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.reward-row .btn{padding:8px 11px;font-size:12px}
+    .wheel-legend{font-size:11px;color:#9eb4cf;max-width:540px;line-height:1.35}
+    @media(max-width:1050px){.wheel-card{min-height:610px}.wheel-wrap{inset:58px 5px 100px}.wheel-pointer{top:65px}.quick-scores{grid-template-columns:repeat(3,1fr)}}
 
     /* QUESTION BANK */
     .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bank-summary{padding:12px;border-radius:14px;background:#07172b;border:1px solid rgba(255,255,255,.07);line-height:1.55}.question-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.qmini{padding:12px;border-radius:14px;background:#08182d;border:1px solid rgba(255,255,255,.07)}.qmini b{display:block;margin-bottom:6px}.qmini small{color:var(--muted)}
@@ -54,34 +76,59 @@
 
   <section id="random" class="screen active">
     <div class="grid">
-      <div class="card span8 hero">
-        <div class="pill" id="callBadge">Chưa có dữ liệu</div>
-        <div id="studentName" class="student-name">SẴN SÀNG?</div>
-        <div class="row" style="justify-content:center">
-          <button id="callBtn" class="btn primary" style="font-size:21px;padding:17px 28px" onclick="callRandomStudent()">🎯 GỌI HỌC SINH</button>
-          <button class="btn ghost" onclick="resetRound()">↻ Vòng mới</button>
+      <div class="card span8 wheel-card">
+        <div class="wheel-head">
+          <span class="pill" id="callBadge">Chưa có dữ liệu</span>
+          <span class="pill">🎡 Chiếc nón gọi tên 3D</span>
         </div>
-        <div id="scoreControls" class="hide" style="margin-top:14px">
-          <div class="points">
-            <button class="btn good" onclick="changePoint(.5)">+0.5</button><button class="btn good" onclick="changePoint(1)">+1</button><button class="btn good" onclick="changePoint(2)">+2</button>
-            <button class="btn bad" onclick="changePoint(-.5)">-0.5</button><button class="btn bad" onclick="changePoint(-1)">-1</button><button class="btn gold" onclick="enterScore()">📝 Nhập điểm</button>
-          </div>
+        <div class="wheel-pointer"></div>
+        <div class="wheel-wrap"><canvas id="wheelCanvas"></canvas></div>
+        <div class="wheel-result">
+          <div id="studentName" class="student-name">SẴN SÀNG QUAY?</div>
+          <div id="wheelSub" class="muted" style="margin-top:2px">Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên</div>
+        </div>
+        <div class="wheel-actions">
+          <button id="callBtn" class="btn primary spin-btn" onclick="callRandomStudent()">🎡 QUAY NÓN</button>
+          <button class="btn ghost" onclick="resetRound()">↻ Vòng mới</button>
+          <button class="btn ghost" onclick="rebuildWheel()">⟳ Làm mới nón</button>
         </div>
       </div>
-      <div class="card span4">
-        <h3>Tùy chọn nhanh</h3>
-        <label>Lớp hiện tại</label><select id="classSelect" class="input"></select>
-        <label><input id="noRepeat" type="checkbox" checked> Không gọi lại trong cùng một vòng</label>
-        <label><input id="fairMode" type="checkbox"> Ưu tiên học sinh ít được gọi</label>
-        <label><input id="soundMode" type="checkbox" checked> Âm thanh hiệu ứng</label>
-        <div class="statrow" style="margin-top:14px">
-          <div class="stat"><span class="muted">Sĩ số</span><b id="statStudents">0</b></div>
-          <div class="stat"><span class="muted">Đã gọi</span><b id="statCalled">0</b></div>
-          <div class="stat"><span class="muted">Điểm +/-</span><b id="statPoints">0</b></div>
-          <div class="stat"><span class="muted">Câu hỏi</span><b id="statQuestions">0</b></div>
+      <div class="card span4 control-card">
+        <div>
+          <h3>Tùy chọn gọi tên</h3>
+          <label>Lớp hiện tại</label><select id="classSelect" class="input"></select>
+          <label><input id="noRepeat" type="checkbox" checked> Không gọi lại trong cùng một vòng</label>
+          <label><input id="fairMode" type="checkbox"> Ưu tiên học sinh ít được gọi</label>
+          <label><input id="soundMode" type="checkbox" checked> Âm thanh vòng quay</label>
+          <div class="statrow" style="margin-top:12px">
+            <div class="stat"><span class="muted">Sĩ số</span><b id="statStudents">0</b></div>
+            <div class="stat"><span class="muted">Đã gọi</span><b id="statCalled">0</b></div>
+            <div class="stat"><span class="muted">Điểm +/-</span><b id="statPoints">0</b></div>
+            <div class="stat"><span class="muted">Câu hỏi</span><b id="statQuestions">0</b></div>
+          </div>
+          <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:1" onclick="loadStudentsFromSheet()">↻ Nạp danh sách từ Sheet</button><button class="btn ghost" onclick="go('students')">👨‍🎓 Danh sách</button></div>
+          <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
         </div>
-        <div class="row" style="margin-top:14px"><button class="btn primary" style="flex:1" onclick="loadStudentsFromSheet()">↻ Nạp danh sách từ Sheet</button><button class="btn ghost" onclick="go('students')">👨‍🎓 Danh sách</button></div>
-        <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
+
+        <div id="scoreSession" class="score-session empty">
+          <div class="row space"><h3 style="margin:0">📝 Điểm lần gọi</h3><span id="callNoBadge" class="pill">Chưa gọi</span></div>
+          <div id="selectedStudentName" class="selected-student">Chưa có học sinh</div>
+          <div class="call-meta"><span id="selectedStudentClass" class="pill">—</span><span id="selectedTotalPoint" class="pill">Điểm +/-: 0</span></div>
+          <div class="score-grid">
+            <div><label>Điểm 0–10</label><input id="callScoreInput" class="input score-big" type="number" min="0" max="10" step="0.25" placeholder="8.5"></div>
+            <div><label>Ghi chú</label><input id="callScoreNote" class="input" placeholder="Kiểm tra bài cũ"></div>
+          </div>
+          <div class="quick-scores">
+            <button class="quick-score" onclick="setQuickScore(10)">10</button><button class="quick-score" onclick="setQuickScore(9)">9</button><button class="quick-score" onclick="setQuickScore(8)">8</button><button class="quick-score" onclick="setQuickScore(7)">7</button><button class="quick-score" onclick="setQuickScore(6)">6</button><button class="quick-score" onclick="setQuickScore(5)">5</button>
+          </div>
+          <button id="saveCallScoreBtn" class="btn gold" style="width:100%;margin-top:9px" onclick="saveCallScore()" disabled>💾 LƯU ĐIỂM LẦN GỌI NÀY</button>
+          <div class="reward-row">
+            <button class="btn good" onclick="changePoint(.5)">+0.5</button><button class="btn good" onclick="changePoint(1)">+1</button><button class="btn good" onclick="changePoint(2)">+2</button>
+            <button class="btn bad" onclick="changePoint(-.5)">-0.5</button><button class="btn bad" onclick="changePoint(-1)">-1</button>
+          </div>
+          <div style="margin-top:10px;font-size:12px;font-weight:900;color:#bfd2ed">Các điểm đã ghi của học sinh</div>
+          <div id="studentScoreHistory" class="score-history"><div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div></div>
+        </div>
       </div>
     </div>
   </section>
@@ -157,7 +204,7 @@
     <div class="grid">
       <div class="card span7">
         <h2>Kết nối Google Apps Script</h2>
-        <p class="muted"><b>V5.0 dùng cố định URL trực tiếp trong index.html.</b> Không còn đọc URL từ localStorage nên tránh dùng nhầm link cũ.</p>
+        <p class="muted"><b>V7.0 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
         <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
           <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
           <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
@@ -191,7 +238,7 @@ const API_PROXY_URL = '/api/sheet';</code>
 // Nếu Deploy lại và Google cấp URL mới, chỉ thay đúng chuỗi nằm trong dấu nháy.
 // KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
 // ============================================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJGI14qSGHWHJWVi75tMzKcir_uU8OoxajKt2VDbPLtz4krl-uJWbgSjABX81r6yOE/exec';
 
 // V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
 const API_PROXY_URL = '/api/sheet';
@@ -200,18 +247,19 @@ const API_PROXY_URL = '/api/sheet';
 // ============================================================================
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const LS={students:'class3d_v50_students',history:'class3d_v50_history',bank:'class3d_v50_bank',className:'class3d_v50_class',selection:'class3d_v50_selection'};
-const APP_VERSION='6.0.0';
+const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
+const APP_VERSION='7.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
+let scoresData=safeLoad(LS.scores,[]);
 let questionBank=safeLoad(LS.bank,[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'')).filter(validQuestion);
 let selectedQuestions=[];
 let currentStudent=null,calledIds=new Set(),loadingStudents=false;
 let game={type:null,a:0,b:0,turn:'A',used:[],current:null,locked:false};
-let game3d=null;
+let game3d=null,wheel3d=null,wheelAudio=null;
 
 function safeLoad(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x??d}catch{return d}}
-function saveLocal(){localStorage.setItem(LS.students,JSON.stringify(students));localStorage.setItem(LS.history,JSON.stringify(historyData));localStorage.setItem(LS.bank,JSON.stringify(questionBank))}
+function saveLocal(){localStorage.setItem(LS.students,JSON.stringify(students));localStorage.setItem(LS.history,JSON.stringify(historyData));localStorage.setItem(LS.scores,JSON.stringify(scoresData));localStorage.setItem(LS.bank,JSON.stringify(questionBank))}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),4200)}
 function fmtTime(v){if(!v)return'';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('vi-VN')}
@@ -219,34 +267,83 @@ function typeset(){setTimeout(()=>window.MathJax?.typesetPromise?.().catch(()=>{
 function beep(freq=600,d=.09){if(!$('#soundMode')?.checked)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.05,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch{}}
 
 $$('.tab[data-screen]').forEach(b=>b.onclick=()=>go(b.dataset.screen));
-function go(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));$$('.tab[data-screen]').forEach(x=>x.classList.toggle('active',x.dataset.screen===id));if(id==='games')setTimeout(()=>game3d?.resize(),100)}
+function go(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));$$('.tab[data-screen]').forEach(x=>x.classList.toggle('active',x.dataset.screen===id));if(id==='games')setTimeout(()=>game3d?.resize(),100);if(id==='random')setTimeout(()=>wheel3d?.resize(),100)}
 
 function normalizeStudent(s,i=0){return{id:String(s?.id??i+1).trim(),stt:Number(s?.stt??i+1)||i+1,name:String(s?.name??'').trim(),className:String(s?.className??'').trim(),totalPoint:Number(s?.totalPoint??0)||0,callCount:Number(s?.callCount??0)||0,lastCalled:String(s?.lastCalled??''),active:s?.active!==false}}
 function currentClass(){return $('#classSelect')?.value||localStorage.getItem(LS.className)||''}
 function classes(){return[...new Set(students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}))}
 function populateClasses(preferred=''){const sel=$('#classSelect'),list=classes();const old=preferred||localStorage.getItem(LS.className)||sel.value;sel.innerHTML=list.length?list.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''):'<option value="">Chưa có lớp</option>';if(list.includes(old))sel.value=old;else if(list[0])sel.value=list[0];localStorage.setItem(LS.className,sel.value||'')}
-$('#classSelect').addEventListener('change',()=>{localStorage.setItem(LS.className,currentClass());calledIds.clear();currentStudent=null;renderAll()});
+$('#classSelect').addEventListener('change',()=>{localStorage.setItem(LS.className,currentClass());calledIds.clear();currentStudent=null;renderAll();rebuildWheel();});
+$('#noRepeat').addEventListener('change',()=>rebuildWheel());$('#fairMode').addEventListener('change',()=>rebuildWheel());
 function classStudents(activeOnly=true){const c=currentClass();return students.filter(s=>(!c||s.className===c)&&(!activeOnly||s.active!==false))}
 
 function renderAll(){populateClasses(currentClass());const list=classStudents(true);$('#statStudents').textContent=list.length;$('#statCalled').textContent=[...calledIds].filter(id=>list.some(s=>String(s.id)===String(id))).length;$('#statPoints').textContent=list.reduce((a,s)=>a+Number(s.totalPoint||0),0);$('#statQuestions').textContent=selectedQuestions.length;$('#callBadge').textContent=currentClass()?`Lớp ${currentClass()} • ${calledIds.size}/${list.length} đã gọi`:`Chưa có lớp • ${list.length} học sinh`;$('#studentCount').textContent=`${students.length} học sinh`;
   $('#studentBody').innerHTML=students.map(s=>`<tr><td>${s.stt}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.className)}</td><td>${s.totalPoint}</td><td>${s.callCount}</td></tr>`).join('');
   $('#historyBody').innerHTML=historyData.slice().reverse().slice(0,700).map(h=>`<tr><td>${fmtTime(h.timestamp)}</td><td>${esc(h.className)}</td><td><b>${esc(h.studentName)}</b></td><td>${esc(h.action)}</td><td>${esc(h.value)}</td><td>${esc(h.note)}</td></tr>`).join('');
   setStudentStatus(list.length?`Đã nạp ${list.length} học sinh lớp ${currentClass()||'(chưa chọn)'}.`:'Chưa có học sinh phù hợp lớp đang chọn.',!!list.length);
-  renderBank();
+  renderSelectedStudent();renderBank();
 }
 function setStudentStatus(msg,ok=false){const el=$('#studentStatus');el.textContent=msg;el.className='data-status '+(ok?'ok':'')}
 
-async function callRandomStudent(){const btn=$('#callBtn');btn.disabled=true;try{if(!students.length&&getApi())await loadStudentsFromSheet(true);let pool=classStudents(true);if(!pool.length){toast('Không có học sinh lớp đang chọn. Hãy bấm “Nạp danh sách từ Sheet”.');return}if($('#noRepeat').checked){pool=pool.filter(s=>!calledIds.has(String(s.id)));if(!pool.length){toast('Đã gọi hết lớp. Bấm “Vòng mới”.');return}}if($('#fairMode').checked){const m=Math.min(...pool.map(s=>s.callCount));pool=pool.filter(s=>s.callCount===m)}
-  for(let i=0;i<22;i++){const s=pool[Math.floor(Math.random()*pool.length)];$('#studentName').textContent=s.name;beep(280+i*12,.025);await wait(55+i*1.2)}
-  currentStudent=pool[Math.floor(Math.random()*pool.length)];$('#studentName').textContent=currentStudent.name;calledIds.add(String(currentStudent.id));currentStudent.callCount++;currentStudent.lastCalled=new Date().toISOString();$('#scoreControls').classList.remove('hide');addHistory({action:'CALL',value:'',note:'Gọi ngẫu nhiên'});saveLocal();renderAll();beep(880,.18)}finally{btn.disabled=false}}
-function resetRound(){calledIds.clear();currentStudent=null;$('#studentName').textContent='SẴN SÀNG?';$('#scoreControls').classList.add('hide');renderAll();toast('Đã bắt đầu vòng mới.')}
+function eligiblePool(){let pool=classStudents(true);if($('#noRepeat').checked)pool=pool.filter(s=>!calledIds.has(String(s.id)));if($('#fairMode').checked&&pool.length){const m=Math.min(...pool.map(s=>s.callCount));pool=pool.filter(s=>s.callCount===m)}return pool}
+
+function rebuildWheel(){const list=eligiblePool().length?eligiblePool():classStudents(true);if(typeof THREE==='undefined'||!$('#wheelCanvas'))return;wheel3d?.dispose();wheel3d=new Wheel3D($('#wheelCanvas'));wheel3d.setStudents(list);wheel3d.resize();if(!list.length)$('#wheelSub').textContent='Chưa có học sinh để tạo vòng quay';else $('#wheelSub').textContent=`${list.length} học sinh đang ở trên vòng quay`}
+
+async function callRandomStudent(){
+  const btn=$('#callBtn');if(btn.disabled)return;if(!wheelAudio)wheelAudio=new WheelAudio();wheelAudio.ensure();btn.disabled=true;btn.classList.add('spinning');
+  try{
+    if(!students.length&&getApi())await loadStudentsFromSheet(true);
+    const pool=eligiblePool();
+    if(!pool.length){toast($('#noRepeat').checked?'Đã gọi hết lớp. Bấm “Vòng mới”.':'Không có học sinh lớp đang chọn.');return}
+    if(typeof THREE==='undefined')throw new Error('Không tải được thư viện Three.js. Kiểm tra Internet.');
+    if(!wheel3d)rebuildWheel();
+    wheel3d.setStudents(pool);
+    const targetIndex=Math.floor(Math.random()*pool.length);
+    $('#wheelSub').textContent='Vòng quay đang chọn học sinh...';
+    const winner=await wheel3d.spinTo(targetIndex,pool);
+    currentStudent=winner;
+    $('#studentName').textContent=currentStudent.name;
+    calledIds.add(String(currentStudent.id));
+    currentStudent.callCount=Number(currentStudent.callCount||0)+1;
+    currentStudent.lastCalled=new Date().toISOString();
+    addHistory({action:'CALL',value:'',note:'Gọi bằng Chiếc nón 3D'});
+    saveLocal();renderAll();
+    $('#wheelSub').textContent=`🎉 Lần gọi thứ ${currentStudent.callCount} • ${currentStudent.className}`;
+    wheelWinSound();
+  }catch(err){toast(err.message||String(err))}
+  finally{btn.disabled=false;btn.classList.remove('spinning')}
+}
+
+function resetRound(){calledIds.clear();currentStudent=null;$('#studentName').textContent='SẴN SÀNG QUAY?';$('#wheelSub').textContent='Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên';renderAll();rebuildWheel();toast('Đã bắt đầu vòng mới.')}
 function changePoint(v){if(!currentStudent)return toast('Chưa gọi học sinh.');const note=prompt(v>0?'Ghi chú điểm cộng:':'Ghi chú điểm trừ:','')||'';currentStudent.totalPoint+=v;addHistory({action:v>0?'PLUS':'MINUS',value:v,note});saveLocal();renderAll();beep(v>0?760:230,.13)}
-function enterScore(){if(!currentStudent)return toast('Chưa gọi học sinh.');const raw=prompt('Nhập điểm 0–10:','8');if(raw===null)return;const score=Number(String(raw).replace(',','.'));if(!Number.isFinite(score)||score<0||score>10)return toast('Điểm phải từ 0 đến 10.');const note=prompt('Ghi chú:','Kiểm tra bài cũ')||'';const entry={...entryBase(),score,note};historyData.push({...entry,action:'SCORE',value:score});saveLocal();renderAll();apiPost({action:'saveScore',entry});toast('Đã lưu điểm '+score)}
+function setQuickScore(v){$('#callScoreInput').value=v;$('#callScoreInput').focus()}
+function currentStudentScores(){if(!currentStudent)return[];return scoresData.filter(x=>String(x.studentId||'')===String(currentStudent.id)||(!x.studentId&&x.studentName===currentStudent.name&&x.className===currentStudent.className)).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))}
+function renderSelectedStudent(){
+  const box=$('#scoreSession');if(!box)return;
+  if(!currentStudent){box.classList.add('empty');$('#selectedStudentName').textContent='Chưa có học sinh';$('#selectedStudentClass').textContent='—';$('#selectedTotalPoint').textContent='Điểm +/-: 0';$('#callNoBadge').textContent='Chưa gọi';$('#saveCallScoreBtn').disabled=true;$('#studentScoreHistory').innerHTML='<div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div>';return}
+  box.classList.remove('empty');$('#selectedStudentName').textContent=currentStudent.name;$('#selectedStudentClass').textContent=`Lớp ${currentStudent.className}`;$('#selectedTotalPoint').textContent=`Điểm +/-: ${currentStudent.totalPoint}`;$('#callNoBadge').textContent=`Lần gọi #${currentStudent.callCount}`;$('#saveCallScoreBtn').disabled=false;
+  const arr=currentStudentScores();$('#studentScoreHistory').innerHTML=arr.length?arr.slice(0,8).map((x,i)=>`<div class="score-record"><span>${x.callNo?`Lần ${esc(x.callNo)}`:`#${arr.length-i}`}</span><span>${esc(x.note||'')}</span><strong>${esc(x.score)}</strong></div>`).join(''):'<div class="score-empty">Chưa có điểm chính thức cho học sinh này.</div>';
+  const same=arr.find(x=>Number(x.callNo)===Number(currentStudent.callCount));if(same){$('#callScoreInput').value=same.score;$('#callScoreNote').value=same.note||''}else{$('#callScoreInput').value='';$('#callScoreNote').value=''}
+}
+async function saveCallScore(){
+  if(!currentStudent)return toast('Chưa gọi học sinh.');
+  const raw=$('#callScoreInput').value;const score=Number(String(raw).replace(',','.'));
+  if(!Number.isFinite(score)||score<0||score>10)return toast('Điểm phải từ 0 đến 10.');
+  const note=$('#callScoreNote').value.trim()||'Dò bài';
+  const entry={...entryBase(),callNo:Number(currentStudent.callCount||1),score,note};
+  const key=x=>String(x.studentId||'')===String(entry.studentId)&&Number(x.callNo||0)===entry.callNo;
+  const pos=scoresData.findIndex(key);if(pos>=0)scoresData[pos]={...scoresData[pos],...entry};else scoresData.push(entry);
+  historyData.push({...entry,action:'SCORE',value:score});saveLocal();renderAll();
+  const ok=await apiPost({action:'saveScore',entry});
+  toast(ok?`Đã lưu ${score} điểm cho ${currentStudent.name} – lần ${entry.callNo}.`:'Đã lưu tạm trên máy nhưng chưa ghi được lên Sheet.');
+  if(ok)beep(920,.18)
+}
+function enterScore(){saveCallScore()}
 function entryBase(){return{timestamp:new Date().toISOString(),className:currentStudent?.className||currentClass(),studentId:currentStudent?.id||'',studentName:currentStudent?.name||''}}
 function addHistory(x){const e={...entryBase(),...x};historyData.push(e);apiPost({action:'addHistory',entry:e})}
 function wait(ms){return new Promise(r=>setTimeout(r,ms))}
 
-$('#excelFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});const lower=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim().toLowerCase(),v]));students=rows.map((r,i)=>{r=lower(r);return normalizeStudent({id:r.id||i+1,stt:r.stt||r['số thứ tự']||i+1,name:r.name||r['họ và tên']||r['họ tên']||r['tên']||'',className:r.classname||r['lớp']||r.lop||currentClass(),active:true},i)}).filter(s=>s.name);saveLocal();populateClasses();renderAll();toast(`Đã nạp ${students.length} học sinh từ Excel.`)}catch(err){toast('Không đọc được Excel: '+err.message)}finally{e.target.value=''}});
+$('#excelFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});const lower=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim().toLowerCase(),v]));students=rows.map((r,i)=>{r=lower(r);return normalizeStudent({id:r.id||i+1,stt:r.stt||r['số thứ tự']||i+1,name:r.name||r['họ và tên']||r['họ tên']||r['tên']||'',className:r.classname||r['lớp']||r.lop||currentClass(),active:true},i)}).filter(s=>s.name);saveLocal();populateClasses();renderAll();rebuildWheel();toast(`Đã nạp ${students.length} học sinh từ Excel.`)}catch(err){toast('Không đọc được Excel: '+err.message)}finally{e.target.value=''}});
 
 function getApi(){
   return String(API_PROXY_URL||'').trim();
@@ -315,13 +412,14 @@ async function loadStudentsFromSheet(silent=false){
     const d=await apiGet('students');
     students=(d.students||[]).map(normalizeStudent).filter(s=>s.name);
     saveLocal();populateClasses();calledIds.clear();currentStudent=null;
-    $('#studentName').textContent='SẴN SÀNG?';$('#scoreControls').classList.add('hide');renderAll();
+    $('#studentName').textContent='SẴN SÀNG QUAY?';$('#wheelSub').textContent='Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên';renderAll();rebuildWheel();
     if(!silent)toast(`Đã nạp ${students.length} học sinh từ Sheet.`);return true
   }catch(err){setStudentStatus(err.message,false);if(!silent)toast(err.message);return false}
   finally{loadingStudents=false}
 }
 async function syncStudents(){if(!students.length)return toast('Danh sách web đang trống; không ghi đè Sheet.');if(!confirm(`Ghi ${students.length} học sinh lên sheet Students?`))return;const sent=await apiPost({action:'saveStudents',students});if(!sent)return;await wait(500);const ok=await loadStudentsFromSheet(true);toast(ok?'Đã ghi và kiểm tra lại Students.':'Đã gửi dữ liệu nhưng chưa đọc kiểm tra được.')}
 async function loadHistoryFromSheet(){try{const d=await apiGet('history');historyData=d.history||[];saveLocal();renderAll();toast('Đã tải lịch sử.')}catch(err){toast(err.message)}}
+async function loadScoresFromSheet(silent=false){try{const d=await apiGet('scores');if(!d?.ok)throw new Error(d?.error||'Không đọc được Scores.');scoresData=d.scores||[];saveLocal();renderSelectedStudent();if(!silent)toast(`Đã tải ${scoresData.length} bản ghi điểm.`);return true}catch(err){if(!silent)toast(err.message);return false}}
 
 function normalizeQuestion(q,i=0,source=''){
   q=q||{};let opts=q.Options??q.options??q.answers??[];let optionPairs=[];
@@ -364,6 +462,32 @@ function award(team,fromAnswer=false){if(game.a>=winScore()||game.b>=winScore())
 function manualPoint(t){award(t,false)}
 function resetGame(){game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;$('#winner').classList.remove('show');updateHud();setTurn('A');game3d?.setProgress(0,0,winScore());nextQuestion()}
 
+
+class WheelAudio{
+  constructor(){this.ctx=null;this.whirr=null;this.whirrGain=null}
+  ensure(){if(!$('#soundMode')?.checked)return null;try{if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();return this.ctx}catch{return null}}
+  tick(intensity=.7){const a=this.ensure();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=900+intensity*650;g.gain.setValueAtTime(.035+intensity*.02,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.028);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.03)}
+  startWhirr(){const a=this.ensure();if(!a||this.whirr)return;const o=a.createOscillator(),g=a.createGain();o.type='sawtooth';o.frequency.value=70;g.gain.value=.0001;o.connect(g);g.connect(a.destination);o.start();this.whirr=o;this.whirrGain=g}
+  updateWhirr(speed){if(!this.whirr)return;const a=this.ctx;this.whirr.frequency.setTargetAtTime(65+Math.min(240,speed*16),a.currentTime,.03);this.whirrGain.gain.setTargetAtTime(.006+Math.min(.025,speed*.0018),a.currentTime,.04)}
+  stopWhirr(){if(!this.whirr)return;const a=this.ctx,o=this.whirr,g=this.whirrGain;g.gain.setTargetAtTime(.0001,a.currentTime,.08);setTimeout(()=>{try{o.stop()}catch{}},220);this.whirr=null;this.whirrGain=null}
+  win(){const a=this.ensure();if(!a)return;[523.25,659.25,783.99,1046.5].forEach((f,i)=>setTimeout(()=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.055,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.22);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.24)},i*85))}
+}
+function wheelWinSound(){if(!wheelAudio)wheelAudio=new WheelAudio();wheelAudio.win()}
+
+class Wheel3D{
+  constructor(canvas){this.canvas=canvas;this.items=[];this.disposed=false;this.spinning=false;this.currentRotation=0;this.lastPointerIndex=-1;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(37,1,.1,50);this.camera.position.set(0,.75,13.2);this.camera.lookAt(0,0,0);this.scene.add(new THREE.HemisphereLight(0xcbeeff,0x101628,1.8));const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(-4,7,9);key.castShadow=true;key.shadow.mapSize.set(1024,1024);this.scene.add(key);const rim=new THREE.PointLight(0x6c5cff,18,24);rim.position.set(5,-2,6);this.scene.add(rim);this.root=new THREE.Group();this.root.rotation.x=-.16;this.scene.add(this.root);this.wheel=new THREE.Group();this.root.add(this.wheel);this.makeStand();this._resize=()=>this.resize();window.addEventListener('resize',this._resize);if(!wheelAudio)wheelAudio=new WheelAudio();this.animate()}
+  makeStand(){const mat=new THREE.MeshStandardMaterial({color:0x162c48,metalness:.72,roughness:.28});const base=new THREE.Mesh(new THREE.CylinderGeometry(2.0,2.5,.5,48),mat);base.rotation.x=Math.PI/2;base.position.set(0,-4.35,-.95);base.castShadow=true;this.root.add(base);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,3.2,24),mat);pole.position.set(0,-3.0,-.9);pole.castShadow=true;this.root.add(pole)}
+  clearWheel(){while(this.wheel.children.length){const o=this.wheel.children.pop();o.traverse?.(x=>{x.geometry?.dispose?.();if(x.material){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.map?.dispose?.();m.dispose?.()})}})}}
+  shortName(s){s=s||{};const parts=String(s.name||'').trim().split(/\s+/);let n=parts.length>1?parts.slice(-2).join(' '):parts[0]||'';if(n.length>15)n=n.slice(0,14)+'…';return `${s.stt||''}. ${n}`.trim()}
+  textSprite(text,scale=.74){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.font='900 42px Arial';x.textAlign='center';x.textBaseline='middle';x.lineWidth=8;x.strokeStyle='rgba(0,0,0,.5)';x.strokeText(text,256,64);x.fillStyle='#ffffff';x.fillText(text,256,64);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=this.renderer.capabilities.getMaxAnisotropy();const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true}));sp.scale.set(2.55*scale,.64*scale,1);return sp}
+  setStudents(items){if(this.spinning)return;this.items=[...items];this.clearWheel();const n=Math.max(1,this.items.length),step=Math.PI*2/n,R=4.15;const colors=[0x22b8df,0x735eea,0xf25582,0xf0ad3d,0x22bb7d,0x3578e5,0xd656c1,0x43b5a5];for(let i=0;i<this.items.length;i++){const a0=i*step,a1=(i+1)*step;const shape=new THREE.Shape();shape.moveTo(0,0);const segs=8;for(let j=0;j<=segs;j++){const a=a0+(a1-a0)*j/segs;shape.lineTo(Math.cos(a)*R,Math.sin(a)*R)}shape.lineTo(0,0);const geo=new THREE.ExtrudeGeometry(shape,{depth:.42,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:1,steps:1});geo.translate(0,0,-.21);const mat=new THREE.MeshStandardMaterial({color:colors[i%colors.length],metalness:.3,roughness:.42,emissive:colors[i%colors.length],emissiveIntensity:.035});const mesh=new THREE.Mesh(geo,mat);mesh.castShadow=true;mesh.receiveShadow=true;this.wheel.add(mesh);const mid=(a0+a1)/2,r=n>26?2.75:2.85;const sp=this.textSprite(this.shortName(this.items[i]),n>30?.55:n>20?.66:.78);sp.position.set(Math.cos(mid)*r,Math.sin(mid)*r,.34);sp.material.rotation=mid+Math.PI/2;this.wheel.add(sp)}const rimMat=new THREE.MeshStandardMaterial({color:0xe7f3ff,metalness:.86,roughness:.2});const rim=new THREE.Mesh(new THREE.TorusGeometry(R+.05,.12,12,128),rimMat);rim.position.z=.22;rim.castShadow=true;this.wheel.add(rim);const rim2=new THREE.Mesh(new THREE.TorusGeometry(R-.35,.06,10,128),new THREE.MeshStandardMaterial({color:0x7f9bb9,metalness:.7,roughness:.28}));rim2.position.z=.25;this.wheel.add(rim2);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.52,48),new THREE.MeshStandardMaterial({color:0xffd45f,metalness:.75,roughness:.24}));hub.rotation.x=Math.PI/2;hub.position.z=.25;hub.castShadow=true;this.wheel.add(hub);const cap=new THREE.Mesh(new THREE.SphereGeometry(.4,32,20),new THREE.MeshStandardMaterial({color:0xfff4ba,metalness:.45,roughness:.18}));cap.position.z=.58;this.wheel.add(cap);this.wheel.rotation.z=this.currentRotation}
+  pointerIndex(rot=this.wheel.rotation.z){const n=this.items.length;if(!n)return-1;const step=Math.PI*2/n;let a=(Math.PI/2-rot)%(Math.PI*2);if(a<0)a+=Math.PI*2;return Math.min(n-1,Math.floor(a/step))}
+  async spinTo(targetIndex,items){if(this.spinning)throw new Error('Vòng quay đang chạy.');if(items)this.setStudents(items);if(!this.items.length)throw new Error('Không có học sinh trên vòng quay.');this.spinning=true;const n=this.items.length,step=Math.PI*2/n,center=targetIndex*step+step/2,start=this.wheel.rotation.z;let delta=(Math.PI/2-center-start)%(Math.PI*2);if(delta<0)delta+=Math.PI*2;const turns=5+Math.floor(Math.random()*3);const total=turns*Math.PI*2+delta;const duration=5200+Math.random()*900;const t0=performance.now();this.lastPointerIndex=this.pointerIndex(start);wheelAudio.startWhirr();return await new Promise(resolve=>{const frame=now=>{const p=Math.min(1,(now-t0)/duration);const ease=1-Math.pow(1-p,4.2);const wobble=p>.84?Math.sin((p-.84)*65)*(1-p)*.018:0;this.wheel.rotation.z=start+total*ease+wobble;const speed=(total/duration)*(1-p)*1000;wheelAudio.updateWhirr(speed);const idx=this.pointerIndex();if(idx!==this.lastPointerIndex&&idx>=0){this.lastPointerIndex=idx;wheelAudio.tick(Math.max(.25,Math.min(1,speed/18)));if(this.items[idx]){$('#studentName').textContent=this.items[idx].name;$('#wheelSub').textContent=`Đang lướt qua • ${this.items[idx].stt||''}`}}if(p<1)requestAnimationFrame(frame);else{this.wheel.rotation.z=start+total;this.currentRotation=this.wheel.rotation.z;wheelAudio.stopWhirr();this.spinning=false;resolve(this.items[targetIndex])}};requestAnimationFrame(frame)})}
+  animate(){if(this.disposed)return;requestAnimationFrame(()=>this.animate());const t=performance.now()/1000;if(!this.spinning)this.root.rotation.y=Math.sin(t*.65)*.025;this.renderer.render(this.scene,this.camera)}
+  resize(){const r=this.canvas.getBoundingClientRect();const w=Math.max(320,r.width),h=Math.max(420,r.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
+  dispose(){this.disposed=true;window.removeEventListener('resize',this._resize);this.clearWheel();this.scene.traverse(o=>{o.geometry?.dispose?.();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.map?.dispose?.();m.dispose?.()})});this.renderer.dispose()}
+}
+
 class Game3D{
   constructor(canvas,type){this.canvas=canvas;this.type=type;this.disposed=false;this.clock=new THREE.Clock();this.targetA=0;this.targetB=0;this.shake=0;this.confetti=[];this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x071321);this.scene.fog=new THREE.Fog(0x071321,24,60);this.camera=new THREE.PerspectiveCamera(48,1,.1,120);this.scene.add(new THREE.HemisphereLight(0x9fd9ff,0x172214,1.55));const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-8,18,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=28;sun.shadow.camera.bottom=-28;this.scene.add(sun);this.addStadium();type==='tug'?this.buildTug():this.buildRace();this.resize();this._resize=()=>this.resize();window.addEventListener('resize',this._resize);this.animate()}
   mat(c,rough=.55,metal=.15){return new THREE.MeshStandardMaterial({color:c,roughness:rough,metalness:metal})}
@@ -395,12 +519,13 @@ async function bootstrap(){
     const ping=await apiGet('ping');
     setApiStatus(true,`Proxy và Apps Script hoạt động. Đang nạp dữ liệu...`,`Frontend V${APP_VERSION}\nApps Script alive V${alive.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nStudents rows: ${ping.studentRows}`);
     await loadStudentsFromSheet(true);
+    await loadScoresFromSheet(true);
     if(!questionBank.length)await loadQuestionBankFromSheet(true);
     setApiStatus(true,`Kết nối sẵn sàng: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nProxy: OK\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}`);
   }catch(err){
     setApiStatus(false,'Chưa kết nối được: '+err.message,`Lỗi: ${err.message}\n\n1) Nếu /api/sheet 404: thiếu file api/sheet.js trên GitHub.\n2) Nếu Apps Script trả về HTML/login: deployment chưa public.\n3) Nếu alive OK nhưng ping lỗi: chạy setup() hoặc điền SPREADSHEET_ID.`);
   }
-  renderAll();
+  renderAll();rebuildWheel();
 }
 bootstrap();
 </script>

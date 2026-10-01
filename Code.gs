@@ -1,5 +1,5 @@
 /**
- * LOP HOC TUONG TAC - BACKEND V6.0
+ * LOP HOC TUONG TAC - BACKEND V7.0
  * Google Apps Script bound to the Google Sheet.
  *
  * FIRST USE:
@@ -10,7 +10,7 @@
  */
 
 const APP = {
-  VERSION: '6.0.0',
+  VERSION: '7.0.0',
   DB_KEY: 'CLASSROOM_DB_ID',
   SHEETS: {
     STUDENTS: 'Students',
@@ -145,7 +145,7 @@ function db_() {
 function ensureSheets_(ss) {
   ensureSheet_(ss, APP.SHEETS.STUDENTS, ['id', 'stt', 'name', 'className', 'totalPoint', 'callCount', 'lastCalled', 'active']);
   ensureSheet_(ss, APP.SHEETS.HISTORY, ['timestamp', 'className', 'studentId', 'studentName', 'action', 'value', 'note']);
-  ensureSheet_(ss, APP.SHEETS.SCORES, ['timestamp', 'className', 'studentId', 'studentName', 'score', 'note']);
+  ensureScoresSheet_(ss);
   ensureSheet_(ss, APP.SHEETS.QUESTIONS, [
     'id', 'type', 'level', 'grade', 'subject', 'chapter', 'topic', 'question',
     'optionsJson', 'correctAnswer', 'explain', 'sourceFile', 'updatedAt'
@@ -163,6 +163,34 @@ function ensureSheet_(ss, name, headers) {
     if (existing.every(v => !String(v || '').trim())) {
       sh.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
+  }
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  return sh;
+}
+
+
+/**
+ * V7: Scores lưu rõ điểm theo từng lần gọi.
+ * Cấu trúc mới: timestamp | className | studentId | studentName | callNo | score | note
+ * Nếu sheet Scores cũ chỉ có 6 cột, tự chèn cột callNo tại E mà không mất dữ liệu cũ.
+ */
+function ensureScoresSheet_(ss) {
+  const headers = ['timestamp', 'className', 'studentId', 'studentName', 'callNo', 'score', 'note'];
+  let sh = ss.getSheetByName(APP.SHEETS.SCORES);
+  if (!sh) sh = ss.insertSheet(APP.SHEETS.SCORES);
+
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  } else {
+    const width = Math.max(7, sh.getLastColumn());
+    const h = sh.getRange(1, 1, 1, width).getDisplayValues()[0].map(normalizeHeader_);
+    const hasCallNo = h.indexOf('callno') >= 0 || h.indexOf('lan goi') >= 0;
+    const scoreAtE = h[4] === 'score' || h[4] === 'diem';
+    if (!hasCallNo && scoreAtE) {
+      sh.insertColumnAfter(4);
+    }
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
   sh.setFrozenRows(1);
   sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
@@ -201,6 +229,7 @@ function repairStudentClassColumn_(ss) {
 function ping_(ss) {
   const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
   const q = ss.getSheetByName(APP.SHEETS.QUESTIONS);
+  const sc = ss.getSheetByName(APP.SHEETS.SCORES);
   const headers = sh.getLastColumn() ? sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0] : [];
   return {
     ok: true,
@@ -209,6 +238,7 @@ function ping_(ss) {
     spreadsheetName: ss.getName(),
     studentRows: Math.max(0, sh.getLastRow() - 1),
     questionRows: Math.max(0, q.getLastRow() - 1),
+    scoreRows: Math.max(0, sc.getLastRow() - 1),
     studentHeaders: headers,
     timeZone: Session.getScriptTimeZone()
   };
@@ -307,22 +337,23 @@ function getHistory_(ss) {
 }
 
 function getScores_(ss) {
-  const sh = ss.getSheetByName(APP.SHEETS.SCORES);
+  const sh = ensureScoresSheet_(ss);
   const v = sh.getDataRange().getValues();
   const rows = [];
   for (let i = 1; i < v.length; i++) {
-    if (!v[i][0]) continue;
+    if (!v[i][0] && !v[i][3]) continue;
     rows.push({
       timestamp: toIso_(v[i][0]),
       className: String(v[i][1] || ''),
       studentId: String(v[i][2] || ''),
       studentName: String(v[i][3] || ''),
-      score: Number(v[i][4] || 0),
-      note: String(v[i][5] || '')
+      callNo: Number(v[i][4] || 0),
+      score: Number(v[i][5] || 0),
+      note: String(v[i][6] || '')
     });
   }
   rows.reverse();
-  return { ok: true, scores: rows.slice(0, 1000), version: APP.VERSION };
+  return { ok: true, scores: rows.slice(0, 1500), version: APP.VERSION };
 }
 
 function addHistory_(ss, entry) {
@@ -344,14 +375,34 @@ function addHistory_(ss, entry) {
 function saveScore_(ss, entry) {
   const score = Number(entry.score);
   if (!Number.isFinite(score) || score < 0 || score > 10) throw new Error('Diem phai tu 0 den 10.');
-  ss.getSheetByName(APP.SHEETS.SCORES).appendRow([
+  const callNo = Math.max(0, Number(entry.callNo || 0));
+  const sh = ensureScoresSheet_(ss);
+  const row = [
     entry.timestamp ? new Date(entry.timestamp) : new Date(),
     String(entry.className || ''),
     String(entry.studentId || ''),
     String(entry.studentName || ''),
+    callNo,
     score,
     String(entry.note || '')
-  ]);
+  ];
+
+  // Nếu cùng học sinh + cùng lần gọi đã có điểm thì cập nhật, không tạo bản sao.
+  let target = -1;
+  if (callNo > 0 && sh.getLastRow() > 1) {
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getDisplayValues();
+    const sid = String(entry.studentId || '').trim();
+    const sname = String(entry.studentName || '').trim();
+    const cls = String(entry.className || '').trim();
+    for (let i = 0; i < data.length; i++) {
+      const sameId = sid && String(data[i][2] || '').trim() === sid;
+      const sameFallback = !sameId && sname && String(data[i][3] || '').trim() === sname && String(data[i][1] || '').trim() === cls;
+      if ((sameId || sameFallback) && Number(data[i][4] || 0) === callNo) { target = i + 2; break; }
+    }
+  }
+  if (target > 0) sh.getRange(target, 1, 1, 7).setValues([row]);
+  else sh.appendRow(row);
+
   addHistory_(ss, {
     timestamp: entry.timestamp || new Date().toISOString(),
     className: entry.className,
@@ -359,9 +410,10 @@ function saveScore_(ss, entry) {
     studentName: entry.studentName,
     action: 'SCORE',
     value: score,
-    note: entry.note || ''
+    note: (callNo ? ('Lan goi #' + callNo + ' - ') : '') + String(entry.note || '')
   });
-  return { ok: true };
+  SpreadsheetApp.flush();
+  return { ok: true, updated: target > 0, callNo: callNo, score: score };
 }
 
 function updateStudentStats_(ss, entry) {

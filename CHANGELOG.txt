@@ -1,13 +1,13 @@
-V13 - TV UI / GAME FIX
-======================
+V15 FINAL
 
-1. Giao diện tổng thể sáng hơn, chữ lớn hơn, phù hợp TV.
-2. Chế độ trình chiếu vòng quay: vòng quay nhỏ hơn, bảng điều khiển + sổ điểm vẫn hiển thị bên phải.
-3. Game: giảm chiều cao sân 3D, tăng diện tích câu hỏi.
-4. Hình / bảng câu hỏi lớn hơn và có click để phóng to.
-5. MathJax được retry + typeset lại khi câu hỏi thay đổi.
-6. Có auto-wrap một số lệnh LaTeX phổ biến nếu dữ liệu chưa có delimiter.
-7. Đầu mỗi câu, cả hai đội cùng có quyền trả lời.
-8. Đội trả lời sai bị khóa; đội còn lại tiếp tục.
-9. Sửa cập nhật điểm đội + hiệu ứng score pop.
-10. Giữ nguyên toàn bộ gọi tên / điểm lần gọi / sổ điểm lớp.
+- Gom đầy đủ gọi tên, ghi điểm, sổ điểm và trò chơi.
+- Tăng kích thước chữ toàn giao diện.
+- Tăng mạnh kích thước hình/bảng câu hỏi.
+- Tăng kích thước câu hỏi và đáp án cho TV lớp học.
+- Giảm sân game 3D để tiết kiệm không gian.
+- Cải thiện MathJax, xử lý LaTeX escape hai lần.
+- Cả hai đội cùng được bấm ở đầu câu; sai mới chuyển quyền.
+- Hiệu ứng ĐÚNG/SAI/HẾT GIỜ dạng banner lớn.
+- Kéo co dùng hình minh họa người dùng cung cấp đã làm rõ.
+- Chế độ trình chiếu vòng quay làm nón nhỏ hơn, panel điểm hiển thị đầy đủ hơn.
+- Kèm api/sheet.js để triển khai Vercel trọn bộ.

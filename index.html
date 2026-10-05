@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác 3D V7.0</title>
+  <title>Lớp học tương tác 3D V8.0</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
-  <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'global'}};</script>
+  <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
   <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
   <style>
     :root{
@@ -58,12 +58,53 @@
     .question-board{min-height:690px;display:flex;flex-direction:column}.turns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.turn-btn{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#08182d;color:#dceaff;font-weight:900;cursor:pointer}.turn-btn.active.a{background:linear-gradient(135deg,#167ecb,#3bd6ff);box-shadow:0 0 0 3px rgba(72,220,255,.12)}.turn-btn.active.b{background:linear-gradient(135deg,#b22f54,#ff6c88);box-shadow:0 0 0 3px rgba(255,102,130,.12)}.qhead{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}.qmeta{font-size:12px;color:#a7bdd8}.qtext{font-size:19px;line-height:1.55;font-weight:800;margin:12px 0;max-height:250px;overflow:auto}.qtext img,.rich img{display:block;max-width:100%;max-height:260px;object-fit:contain;margin:10px auto;border-radius:14px;background:#fff;padding:5px}.answers{display:grid;gap:8px}.answer{width:100%;text-align:left;padding:12px 13px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:#08182d;color:#eef6ff;cursor:pointer;line-height:1.35;transition:.18s}.answer:hover{transform:translateX(3px);border-color:rgba(72,220,255,.45)}.answer.correct{background:rgba(63,224,161,.16);border-color:rgba(63,224,161,.7)}.answer.wrong{background:rgba(255,102,130,.16);border-color:rgba(255,102,130,.7)}.answer:disabled{cursor:default}.explain{margin-top:10px;padding:10px 11px;border-radius:13px;background:#07172b;color:#c9d9ed;line-height:1.45;min-height:42px}.game-actions{margin-top:auto;padding-top:12px}.winner{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:rgba(3,8,16,.55);backdrop-filter:blur(7px)}.winner.show{display:grid}.winner-card{text-align:center;background:linear-gradient(180deg,#142c49,#09192d);border:1px solid rgba(255,212,95,.45);border-radius:25px;padding:25px 35px;box-shadow:0 0 70px rgba(255,212,95,.22)}.winner-card .cup{font-size:72px;animation:bounce 1s ease-in-out infinite}.winner-card h2{font-size:34px;margin:6px 0;color:#ffe192}
     @keyframes pulse{50%{transform:scale(1.08);opacity:.75}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes bounce{50%{transform:translateY(-12px) rotate(-4deg)}}
     @media(max-width:1050px){.span4,.span5,.span6,.span7,.span8{grid-column:span 12}.game-layout{grid-template-columns:1fr}.question-board{min-height:auto}.game-stage,#gameCanvas{min-height:540px}.topbar{position:relative;align-items:flex-start}.game-hub{grid-template-columns:1fr}.filters,.question-preview{grid-template-columns:1fr}.statrow{grid-template-columns:repeat(2,1fr)}}
+
+
+    /* ========================= V8 PRESENTATION UI ========================= */
+    .random-stage{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;min-height:calc(100vh - 105px)}
+    .wheel-card-full{min-height:calc(100vh - 105px);padding:10px;border-radius:26px}
+    .wheel-card-full .wheel-wrap{inset:54px 8px 108px}
+    .wheel-card-full #wheelCanvas{min-height:calc(100vh - 185px)}
+    .wheel-card-full .wheel-result{bottom:92px;width:min(92%,900px)}
+    .wheel-card-full .wheel-result .student-name{font-size:clamp(38px,5.4vw,82px);white-space:normal;line-height:1.02}
+    .wheel-card-full .wheel-actions{bottom:18px}
+    .call-panel{min-height:calc(100vh - 105px);padding:12px;overflow:hidden;position:relative}
+    .call-panel-scroll{height:calc(100vh - 155px);overflow:auto;padding-right:3px;display:flex;flex-direction:column;gap:12px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .panel-hint{font-size:12px;margin-top:3px}.panel-collapse-btn{padding:8px 11px}
+    .control-section{padding-bottom:2px}.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .check-card{grid-column:span 2;display:flex!important;gap:9px;align-items:flex-start;margin:0!important;padding:10px 11px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);cursor:pointer}
+    .check-card.compact{grid-column:span 1;align-items:center}.check-card input{margin-top:3px}.check-card small{display:block;color:var(--muted);font-weight:650;margin-top:3px;line-height:1.35}
+    .class-scorebook{border-radius:18px;padding:12px;background:linear-gradient(180deg,rgba(9,28,50,.98),rgba(5,18,34,.98));border:1px solid rgba(72,220,255,.18)}
+    .scorebook-title{margin-bottom:9px}.class-scorebook-list{display:grid;gap:7px;margin-top:8px;max-height:370px;overflow:auto;padding-right:2px}
+    .scorebook-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 10px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);transition:.18s}
+    .scorebook-row.active{border-color:rgba(255,212,95,.72);box-shadow:0 0 0 2px rgba(255,212,95,.08)}.scorebook-row:hover{transform:translateY(-1px);border-color:rgba(72,220,255,.34)}
+    .scorebook-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.scorebook-meta{font-size:11px;color:var(--muted);margin-top:2px}.score-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+    .score-chip{font-size:11px;font-weight:950;padding:3px 7px;border-radius:999px;background:rgba(63,224,161,.13);border:1px solid rgba(63,224,161,.25);color:#a8f6d8}.score-chip.empty{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#8298b6}
+    .scorebook-call{padding:7px 9px!important;font-size:11px!important;white-space:nowrap}.floating-panel-btn{position:fixed;right:14px;bottom:14px;z-index:190;border:0;border-radius:999px;padding:13px 17px;background:linear-gradient(135deg,#d49b2c,#ffd45f);color:#231700;font-weight:1000;box-shadow:0 12px 35px rgba(0,0,0,.38);cursor:pointer}
+
+    body.wheel-presentation{overflow:hidden}.wheel-presentation .wrap{max-width:none;padding:0}.wheel-presentation .topbar{display:none}.wheel-presentation #random{padding:0}.wheel-presentation #random .random-stage{min-height:100vh;grid-template-columns:1fr}.wheel-presentation .wheel-card-full{min-height:100vh;border-radius:0;border:0}.wheel-presentation .wheel-card-full .wheel-wrap{inset:18px 10px 126px}.wheel-presentation .wheel-card-full #wheelCanvas{min-height:calc(100vh - 145px)}.wheel-presentation .wheel-head{top:16px;left:18px;right:18px}.wheel-presentation .wheel-pointer{top:28px}.wheel-presentation .wheel-result{bottom:101px;width:min(92%,1080px)}.wheel-presentation .wheel-result .student-name{font-size:clamp(54px,7vw,116px)}.wheel-presentation .call-panel{position:fixed;z-index:160;right:14px;top:14px;bottom:14px;width:min(420px,92vw);min-height:0;transform:translateX(calc(100% + 30px));transition:transform .25s ease;box-shadow:0 30px 90px rgba(0,0,0,.62)}.wheel-presentation .call-panel.open{transform:none}.wheel-presentation .call-panel-scroll{height:calc(100vh - 78px)}.wheel-presentation #floatingPanelBtn{display:block!important}.wheel-presentation .wheel-actions{bottom:20px}.wheel-presentation .spin-btn{font-size:24px!important;padding:17px 38px!important}
+
+    /* Game: câu hỏi là nội dung chính khi trình chiếu */
+    .game-layout-presentation{grid-template-columns:minmax(340px,.75fr) minmax(0,1.45fr);align-items:stretch}
+    .game-stage-showcase,.game-stage-showcase #gameCanvas{min-height:760px}.question-board-stage{min-height:760px;padding:20px;overflow:hidden}.question-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.question-focus{display:flex;flex-direction:column;justify-content:center;min-height:500px}
+    .qtext-large{font-size:clamp(28px,2.4vw,46px);line-height:1.42;font-weight:950;max-height:none;overflow:visible;text-align:center;margin:18px 4px 24px;letter-spacing:-.3px}.qtext-large mjx-container{font-size:1.08em!important;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 0}.qtext-large mjx-container[display="true"]{margin:.45em 0!important}
+    .answers-large{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.answers-large .answer{font-size:clamp(19px,1.45vw,27px);line-height:1.38;padding:16px 17px;border-radius:17px;font-weight:800;min-height:74px;display:flex;align-items:center;gap:9px}.answers-large .answer>b{display:inline-grid;place-items:center;flex:0 0 36px;height:36px;border-radius:11px;background:rgba(72,220,255,.12);color:#bcefff}.answers-large .answer .rich{min-width:0}.answers-large mjx-container{font-size:1.05em!important}
+    .explain-large{font-size:16px;min-height:54px}.next-question-btn{font-size:18px;padding:14px}.question-board-stage .turn-btn{font-size:16px;padding:13px}
+    body.game-presentation{overflow:hidden}.game-presentation .wrap{max-width:none;padding:0}.game-presentation .topbar{display:none}.game-presentation #games{padding:0}.game-presentation #gameHub{display:none!important}.game-presentation #gamePlay{display:block!important}.game-presentation .game-layout-presentation{height:100vh;grid-template-columns:minmax(300px,.62fr) minmax(0,1.7fr);gap:0}.game-presentation .game-stage-showcase,.game-presentation .game-stage-showcase #gameCanvas,.game-presentation .question-board-stage{min-height:100vh;border-radius:0}.game-presentation .question-board-stage{border-left:1px solid rgba(255,255,255,.1);padding:24px 30px}.game-presentation .question-focus{min-height:calc(100vh - 260px)}.game-presentation .qtext-large{font-size:clamp(34px,3.15vw,62px)}.game-presentation .answers-large .answer{font-size:clamp(22px,1.8vw,32px);min-height:86px}.game-presentation .hud{top:14px;left:10px;right:10px;gap:6px}.game-presentation .scorebox{padding:8px 10px}.game-presentation .team-badge{min-width:105px}.game-presentation .team-badge b{font-size:16px}.game-presentation .score-num{font-size:25px}
+
+    /* Nâng đồ họa thẻ chọn game */
+    .game-choice{min-height:320px;background:radial-gradient(circle at 50% 20%,rgba(72,220,255,.18),transparent 32%),linear-gradient(145deg,#102b4c,#06111f 72%)}.game-choice:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(3,9,18,.78));pointer-events:none}.game-choice .copy{z-index:4}.game-choice h3{font-size:30px;text-shadow:0 8px 25px rgba(0,0,0,.5)}.tug-preview{box-shadow:0 20px 35px rgba(0,0,0,.5),0 0 45px rgba(72,220,255,.12)}.race-preview{box-shadow:0 32px 45px rgba(0,0,0,.5),0 0 50px rgba(125,105,255,.14)}
+
+    @media(max-width:1200px){.random-stage{grid-template-columns:minmax(0,1fr) 380px}.game-layout-presentation{grid-template-columns:1fr}.game-stage-showcase,.game-stage-showcase #gameCanvas{min-height:480px}.question-board-stage{min-height:650px}.answers-large{grid-template-columns:1fr}}
+    @media(max-width:900px){.random-stage{grid-template-columns:1fr}.call-panel{min-height:auto}.call-panel-scroll{height:auto;max-height:none}.wheel-card-full{min-height:650px}.wheel-card-full #wheelCanvas{min-height:540px}.class-scorebook-list{max-height:300px}.question-toolbar{align-items:flex-start;flex-direction:column}.qtext-large{font-size:clamp(25px,6vw,40px)}}
+
   </style>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar">
-    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC 3D</b><small>Gọi tên • Điểm • Ngân hàng câu hỏi • Game WebGL</small></div></div>
+    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC 3D V8</b><small>Vòng quay toàn màn hình • Sổ điểm nhiều lần • Game Toán trình chiếu</small></div></div>
     <nav class="tabs">
       <button class="tab active" data-screen="random">🎲 Gọi tên</button>
       <button class="tab" data-screen="students">👨‍🎓 Học sinh</button>
@@ -75,11 +116,11 @@
   </header>
 
   <section id="random" class="screen active">
-    <div class="grid">
-      <div class="card span8 wheel-card">
+    <div class="random-stage">
+      <div class="card wheel-card wheel-card-full">
         <div class="wheel-head">
           <span class="pill" id="callBadge">Chưa có dữ liệu</span>
-          <span class="pill">🎡 Chiếc nón gọi tên 3D</span>
+          <span class="pill">🎡 VÒNG QUAY GỌI TÊN</span>
         </div>
         <div class="wheel-pointer"></div>
         <div class="wheel-wrap"><canvas id="wheelCanvas"></canvas></div>
@@ -89,48 +130,65 @@
         </div>
         <div class="wheel-actions">
           <button id="callBtn" class="btn primary spin-btn" onclick="callRandomStudent()">🎡 QUAY NÓN</button>
+          <button class="btn gold" onclick="toggleWheelPresentation()">⛶ TRÌNH CHIẾU</button>
           <button class="btn ghost" onclick="resetRound()">↻ Vòng mới</button>
           <button class="btn ghost" onclick="rebuildWheel()">⟳ Làm mới nón</button>
         </div>
       </div>
-      <div class="card span4 control-card">
-        <div>
-          <h3>Tùy chọn gọi tên</h3>
-          <label>Lớp hiện tại</label><select id="classSelect" class="input"></select>
-          <label><input id="noRepeat" type="checkbox" checked> Không gọi lại trong cùng một vòng</label>
-          <label><input id="fairMode" type="checkbox"> Ưu tiên học sinh ít được gọi</label>
-          <label><input id="soundMode" type="checkbox" checked> Âm thanh vòng quay</label>
-          <div class="statrow" style="margin-top:12px">
-            <div class="stat"><span class="muted">Sĩ số</span><b id="statStudents">0</b></div>
-            <div class="stat"><span class="muted">Đã gọi</span><b id="statCalled">0</b></div>
-            <div class="stat"><span class="muted">Điểm +/-</span><b id="statPoints">0</b></div>
-            <div class="stat"><span class="muted">Câu hỏi</span><b id="statQuestions">0</b></div>
-          </div>
-          <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:1" onclick="loadStudentsFromSheet()">↻ Nạp danh sách từ Sheet</button><button class="btn ghost" onclick="go('students')">👨‍🎓 Danh sách</button></div>
-          <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
+
+      <aside id="callPanel" class="card control-card call-panel">
+        <div class="panel-head">
+          <div><h3 style="margin:0">🎯 Điều khiển & ghi điểm</h3><div class="muted panel-hint">Giữ sổ điểm cả lớp ngay cạnh vòng quay.</div></div>
+          <button class="btn ghost panel-collapse-btn" onclick="toggleCallPanel()" title="Thu gọn bảng điều khiển">⇆</button>
         </div>
 
-        <div id="scoreSession" class="score-session empty">
-          <div class="row space"><h3 style="margin:0">📝 Điểm lần gọi</h3><span id="callNoBadge" class="pill">Chưa gọi</span></div>
-          <div id="selectedStudentName" class="selected-student">Chưa có học sinh</div>
-          <div class="call-meta"><span id="selectedStudentClass" class="pill">—</span><span id="selectedTotalPoint" class="pill">Điểm +/-: 0</span></div>
-          <div class="score-grid">
-            <div><label>Điểm 0–10</label><input id="callScoreInput" class="input score-big" type="number" min="0" max="10" step="0.25" placeholder="8.5"></div>
-            <div><label>Ghi chú</label><input id="callScoreNote" class="input" placeholder="Kiểm tra bài cũ"></div>
+        <div class="call-panel-scroll">
+          <div class="control-section">
+            <label>Lớp hiện tại</label><select id="classSelect" class="input"></select>
+            <div class="option-grid">
+              <label class="check-card"><input id="noRepeat" type="checkbox"> <span><b>Không gọi lại trong cùng vòng</b><small>Mặc định tắt để một học sinh có thể được gọi nhiều lần và có nhiều cột điểm.</small></span></label>
+              <label class="check-card compact"><input id="fairMode" type="checkbox"> <span><b>Ưu tiên ít lượt</b></span></label>
+              <label class="check-card compact"><input id="soundMode" type="checkbox" checked> <span><b>Âm thanh</b></span></label>
+            </div>
+            <div class="statrow" style="margin-top:12px">
+              <div class="stat"><span class="muted">Sĩ số</span><b id="statStudents">0</b></div>
+              <div class="stat"><span class="muted">Đã gọi</span><b id="statCalled">0</b></div>
+              <div class="stat"><span class="muted">Điểm +/-</span><b id="statPoints">0</b></div>
+              <div class="stat"><span class="muted">Câu hỏi</span><b id="statQuestions">0</b></div>
+            </div>
+            <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:1" onclick="loadStudentsFromSheet()">↻ Nạp danh sách từ Sheet</button><button class="btn ghost" onclick="go('students')">👨‍🎓 Danh sách</button></div>
+            <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
           </div>
-          <div class="quick-scores">
-            <button class="quick-score" onclick="setQuickScore(10)">10</button><button class="quick-score" onclick="setQuickScore(9)">9</button><button class="quick-score" onclick="setQuickScore(8)">8</button><button class="quick-score" onclick="setQuickScore(7)">7</button><button class="quick-score" onclick="setQuickScore(6)">6</button><button class="quick-score" onclick="setQuickScore(5)">5</button>
+
+          <div id="scoreSession" class="score-session empty">
+            <div class="row space"><h3 style="margin:0">📝 Điểm lần gọi</h3><span id="callNoBadge" class="pill">Chưa gọi</span></div>
+            <div id="selectedStudentName" class="selected-student">Chưa có học sinh</div>
+            <div class="call-meta"><span id="selectedStudentClass" class="pill">—</span><span id="selectedTotalPoint" class="pill">Điểm +/-: 0</span></div>
+            <div class="score-grid">
+              <div><label>Điểm 0–10</label><input id="callScoreInput" class="input score-big" type="number" min="0" max="10" step="0.25" placeholder="8.5"></div>
+              <div><label>Ghi chú</label><input id="callScoreNote" class="input" placeholder="Kiểm tra bài cũ"></div>
+            </div>
+            <div class="quick-scores">
+              <button class="quick-score" onclick="setQuickScore(10)">10</button><button class="quick-score" onclick="setQuickScore(9)">9</button><button class="quick-score" onclick="setQuickScore(8)">8</button><button class="quick-score" onclick="setQuickScore(7)">7</button><button class="quick-score" onclick="setQuickScore(6)">6</button><button class="quick-score" onclick="setQuickScore(5)">5</button>
+            </div>
+            <button id="saveCallScoreBtn" class="btn gold" style="width:100%;margin-top:9px" onclick="saveCallScore()" disabled>💾 LƯU ĐIỂM LẦN GỌI NÀY</button>
+            <div class="reward-row">
+              <button class="btn good" onclick="changePoint(.5)">+0.5</button><button class="btn good" onclick="changePoint(1)">+1</button><button class="btn good" onclick="changePoint(2)">+2</button>
+              <button class="btn bad" onclick="changePoint(-.5)">-0.5</button><button class="btn bad" onclick="changePoint(-1)">-1</button>
+            </div>
+            <div style="margin-top:10px;font-size:12px;font-weight:900;color:#bfd2ed">Các điểm đã ghi của học sinh đang chọn</div>
+            <div id="studentScoreHistory" class="score-history"><div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div></div>
           </div>
-          <button id="saveCallScoreBtn" class="btn gold" style="width:100%;margin-top:9px" onclick="saveCallScore()" disabled>💾 LƯU ĐIỂM LẦN GỌI NÀY</button>
-          <div class="reward-row">
-            <button class="btn good" onclick="changePoint(.5)">+0.5</button><button class="btn good" onclick="changePoint(1)">+1</button><button class="btn good" onclick="changePoint(2)">+2</button>
-            <button class="btn bad" onclick="changePoint(-.5)">-0.5</button><button class="btn bad" onclick="changePoint(-1)">-1</button>
+
+          <div class="class-scorebook">
+            <div class="row space scorebook-title"><div><h3 style="margin:0">📒 Sổ điểm cả lớp</h3><small class="muted">Luôn giữ điểm của các học sinh khác trên màn hình.</small></div><span id="scorebookCount" class="pill">0 HS</span></div>
+            <input id="scorebookSearch" class="input" placeholder="🔎 Tìm học sinh..." autocomplete="off">
+            <div id="classScorebookList" class="class-scorebook-list"></div>
           </div>
-          <div style="margin-top:10px;font-size:12px;font-weight:900;color:#bfd2ed">Các điểm đã ghi của học sinh</div>
-          <div id="studentScoreHistory" class="score-history"><div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div></div>
         </div>
-      </div>
+      </aside>
     </div>
+    <button id="floatingPanelBtn" class="floating-panel-btn hide" onclick="toggleCallPanel()">📝 Sổ điểm</button>
   </section>
 
   <section id="students" class="screen">
@@ -175,8 +233,8 @@
     </div>
 
     <div id="gamePlay" class="hide">
-      <div class="game-layout">
-        <div class="game-stage">
+      <div class="game-layout game-layout-presentation">
+        <div class="game-stage game-stage-showcase">
           <canvas id="gameCanvas"></canvas>
           <div class="hud">
             <div class="scorebox"><div class="team-badge"><b id="hudAName">ĐỘI XANH</b><span>ĐỘI A</span></div><div class="score-num" id="hudAScore">0</div></div>
@@ -185,15 +243,19 @@
           <div class="game-title" id="gameTitle">KÉO CO 3D</div>
           <div id="winner" class="winner"><div class="winner-card"><div class="cup">🏆</div><h2 id="winnerText">CHIẾN THẮNG!</h2><button class="btn gold" onclick="resetGame()">Chơi lại</button></div></div>
         </div>
-        <div class="card question-board">
-          <div class="row space"><h2 style="margin:0">Câu hỏi</h2><button class="btn ghost" onclick="exitGame()">← Thoát game</button></div>
+        <div class="card question-board question-board-stage">
+          <div class="question-toolbar">
+            <div class="row"><span id="qCounter" class="pill">Câu 0</span><span id="qMeta" class="qmeta"></span></div>
+            <div class="row"><button class="btn ghost" onclick="toggleGamePresentation()">⛶ Trình chiếu</button><button class="btn ghost" onclick="exitGame()">← Thoát</button></div>
+          </div>
           <div class="turns"><button id="turnA" class="turn-btn active a" onclick="setTurn('A')">Lượt Đội A</button><button id="turnB" class="turn-btn" onclick="setTurn('B')">Lượt Đội B</button></div>
-          <div class="qhead"><span id="qCounter" class="pill">Câu 0</span><span id="qMeta" class="qmeta"></span></div>
-          <div id="qText" class="qtext">Bấm “Câu tiếp theo” để bắt đầu.</div>
-          <div id="answers" class="answers"></div>
-          <div id="qExplain" class="explain">Đội đang trả lời: <b id="turnLabel">ĐỘI XANH</b></div>
+          <div class="question-focus">
+            <div id="qText" class="qtext qtext-large">Bấm “Câu tiếp theo” để bắt đầu.</div>
+            <div id="answers" class="answers answers-large"></div>
+          </div>
+          <div id="qExplain" class="explain explain-large">Đội đang trả lời: <b id="turnLabel">ĐỘI XANH</b></div>
           <div class="game-actions">
-            <div class="row"><button class="btn primary" style="flex:1" onclick="nextQuestion()">❓ Câu tiếp theo</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻</button></div>
+            <div class="row"><button class="btn primary next-question-btn" style="flex:1" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻</button></div>
           </div>
         </div>
       </div>
@@ -248,7 +310,7 @@ const API_PROXY_URL = '/api/sheet';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
-const APP_VERSION='7.0.0';
+const APP_VERSION='8.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let scoresData=safeLoad(LS.scores,[]);
@@ -281,7 +343,7 @@ function renderAll(){populateClasses(currentClass());const list=classStudents(tr
   $('#studentBody').innerHTML=students.map(s=>`<tr><td>${s.stt}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.className)}</td><td>${s.totalPoint}</td><td>${s.callCount}</td></tr>`).join('');
   $('#historyBody').innerHTML=historyData.slice().reverse().slice(0,700).map(h=>`<tr><td>${fmtTime(h.timestamp)}</td><td>${esc(h.className)}</td><td><b>${esc(h.studentName)}</b></td><td>${esc(h.action)}</td><td>${esc(h.value)}</td><td>${esc(h.note)}</td></tr>`).join('');
   setStudentStatus(list.length?`Đã nạp ${list.length} học sinh lớp ${currentClass()||'(chưa chọn)'}.`:'Chưa có học sinh phù hợp lớp đang chọn.',!!list.length);
-  renderSelectedStudent();renderBank();
+  renderSelectedStudent();renderClassScorebook();renderBank();
 }
 function setStudentStatus(msg,ok=false){const el=$('#studentStatus');el.textContent=msg;el.className='data-status '+(ok?'ok':'')}
 
@@ -317,7 +379,8 @@ async function callRandomStudent(){
 function resetRound(){calledIds.clear();currentStudent=null;$('#studentName').textContent='SẴN SÀNG QUAY?';$('#wheelSub').textContent='Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên';renderAll();rebuildWheel();toast('Đã bắt đầu vòng mới.')}
 function changePoint(v){if(!currentStudent)return toast('Chưa gọi học sinh.');const note=prompt(v>0?'Ghi chú điểm cộng:':'Ghi chú điểm trừ:','')||'';currentStudent.totalPoint+=v;addHistory({action:v>0?'PLUS':'MINUS',value:v,note});saveLocal();renderAll();beep(v>0?760:230,.13)}
 function setQuickScore(v){$('#callScoreInput').value=v;$('#callScoreInput').focus()}
-function currentStudentScores(){if(!currentStudent)return[];return scoresData.filter(x=>String(x.studentId||'')===String(currentStudent.id)||(!x.studentId&&x.studentName===currentStudent.name&&x.className===currentStudent.className)).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))}
+function scoresForStudent(student){if(!student)return[];return scoresData.filter(x=>String(x.studentId||'')===String(student.id)||(!x.studentId&&x.studentName===student.name&&x.className===student.className)).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))}
+function currentStudentScores(){return scoresForStudent(currentStudent)}
 function renderSelectedStudent(){
   const box=$('#scoreSession');if(!box)return;
   if(!currentStudent){box.classList.add('empty');$('#selectedStudentName').textContent='Chưa có học sinh';$('#selectedStudentClass').textContent='—';$('#selectedTotalPoint').textContent='Điểm +/-: 0';$('#callNoBadge').textContent='Chưa gọi';$('#saveCallScoreBtn').disabled=true;$('#studentScoreHistory').innerHTML='<div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div>';return}
@@ -325,6 +388,28 @@ function renderSelectedStudent(){
   const arr=currentStudentScores();$('#studentScoreHistory').innerHTML=arr.length?arr.slice(0,8).map((x,i)=>`<div class="score-record"><span>${x.callNo?`Lần ${esc(x.callNo)}`:`#${arr.length-i}`}</span><span>${esc(x.note||'')}</span><strong>${esc(x.score)}</strong></div>`).join(''):'<div class="score-empty">Chưa có điểm chính thức cho học sinh này.</div>';
   const same=arr.find(x=>Number(x.callNo)===Number(currentStudent.callCount));if(same){$('#callScoreInput').value=same.score;$('#callScoreNote').value=same.note||''}else{$('#callScoreInput').value='';$('#callScoreNote').value=''}
 }
+function renderClassScorebook(){
+  const host=$('#classScorebookList');if(!host)return;
+  const q=String($('#scorebookSearch')?.value||'').trim().toLocaleLowerCase('vi');
+  const list=classStudents(true).filter(s=>!q||s.name.toLocaleLowerCase('vi').includes(q)||String(s.stt).includes(q));
+  $('#scorebookCount').textContent=`${list.length} HS`;
+  host.innerHTML=list.length?list.map(s=>{
+    const arr=scoresForStudent(s),avg=arr.length?(arr.reduce((a,x)=>a+Number(x.score||0),0)/arr.length).toFixed(1):'—';
+    const chips=arr.length?arr.slice(0,4).map(x=>`<span class="score-chip">L${esc(x.callNo||'•')}: ${esc(x.score)}</span>`).join(''):'<span class="score-chip empty">Chưa có điểm</span>';
+    const active=currentStudent&&String(currentStudent.id)===String(s.id)?' active':'';
+    return `<div class="scorebook-row${active}"><div><div class="scorebook-name">${esc(s.stt)}. ${esc(s.name)}</div><div class="scorebook-meta">${esc(s.className)} • ${s.callCount} lượt gọi • TB điểm: ${avg} • +/- ${s.totalPoint}</div><div class="score-chips">${chips}</div></div><button class="btn primary scorebook-call" data-id="${esc(s.id)}">Gọi & ghi điểm</button></div>`
+  }).join(''):'<div class="score-empty">Không tìm thấy học sinh.</div>';
+  $$('#classScorebookList .scorebook-call').forEach(b=>b.onclick=()=>manualCallStudent(b.dataset.id));
+}
+function manualCallStudent(id){
+  const s=classStudents(true).find(x=>String(x.id)===String(id));if(!s)return toast('Không tìm thấy học sinh.');
+  currentStudent=s;calledIds.add(String(s.id));s.callCount=Number(s.callCount||0)+1;s.lastCalled=new Date().toISOString();
+  $('#studentName').textContent=s.name;$('#wheelSub').textContent=`👋 Gọi thủ công • Lần ${s.callCount} • ${s.className}`;
+  addHistory({action:'CALL',value:'',note:'Gọi thủ công từ sổ điểm'});saveLocal();renderAll();if($('#noRepeat').checked)rebuildWheel();
+  if(document.body.classList.contains('wheel-presentation'))$('#callPanel').classList.add('open');
+  $('#scoreSession')?.scrollIntoView({behavior:'smooth',block:'nearest'});beep(720,.12)
+}
+$('#scorebookSearch')?.addEventListener('input',renderClassScorebook);
 async function saveCallScore(){
   if(!currentStudent)return toast('Chưa gọi học sinh.');
   const raw=$('#callScoreInput').value;const score=Number(String(raw).replace(',','.'));
@@ -419,7 +504,7 @@ async function loadStudentsFromSheet(silent=false){
 }
 async function syncStudents(){if(!students.length)return toast('Danh sách web đang trống; không ghi đè Sheet.');if(!confirm(`Ghi ${students.length} học sinh lên sheet Students?`))return;const sent=await apiPost({action:'saveStudents',students});if(!sent)return;await wait(500);const ok=await loadStudentsFromSheet(true);toast(ok?'Đã ghi và kiểm tra lại Students.':'Đã gửi dữ liệu nhưng chưa đọc kiểm tra được.')}
 async function loadHistoryFromSheet(){try{const d=await apiGet('history');historyData=d.history||[];saveLocal();renderAll();toast('Đã tải lịch sử.')}catch(err){toast(err.message)}}
-async function loadScoresFromSheet(silent=false){try{const d=await apiGet('scores');if(!d?.ok)throw new Error(d?.error||'Không đọc được Scores.');scoresData=d.scores||[];saveLocal();renderSelectedStudent();if(!silent)toast(`Đã tải ${scoresData.length} bản ghi điểm.`);return true}catch(err){if(!silent)toast(err.message);return false}}
+async function loadScoresFromSheet(silent=false){try{const d=await apiGet('scores');if(!d?.ok)throw new Error(d?.error||'Không đọc được Scores.');scoresData=d.scores||[];saveLocal();renderSelectedStudent();renderClassScorebook();if(!silent)toast(`Đã tải ${scoresData.length} bản ghi điểm.`);return true}catch(err){if(!silent)toast(err.message);return false}}
 
 function normalizeQuestion(q,i=0,source=''){
   q=q||{};let opts=q.Options??q.options??q.answers??[];let optionPairs=[];
@@ -451,12 +536,13 @@ function renderRich(text){const imgs=extractImages(text);let body=esc(stripUrls(
 function correctIndex(q){const a=String(q.answer||'').trim().toUpperCase();const byKey=q.options.findIndex(o=>String(o.key).toUpperCase()===a);if(byKey>=0)return byKey;const byText=q.options.findIndex(o=>String(o.text).trim().toUpperCase()===a);if(byText>=0)return byText;const n=Number(a);if(Number.isInteger(n)&&n>=1&&n<=q.options.length)return n-1;return-1}
 
 function startGame(type){if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Khối / Chương / Bài.');if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');game={type,a:0,b:0,turn:'A',used:[],current:null,locked:false};$('#gameHub').classList.add('hide');$('#gamePlay').classList.remove('hide');$('#winner').classList.remove('show');$('#gameTitle').textContent=type==='tug'?'KÉO CO 3D • TRẢ LỜI ĐÚNG ĐỂ KÉO CỜ':'ĐUA XE 3D • TRẢ LỜI ĐÚNG ĐỂ TĂNG TỐC';updateHud();setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());setTimeout(()=>{game3d.resize();nextQuestion()},250)}
-function exitGame(){game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show')}
+function exitGame(){document.body.classList.remove('game-presentation');game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');if(document.fullscreenElement)document.exitFullscreen?.()}
 function winScore(){return Math.max(1,Math.min(20,Number($('#winScore').value||5)))}
 function names(){return{A:$('#teamAName').value.trim()||'ĐỘI XANH',B:$('#teamBName').value.trim()||'ĐỘI ĐỎ'}}
 function setTurn(t){game.turn=t;const n=names();$('#turnA').className='turn-btn'+(t==='A'?' active a':'');$('#turnB').className='turn-btn'+(t==='B'?' active b':'');$('#turnLabel').textContent=n[t]}
 function updateHud(){const n=names();$('#hudAName').textContent=n.A;$('#hudBName').textContent=n.B;$('#hudAScore').textContent=game.a;$('#hudBScore').textContent=game.b}
-function nextQuestion(){if(!selectedQuestions.length)return;game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];const q=game.current;$('#qCounter').textContent=`Câu ${game.used.length}/${selectedQuestions.length}`;$('#qMeta').textContent=[q.subject,q.grade&&'Khối '+q.grade,q.chapter,q.topic,q.level].filter(Boolean).join(' • ');$('#qText').innerHTML=renderRich(q.question);$('#qExplain').innerHTML=`Đội đang trả lời: <b>${esc(names()[game.turn])}</b>`;$('#answers').innerHTML=q.options.map((o,i)=>`<button class="answer" data-i="${i}"><b>${esc(o.key)}.</b> <span class="rich">${renderRich(o.text)}</span></button>`).join('');$$('#answers .answer').forEach(b=>b.onclick=()=>answerQuestion(Number(b.dataset.i)));typeset()}
+function fitQuestionTypography(q){const text=stripUrls(q?.question||'');const n=text.length;const el=$('#qText');if(!el)return;el.style.fontSize=n<70?'clamp(38px,3.4vw,62px)':n<150?'clamp(32px,2.8vw,52px)':n<260?'clamp(27px,2.25vw,43px)':'clamp(23px,1.9vw,36px)'}
+function nextQuestion(){if(!selectedQuestions.length)return;game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];const q=game.current;$('#qCounter').textContent=`Câu ${game.used.length}/${selectedQuestions.length}`;$('#qMeta').textContent=[q.subject,q.grade&&'Khối '+q.grade,q.chapter,q.topic,q.level].filter(Boolean).join(' • ');$('#qText').innerHTML=renderRich(q.question);fitQuestionTypography(q);$('#qExplain').innerHTML=`Đội đang trả lời: <b>${esc(names()[game.turn])}</b> • Chỉ hiển thị 1 câu hỏi ở mỗi lượt.`;$('#answers').innerHTML=q.options.map((o,i)=>`<button class="answer" data-i="${i}"><b>${esc(o.key)}</b><span class="rich">${renderRich(o.text)}</span></button>`).join('');$$('#answers .answer').forEach(b=>b.onclick=()=>answerQuestion(Number(b.dataset.i)));typeset()}
 function answerQuestion(i){if(game.locked||!game.current)return;game.locked=true;const q=game.current,correct=correctIndex(q);$$('#answers .answer').forEach(b=>b.disabled=true);const chosen=$$('#answers .answer')[i],right=$$('#answers .answer')[correct];if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}if(i===correct){chosen?.classList.add('correct');$('#qExplain').innerHTML=`✅ Chính xác! ${renderRich(q.explanation||'')}`;award(game.turn,true);beep(880,.18)}else{chosen?.classList.add('wrong');right?.classList.add('correct');$('#qExplain').innerHTML=`❌ Chưa đúng. <b>Đáp án: ${esc(q.options[correct]?.key||'')}</b>. ${renderRich(q.explanation||'')}`;game3d?.wrong();beep(210,.18)}typeset()}
 function award(team,fromAnswer=false){if(game.a>=winScore()||game.b>=winScore())return;if(team==='A')game.a++;else game.b++;updateHud();game3d?.score(team,game.a,game.b,winScore());if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),800);beep(1040,.35)}else if(fromAnswer){setTimeout(()=>setTurn(team==='A'?'B':'A'),700)}}
 function manualPoint(t){award(t,false)}
@@ -492,24 +578,39 @@ class Game3D{
   constructor(canvas,type){this.canvas=canvas;this.type=type;this.disposed=false;this.clock=new THREE.Clock();this.targetA=0;this.targetB=0;this.shake=0;this.confetti=[];this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x071321);this.scene.fog=new THREE.Fog(0x071321,24,60);this.camera=new THREE.PerspectiveCamera(48,1,.1,120);this.scene.add(new THREE.HemisphereLight(0x9fd9ff,0x172214,1.55));const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-8,18,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=28;sun.shadow.camera.bottom=-28;this.scene.add(sun);this.addStadium();type==='tug'?this.buildTug():this.buildRace();this.resize();this._resize=()=>this.resize();window.addEventListener('resize',this._resize);this.animate()}
   mat(c,rough=.55,metal=.15){return new THREE.MeshStandardMaterial({color:c,roughness:rough,metalness:metal})}
   mesh(g,m,cast=true,recv=true){const x=new THREE.Mesh(g,m);x.castShadow=cast;x.receiveShadow=recv;return x}
-  addStadium(){const floor=this.mesh(new THREE.CircleGeometry(31,64),this.mat(0x17352a,.95,0),false,true);floor.rotation.x=-Math.PI/2;floor.position.y=-.02;this.scene.add(floor);const ring=this.mesh(new THREE.RingGeometry(22,31,64),this.mat(0x263345,.9,.1),false,true);ring.rotation.x=-Math.PI/2;ring.position.y=.02;this.scene.add(ring);for(let i=0;i<70;i++){const a=(i/70)*Math.PI*2,r=25+Math.random()*3.8;const p=this.mesh(new THREE.SphereGeometry(.11,7,7),this.mat(i%2?0x63d8ff:0xff6e89,.65,.05),false,false);p.position.set(Math.cos(a)*r,1.3+Math.random()*2.4,Math.sin(a)*r);this.scene.add(p)}const rail=this.mesh(new THREE.TorusGeometry(23,0.12,8,96),this.mat(0xb9d6e8,.35,.65),false,true);rail.rotation.x=Math.PI/2;rail.position.y=.45;this.scene.add(rail)}
+  glowMat(c,intensity=.4){return new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:intensity,roughness:.35,metalness:.25})}
+  textSprite(text,color='#ffffff',accent='#48dcff'){const c=document.createElement('canvas');c.width=768;c.height=192;const x=c.getContext('2d');x.fillStyle='rgba(5,12,24,.78)';x.roundRect?.(8,8,752,176,36);x.fill?.();x.strokeStyle=accent;x.lineWidth=6;x.strokeRect(14,14,740,164);x.font='900 62px Arial';x.textAlign='center';x.textBaseline='middle';x.fillStyle=color;x.fillText(text,384,96);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true}));sp.scale.set(5.8,1.45,1);return sp}
+  addArenaLights(){const a=new THREE.PointLight(0x48dcff,32,36,2);a.position.set(-11,10,8);const b=new THREE.PointLight(0xff6682,28,34,2);b.position.set(11,8,-6);const c=new THREE.PointLight(0xffd45f,18,28,2);c.position.set(0,12,10);this.scene.add(a,b,c);const stars=180,pos=new Float32Array(stars*3);for(let i=0;i<stars;i++){const ang=Math.random()*Math.PI*2,r=18+Math.random()*22;pos[i*3]=Math.cos(ang)*r;pos[i*3+1]=4+Math.random()*15;pos[i*3+2]=Math.sin(ang)*r}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));this.scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xbfe9ff,size:.09,transparent:true,opacity:.65})))}
+  addStadium(){this.addArenaLights();const floor=this.mesh(new THREE.CircleGeometry(31,72),this.mat(0x102d25,.96,0),false,true);floor.rotation.x=-Math.PI/2;floor.position.y=-.02;this.scene.add(floor);const inner=this.mesh(new THREE.RingGeometry(15.5,22,72),this.mat(0x153d32,.93,.02),false,true);inner.rotation.x=-Math.PI/2;inner.position.y=.01;this.scene.add(inner);const ring=this.mesh(new THREE.RingGeometry(22,31,72),this.mat(0x202c3d,.88,.15),false,true);ring.rotation.x=-Math.PI/2;ring.position.y=.02;this.scene.add(ring);for(let i=0;i<110;i++){const a=(i/110)*Math.PI*2,r=24.5+Math.random()*4.8;const color=i%3===0?0x63d8ff:(i%3===1?0xff6e89:0xffd45f);const p=this.mesh(new THREE.SphereGeometry(.1+Math.random()*.05,7,7),this.glowMat(color,.65),false,false);p.position.set(Math.cos(a)*r,1.25+Math.random()*3.2,Math.sin(a)*r);this.scene.add(p)}const rail=this.mesh(new THREE.TorusGeometry(23,0.13,10,128),this.mat(0xd7edf7,.28,.78),false,true);rail.rotation.x=Math.PI/2;rail.position.y=.5;this.scene.add(rail);const halo=this.mesh(new THREE.TorusGeometry(18,.055,8,120),this.glowMat(0x48dcff,.9),false,false);halo.rotation.x=Math.PI/2;halo.position.y=.08;this.scene.add(halo)}
   person(color,x,z,flip=1){const g=new THREE.Group();const body=this.mesh(new THREE.CylinderGeometry(.42,.54,1.45,16),this.mat(color,.42,.22));body.position.y=1.55;g.add(body);const head=this.mesh(new THREE.SphereGeometry(.4,20,16),this.mat(0xf0c7a3,.8,.02));head.position.y=2.63;g.add(head);const hair=this.mesh(new THREE.SphereGeometry(.41,20,12,0,Math.PI*2,0,Math.PI*.48),this.mat(0x17202a,.7,.05));hair.position.y=2.73;g.add(hair);const armMat=this.mat(color,.45,.15);[-1,1].forEach(side=>{const arm=this.mesh(new THREE.CylinderGeometry(.12,.14,1.15,10),armMat);arm.position.set(side*.56,1.65,0);arm.rotation.z=side*.82;g.add(arm);const leg=this.mesh(new THREE.CylinderGeometry(.15,.17,1.12,10),this.mat(0x17253d,.75,.05));leg.position.set(side*.24,.48,0);g.add(leg)});g.position.set(x,0,z);g.scale.x=flip;return g}
-  buildTug(){this.camera.position.set(0,8.2,16.5);this.camera.lookAt(0,1.2,0);const line=this.mesh(new THREE.BoxGeometry(.13,.03,13),this.mat(0xffffff,.8,0),false,true);line.position.y=.04;this.scene.add(line);this.rope=this.mesh(new THREE.CylinderGeometry(.09,.09,17,18),this.mat(0xb8864e,.85,.02));this.rope.rotation.z=Math.PI/2;this.rope.position.y=1.35;this.scene.add(this.rope);this.flagGroup=new THREE.Group();const pole=this.mesh(new THREE.CylinderGeometry(.035,.035,1.65,10),this.mat(0xd7dce8,.25,.7));pole.position.y=1.9;const flag=this.mesh(new THREE.PlaneGeometry(1.05,.65),new THREE.MeshStandardMaterial({color:0xffd45f,side:THREE.DoubleSide,roughness:.65}));flag.position.set(.54,2.45,0);this.flagGroup.add(pole,flag);this.scene.add(this.flagGroup);this.teamA=[];this.teamB=[];for(let i=0;i<3;i++){const a=this.person(0x2caee9,-5.7-i*1.55,-.8+(i%2)*1.5,1);const b=this.person(0xe84067,5.7+i*1.55,-.8+(i%2)*1.5,-1);this.scene.add(a,b);this.teamA.push(a);this.teamB.push(b)}this.tugFlagX=0}
+  buildTug(){this.camera.position.set(0,8.8,17.8);this.camera.lookAt(0,1.35,0);const matA=this.glowMat(0x1caee8,.22),matB=this.glowMat(0xe63d63,.22);const padA=this.mesh(new THREE.BoxGeometry(9.2,.16,5.8),matA,false,true);padA.position.set(-6.3,.07,0);const padB=this.mesh(new THREE.BoxGeometry(9.2,.16,5.8),matB,false,true);padB.position.set(6.3,.07,0);this.scene.add(padA,padB);const line=this.mesh(new THREE.BoxGeometry(.16,.045,13.2),this.glowMat(0xfff3b0,.55),false,true);line.position.y=.18;this.scene.add(line);this.rope=this.mesh(new THREE.CylinderGeometry(.105,.105,18,22),this.mat(0xc38a4c,.82,.03));this.rope.rotation.z=Math.PI/2;this.rope.position.y=1.42;this.scene.add(this.rope);const knot=this.mesh(new THREE.TorusGeometry(.31,.11,10,24),this.glowMat(0xffd45f,.45));knot.rotation.y=Math.PI/2;knot.position.set(0,1.42,0);this.scene.add(knot);this.flagGroup=new THREE.Group();const pole=this.mesh(new THREE.CylinderGeometry(.045,.045,1.85,12),this.mat(0xe9f3ff,.22,.82));pole.position.y=2.02;const flag=this.mesh(new THREE.PlaneGeometry(1.2,.72),new THREE.MeshStandardMaterial({color:0xffd45f,emissive:0x8f5b00,emissiveIntensity:.3,side:THREE.DoubleSide,roughness:.5}));flag.position.set(.62,2.62,0);this.flagGroup.add(pole,flag);this.scene.add(this.flagGroup);this.teamA=[];this.teamB=[];for(let i=0;i<4;i++){const a=this.person(0x2caee9,-4.9-i*1.45,-1.15+(i%2)*2.3,1);const b=this.person(0xe84067,4.9+i*1.45,-1.15+(i%2)*2.3,-1);this.scene.add(a,b);this.teamA.push(a);this.teamB.push(b)}const labelA=this.textSprite('ĐỘI A','#c9f5ff','#48dcff');labelA.position.set(-8.3,5.3,-2.5);const labelB=this.textSprite('ĐỘI B','#ffd7df','#ff6682');labelB.position.set(8.3,5.3,-2.5);this.scene.add(labelA,labelB);this.tugFlagX=0}
   car(color,z){const g=new THREE.Group();const body=this.mesh(new THREE.BoxGeometry(3.2,.62,1.45),this.mat(color,.28,.62));body.position.y=.65;g.add(body);const hood=this.mesh(new THREE.BoxGeometry(1.1,.38,1.38),this.mat(color,.28,.62));hood.position.set(1.45,.92,0);g.add(hood);const cabin=this.mesh(new THREE.BoxGeometry(1.45,.58,1.2),this.mat(0x89cce8,.16,.35));cabin.position.set(-.15,1.15,0);g.add(cabin);g.userData.wheels=[];[-1.05,1.05].forEach(x=>[-.78,.78].forEach(zz=>{const w=this.mesh(new THREE.CylinderGeometry(.38,.38,.28,18),this.mat(0x111217,.9,.1));w.rotation.x=Math.PI/2;w.position.set(x,.38,zz);g.add(w);g.userData.wheels.push(w)}));g.position.set(-13,0,z);return g}
-  buildRace(){this.camera.position.set(-4.5,10.5,18);this.camera.lookAt(1,0,0);const road=this.mesh(new THREE.BoxGeometry(34,.18,8.4),this.mat(0x232832,.93,.03),false,true);road.position.set(0,.08,0);this.scene.add(road);[-4.2,0,4.2].forEach(z=>{const l=this.mesh(new THREE.BoxGeometry(34,.03,.07),this.mat(0xf0f2f5,.75,.05),false,true);l.position.set(0,.2,z);this.scene.add(l)});for(let x=-15;x<15;x+=2.1){[-2.1,2.1].forEach(z=>{const d=this.mesh(new THREE.BoxGeometry(1.05,.03,.07),this.mat(0xffffff,.65,.05),false,true);d.position.set(x,.21,z);this.scene.add(d)})}const finish=this.mesh(new THREE.BoxGeometry(.35,.04,8.3),new THREE.MeshStandardMaterial({color:0xffffff,roughness:.8}));finish.position.set(13.2,.23,0);this.scene.add(finish);this.carA=this.car(0x1caee8,-2.05);this.carB=this.car(0xe63d63,2.05);this.scene.add(this.carA,this.carB);this.carAX=-13;this.carBX=-13}
+  buildRace(){this.camera.position.set(-5.5,11.8,19.5);this.camera.lookAt(1.5,.35,0);const road=this.mesh(new THREE.BoxGeometry(35,.2,9.4),this.mat(0x171d28,.9,.08),false,true);road.position.set(0,.08,0);this.scene.add(road);[-4.7,0,4.7].forEach(z=>{const l=this.mesh(new THREE.BoxGeometry(35,.035,.09),this.glowMat(z===0?0xffd45f:0xdcecff,z===0?.5:.2),false,true);l.position.set(0,.205,z);this.scene.add(l)});for(let x=-15.5;x<15.5;x+=2.25){[-2.35,2.35].forEach(z=>{const d=this.mesh(new THREE.BoxGeometry(1.15,.035,.09),this.glowMat(0xffffff,.16),false,true);d.position.set(x,.215,z);this.scene.add(d)})}[-5.1,5.1].forEach(z=>{const rail=this.mesh(new THREE.BoxGeometry(35,.45,.16),this.mat(0x859ab0,.35,.72),false,true);rail.position.set(0,.45,z);this.scene.add(rail)});const finish=this.mesh(new THREE.BoxGeometry(.42,.055,9.2),this.glowMat(0xffffff,.28),false,true);finish.position.set(13.2,.235,0);this.scene.add(finish);for(let z=-4.2;z<=4.2;z+=1.05){const tile=this.mesh(new THREE.BoxGeometry(.48,.065,.55),this.mat((Math.round((z+4.2)/1.05)%2)?0x101010:0xffffff,.7,.05),false,true);tile.position.set(13.2,.27,z);this.scene.add(tile)}const archL=this.mesh(new THREE.BoxGeometry(.35,4.3,.35),this.glowMat(0xffd45f,.45));archL.position.set(13.2,2.15,-4.45);const archR=archL.clone();archR.position.z=4.45;const archTop=this.mesh(new THREE.BoxGeometry(.35,.35,9.2),this.glowMat(0xffd45f,.45));archTop.position.set(13.2,4.15,0);this.scene.add(archL,archR,archTop);const finishLabel=this.textSprite('FINISH','#fff6cc','#ffd45f');finishLabel.position.set(13.05,5.25,0);finishLabel.scale.set(4.4,1.1,1);this.scene.add(finishLabel);this.carA=this.car(0x1caee8,-2.15);this.carB=this.car(0xe63d63,2.15);this.scene.add(this.carA,this.carB);this.carAX=-13;this.carBX=-13}
   setProgress(a,b,win){this.targetA=a/Math.max(win,1);this.targetB=b/Math.max(win,1);if(this.type==='tug')this.tugFlagX=(this.targetA-this.targetB)*6.6}
   score(team,a,b,win){this.setProgress(a,b,win);this.shake=.5;if(this.type==='tug'){const arr=team==='A'?this.teamA:this.teamB;arr.forEach((p,i)=>{p.userData.pulse=1+i*.08})}else{const car=team==='A'?this.carA:this.carB;car.userData.boost=1}this.spark(team==='A'?0x48dcff:0xff6682)}
   wrong(){this.shake=.16;this.spark(0xffa94d)}
   spark(color){const n=60,pos=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*2;pos[i*3+1]=1.5+Math.random()*2;pos[i*3+2]=(Math.random()-.5)*2;vel.push(new THREE.Vector3((Math.random()-.5)*.15,.05+Math.random()*.15,(Math.random()-.5)*.15))}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));const pts=new THREE.Points(geo,new THREE.PointsMaterial({color,size:.12,transparent:true,opacity:1}));this.scene.add(pts);this.confetti.push({pts,vel,life:1.2})}
   celebrate(team){for(let i=0;i<8;i++)setTimeout(()=>this.spark(team==='A'?0x48dcff:0xff6682),i*120)}
-  animate(){if(this.disposed)return;requestAnimationFrame(()=>this.animate());const dt=Math.min(.035,this.clock.getDelta()),t=this.clock.elapsedTime;if(this.type==='tug'){this.flagGroup.position.x+=(this.tugFlagX-this.flagGroup.position.x)*.08;this.rope.position.y=1.35+Math.sin(t*7)*.018;this.teamA.forEach((p,i)=>{const target=-5.7-i*1.55+this.targetA*1.45-this.targetB*.55;p.position.x+=(target-p.position.x)*.07;p.rotation.z=-.08-Math.sin(t*5+i)*.02-(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)});this.teamB.forEach((p,i)=>{const target=5.7+i*1.55-this.targetB*1.45+this.targetA*.55;p.position.x+=(target-p.position.x)*.07;p.rotation.z=.08+Math.sin(t*5+i)*.02+(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)})}else{const ta=-13+this.targetA*26,tb=-13+this.targetB*26;const oldA=this.carA.position.x,oldB=this.carB.position.x;this.carA.position.x+=(ta-this.carA.position.x)*.055;this.carB.position.x+=(tb-this.carB.position.x)*.055;const da=this.carA.position.x-oldA,db=this.carB.position.x-oldB;this.carA.userData.wheels.forEach(w=>w.rotation.z-=da*2.2);this.carB.userData.wheels.forEach(w=>w.rotation.z-=db*2.2);this.carA.position.y=Math.sin(t*12)*.025+(this.carA.userData.boost||0)*.05;this.carB.position.y=Math.sin(t*12+1)*.025+(this.carB.userData.boost||0)*.05;this.carA.userData.boost=Math.max(0,(this.carA.userData.boost||0)-dt*1.6);this.carB.userData.boost=Math.max(0,(this.carB.userData.boost||0)-dt*1.6)}
+  animate(){if(this.disposed)return;requestAnimationFrame(()=>this.animate());const dt=Math.min(.035,this.clock.getDelta()),t=this.clock.elapsedTime;if(this.type==='tug'){this.flagGroup.position.x+=(this.tugFlagX-this.flagGroup.position.x)*.08;this.rope.position.y=1.35+Math.sin(t*7)*.018;this.teamA.forEach((p,i)=>{const target=-4.9-i*1.45+this.targetA*1.5-this.targetB*.58;p.position.x+=(target-p.position.x)*.07;p.rotation.z=-.08-Math.sin(t*5+i)*.02-(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)});this.teamB.forEach((p,i)=>{const target=4.9+i*1.45-this.targetB*1.5+this.targetA*.58;p.position.x+=(target-p.position.x)*.07;p.rotation.z=.08+Math.sin(t*5+i)*.02+(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)})}else{const ta=-13+this.targetA*26,tb=-13+this.targetB*26;const oldA=this.carA.position.x,oldB=this.carB.position.x;this.carA.position.x+=(ta-this.carA.position.x)*.055;this.carB.position.x+=(tb-this.carB.position.x)*.055;const da=this.carA.position.x-oldA,db=this.carB.position.x-oldB;this.carA.userData.wheels.forEach(w=>w.rotation.z-=da*2.2);this.carB.userData.wheels.forEach(w=>w.rotation.z-=db*2.2);this.carA.position.y=Math.sin(t*12)*.025+(this.carA.userData.boost||0)*.05;this.carB.position.y=Math.sin(t*12+1)*.025+(this.carB.userData.boost||0)*.05;this.carA.userData.boost=Math.max(0,(this.carA.userData.boost||0)-dt*1.6);this.carB.userData.boost=Math.max(0,(this.carB.userData.boost||0)-dt*1.6)}
     for(let c=this.confetti.length-1;c>=0;c--){const x=this.confetti[c],p=x.pts.geometry.attributes.position;for(let i=0;i<x.vel.length;i++){p.array[i*3]+=x.vel[i].x;p.array[i*3+1]+=x.vel[i].y;p.array[i*3+2]+=x.vel[i].z;x.vel[i].y-=.006}p.needsUpdate=true;x.life-=dt;x.pts.material.opacity=Math.max(0,x.life);if(x.life<=0){this.scene.remove(x.pts);x.pts.geometry.dispose();x.pts.material.dispose();this.confetti.splice(c,1)}}
     if(this.shake>0){this.shake=Math.max(0,this.shake-dt*1.7);this.camera.position.x+=(Math.random()-.5)*this.shake*.08;this.camera.position.y+=(Math.random()-.5)*this.shake*.05}this.renderer.render(this.scene,this.camera)}
   resize(){const r=this.canvas.getBoundingClientRect();const w=Math.max(320,r.width),h=Math.max(420,r.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
   dispose(){this.disposed=true;window.removeEventListener('resize',this._resize);this.scene.traverse(o=>{if(o.geometry)o.geometry.dispose?.();if(o.material){const a=Array.isArray(o.material)?o.material:[o.material];a.forEach(m=>m.dispose?.())}});this.renderer.dispose()}
 }
 
-function toggleFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()}
+function requestAppFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch?.(()=>{})}
+function toggleWheelPresentation(){
+  const on=!document.body.classList.contains('wheel-presentation');document.body.classList.toggle('wheel-presentation',on);document.body.classList.remove('game-presentation');
+  $('#callPanel')?.classList.remove('open');if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>wheel3d?.resize(),180)
+}
+function toggleCallPanel(){const p=$('#callPanel');if(!p)return;p.classList.toggle('open');setTimeout(()=>wheel3d?.resize(),180)}
+function toggleGamePresentation(){
+  const on=!document.body.classList.contains('game-presentation');document.body.classList.toggle('game-presentation',on);document.body.classList.remove('wheel-presentation');
+  if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>game3d?.resize(),180)
+}
+function toggleFullscreen(){if(!document.fullscreenElement)requestAppFullscreen();else document.exitFullscreen?.()}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){document.body.classList.remove('wheel-presentation','game-presentation');$('#callPanel')?.classList.remove('open')}setTimeout(()=>{wheel3d?.resize();game3d?.resize()},120)});
+document.addEventListener('keydown',e=>{const tag=(document.activeElement?.tagName||'').toLowerCase();if(['input','textarea','select'].includes(tag))return;if(e.code==='Space'&&$('#random').classList.contains('active')){e.preventDefault();callRandomStudent()}if((e.key==='f'||e.key==='F')&&$('#random').classList.contains('active'))toggleWheelPresentation();if((e.key==='f'||e.key==='F')&&$('#games').classList.contains('active')&&!$('#gamePlay').classList.contains('hide'))toggleGamePresentation()});
 
 async function bootstrap(){
   $('#apiUrl').value=APPS_SCRIPT_URL||'';

@@ -1,0 +1,46 @@
+[
+  {
+    "id":"M1",
+    "subject":"Toán",
+    "grade":"6",
+    "topic":"Thống kê",
+    "question":"Quan sát bảng điểm. Có bao nhiêu học sinh đạt từ 5 điểm trở lên?",
+    "image":"./assets/images/math-grid.svg",
+    "options":["27","28","29","30"],
+    "correct":2,
+    "explain":"Đếm các giá trị lớn hơn hoặc bằng 5 trong bảng."
+  },
+  {
+    "id":"M2",
+    "subject":"Toán",
+    "grade":"7",
+    "topic":"Số hữu tỉ",
+    "question":"Tính giá trị của biểu thức $\\frac{3}{4}+\\frac{5}{8}$.",
+    "image":"",
+    "options":["$\\frac{8}{12}$","$\\frac{11}{8}$","$\\frac{13}{8}$","$1$"],
+    "correct":1,
+    "explain":"Quy đồng: $\\frac{3}{4}=\\frac{6}{8}$ nên tổng bằng $\\frac{11}{8}$."
+  },
+  {
+    "id":"M3",
+    "subject":"Toán",
+    "grade":"8",
+    "topic":"Hằng đẳng thức",
+    "question":"Khai triển $(a+b)^2$ bằng biểu thức nào?",
+    "image":"",
+    "options":["$a^2+b^2$","$a^2+2ab+b^2$","$a^2-2ab+b^2$","$2a^2+2b^2$"],
+    "correct":1,
+    "explain":"Hằng đẳng thức: $(a+b)^2=a^2+2ab+b^2$."
+  },
+  {
+    "id":"M4",
+    "subject":"Toán",
+    "grade":"9",
+    "topic":"Căn bậc hai",
+    "question":"Giá trị của $\\sqrt{144}$ là bao nhiêu?",
+    "image":"",
+    "options":["10","11","12","14"],
+    "correct":2,
+    "explain":"Vì $12^2=144$ nên $\\sqrt{144}=12$."
+  }
+]

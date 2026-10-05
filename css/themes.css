@@ -1,0 +1,4 @@
+body[data-theme="math-neon"]{--primary:#48dcff;--secondary:#7d69ff;--page-bg:url('../assets/images/bg-math-neon.svg') center/cover fixed}
+body[data-theme="math-board"]{--primary:#46e6b1;--secondary:#d4c968;--teamA:#45e1ff;--teamB:#ff7a9b;--page-bg:url('../assets/images/bg-math-board.svg') center/cover fixed}
+body[data-theme="it-cyber"]{--primary:#35efff;--secondary:#536dff;--teamA:#38eaff;--teamB:#ff5f86;--page-bg:url('../assets/images/bg-it-cyber.svg') center/cover fixed}
+body[data-theme="it-terminal"]{--primary:#41ff9a;--secondary:#22c870;--teamA:#47ffc2;--teamB:#ff7b83;--gold:#efff65;--page-bg:url('../assets/images/bg-it-terminal.svg') center/cover fixed}

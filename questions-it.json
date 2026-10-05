@@ -1,0 +1,46 @@
+[
+  {
+    "id":"IT1",
+    "subject":"Tin học",
+    "grade":"6",
+    "topic":"Thuật toán",
+    "question":"Trong sơ đồ khối, hình thoi thường dùng để biểu diễn thao tác nào?",
+    "image":"./assets/images/it-flowchart.svg",
+    "options":["Bắt đầu/Kết thúc","Nhập/Xuất","Điều kiện rẽ nhánh","Xử lí"],
+    "correct":2,
+    "explain":"Hình thoi thường biểu diễn điều kiện hoặc phép kiểm tra để rẽ nhánh."
+  },
+  {
+    "id":"IT2",
+    "subject":"Tin học",
+    "grade":"7",
+    "topic":"Dữ liệu",
+    "question":"Đơn vị nhỏ nhất dùng để biểu diễn thông tin trong máy tính là gì?",
+    "image":"",
+    "options":["Byte","Bit","KB","MB"],
+    "correct":1,
+    "explain":"Bit là đơn vị nhỏ nhất, nhận một trong hai giá trị 0 hoặc 1."
+  },
+  {
+    "id":"IT3",
+    "subject":"Tin học",
+    "grade":"8",
+    "topic":"Lập trình",
+    "question":"Trong nhiều ngôn ngữ lập trình, cấu trúc nào thường dùng để lặp một số lần xác định?",
+    "image":"",
+    "options":["if","for","switch","return"],
+    "correct":1,
+    "explain":"Vòng lặp for thường được dùng khi biết trước số lần lặp."
+  },
+  {
+    "id":"IT4",
+    "subject":"Tin học",
+    "grade":"9",
+    "topic":"Mạng máy tính",
+    "question":"Thiết bị nào thường dùng để kết nối nhiều thiết bị trong cùng một mạng LAN?",
+    "image":"",
+    "options":["Switch","Máy in","Webcam","Máy chiếu"],
+    "correct":0,
+    "explain":"Switch kết nối các thiết bị trong mạng cục bộ và chuyển tiếp dữ liệu giữa chúng."
+  }
+]

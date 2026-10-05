@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#02120d"/><g fill="#45ff9a" fill-opacity=".09" font-family="monospace" font-size="32"><text x="60" y="100">010101001110001001101001</text><text x="60" y="150">function solve(input) { return answer; }</text><text x="920" y="250">SELECT * FROM knowledge;</text><text x="180" y="580">if (correct) score++;</text><text x="1000" y="740">while (learn) { grow(); }</text></g><g stroke="#3dff9a" stroke-opacity=".06"><path d="M0 80H1600M0 160H1600M0 240H1600M0 320H1600M0 400H1600M0 480H1600M0 560H1600M0 640H1600M0 720H1600M0 800H1600"/></g>
+</svg>

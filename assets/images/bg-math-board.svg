@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#0b332b"/><g stroke="#d7fff2" stroke-opacity=".05"><path d="M0 120H1600M0 240H1600M0 360H1600M0 480H1600M0 600H1600M0 720H1600"/><path d="M200 0V900M400 0V900M600 0V900M800 0V900M1000 0V900M1200 0V900M1400 0V900"/></g><g fill="#e9fff7" fill-opacity=".12" font-family="serif" font-size="78" font-style="italic"><text x="90" y="190">a² + b² = c²</text><text x="980" y="250">S = πr²</text><text x="250" y="740">y = ax + b</text><text x="1060" y="680">Δ = b² - 4ac</text></g>
+</svg>

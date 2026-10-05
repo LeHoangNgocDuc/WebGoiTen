@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác 3D V8.0</title>
+  <title>Lớp học tương tác 3D V9.0</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
@@ -99,12 +99,59 @@
     @media(max-width:1200px){.random-stage{grid-template-columns:minmax(0,1fr) 380px}.game-layout-presentation{grid-template-columns:1fr}.game-stage-showcase,.game-stage-showcase #gameCanvas{min-height:480px}.question-board-stage{min-height:650px}.answers-large{grid-template-columns:1fr}}
     @media(max-width:900px){.random-stage{grid-template-columns:1fr}.call-panel{min-height:auto}.call-panel-scroll{height:auto;max-height:none}.wheel-card-full{min-height:650px}.wheel-card-full #wheelCanvas{min-height:540px}.class-scorebook-list{max-height:300px}.question-toolbar{align-items:flex-start;flex-direction:column}.qtext-large{font-size:clamp(25px,6vw,40px)}}
 
+  
+
+    /* ===================== V9 DUEL GAME LAYOUT ===================== */
+    .game-top-card{margin-bottom:16px;padding:14px 16px;border-radius:24px;background:linear-gradient(135deg,rgba(8,20,37,.96),rgba(10,30,58,.96));border:1px solid rgba(255,255,255,.09);box-shadow:var(--shadow);display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .game-top-title{display:flex;flex-direction:column;gap:4px}.game-top-title h2{margin:0;font-size:30px}.game-top-title .muted{font-size:13px}
+    .top-pills{display:flex;gap:8px;flex-wrap:wrap}.top-pills .pill{font-size:13px}
+    .game-layout-duel{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(420px,1.2fr) minmax(320px,.9fr);gap:16px;align-items:stretch}
+    .team-panel{padding:14px;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(15,33,61,.98),rgba(7,18,34,.98));border:1px solid rgba(255,255,255,.09)}
+    .team-panel.b{background:linear-gradient(180deg,rgba(59,19,31,.96),rgba(32,10,18,.98))}
+    .team-panel.active{box-shadow:0 0 0 2px rgba(255,212,95,.28),0 0 30px rgba(255,212,95,.18)}
+    .team-panel.waiting{opacity:.92}.team-panel.used{opacity:.87}
+    .team-side-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .team-side-label{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:1000}
+    .team-dot{width:16px;height:16px;border-radius:50%;display:inline-block;box-shadow:0 0 18px rgba(255,255,255,.2)}
+    .team-panel.a .team-dot{background:#48dcff;box-shadow:0 0 18px rgba(72,220,255,.6)}
+    .team-panel.b .team-dot{background:#ff6682;box-shadow:0 0 18px rgba(255,102,130,.6)}
+    .team-status{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:900;white-space:nowrap}
+    .question-team-card{display:flex;flex-direction:column;gap:14px;min-height:710px;border-radius:24px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08)}
+    .team-panel.a .question-team-card{background:linear-gradient(180deg,rgba(88,140,233,.19),rgba(34,71,123,.16))}
+    .team-panel.b .question-team-card{background:linear-gradient(180deg,rgba(210,88,88,.18),rgba(110,26,41,.15))}
+    .question-media{min-height:180px;display:grid;place-items:center;padding:14px;border-radius:18px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.22);overflow:hidden}
+    .question-media-gallery,.question-media-single{width:100%;display:grid;gap:10px;place-items:center}
+    .question-media img{display:block;max-width:100%;max-height:210px;object-fit:contain;border-radius:14px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.14)}
+    .question-media-placeholder{display:grid;place-items:center;gap:10px;width:100%;height:150px;border-radius:16px;background:linear-gradient(135deg,rgba(72,220,255,.12),rgba(125,105,255,.1));color:#234;font-weight:900}
+    .question-media-placeholder .icon{font-size:46px}
+    .question-copy-wrap{padding:4px 2px}.question-copy-title{font-size:13px;font-weight:900;color:#d4e1f5;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+    .team-question-copy{font-size:clamp(21px,1.72vw,34px);line-height:1.36;font-weight:950;text-align:center;text-wrap:balance}
+    .answers-team{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:auto}
+    .answers-team .answer{min-height:116px;padding:14px 14px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.88);color:#1c2942;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px;font-size:clamp(21px,1.5vw,34px);font-weight:1000;line-height:1.18;box-shadow:0 8px 0 rgba(0,0,0,.16);transition:transform .18s ease,filter .18s ease,border-color .18s ease,background .18s ease}
+    .answers-team .answer:hover:not(:disabled){transform:translateY(-2px) scale(1.01);filter:brightness(1.02)}
+    .answers-team .answer .opt-key{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 12px;border-radius:14px;background:#203657;color:#fff;font-size:.82em;box-shadow:0 6px 14px rgba(0,0,0,.15)}
+    .answers-team .answer .opt-text{display:block;width:100%}.answers-team .answer.disabled,.answers-team .answer:disabled{opacity:.48;cursor:not-allowed;transform:none}
+    .answers-team .answer.correct{background:linear-gradient(180deg,rgba(102,255,196,.95),rgba(69,218,156,.95));border-color:rgba(63,224,161,.95);color:#123a2c}
+    .answers-team .answer.wrong{background:linear-gradient(180deg,rgba(255,196,206,.98),rgba(255,129,160,.98));border-color:rgba(255,102,130,.96);color:#531a2d}
+    .answers-team .answer.revealed{box-shadow:0 0 0 2px rgba(255,255,255,.22),0 8px 0 rgba(0,0,0,.12)}
+    .team-panel.a .answers-team .answer{box-shadow:0 8px 0 rgba(21,46,82,.35)}.team-panel.b .answers-team .answer{box-shadow:0 8px 0 rgba(73,17,28,.34)}
+    .game-stage-arena{min-height:760px;position:relative;background:radial-gradient(circle at 50% 15%,rgba(72,220,255,.18),transparent 22%),radial-gradient(circle at 50% 100%,rgba(255,102,130,.1),transparent 24%),linear-gradient(180deg,#071321,#04111d 78%)}
+    .arena-bottom-info{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 14px;border-radius:999px;background:rgba(5,12,23,.76);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12)}
+    .arena-bottom-info .pill{background:rgba(255,255,255,.06)}
+    .duel-explain{font-size:18px;line-height:1.55;padding:12px 14px;border-radius:16px;background:rgba(6,18,35,.86);border:1px solid rgba(255,255,255,.08);min-height:72px}
+    .duel-explain strong{color:#ffe192}
+    .next-question-btn{font-size:19px!important}.duel-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    body.game-presentation{overflow:hidden}.game-presentation .wrap{max-width:none;padding:0}.game-presentation .topbar{display:none}.game-presentation #games{padding:0}.game-presentation #gameHub{display:none!important}.game-presentation #gamePlay{display:block!important;padding:12px}.game-presentation .game-top-card{margin-bottom:10px}.game-presentation .game-layout-duel{height:calc(100vh - 118px);grid-template-columns:minmax(280px,.95fr) minmax(360px,1.15fr) minmax(280px,.95fr)}.game-presentation .game-stage-arena,.game-presentation .game-stage-arena #gameCanvas{min-height:calc(100vh - 118px)}.game-presentation .question-team-card{min-height:calc(100vh - 118px)}.game-presentation .team-question-copy{font-size:clamp(24px,1.7vw,36px)}.game-presentation .answers-team .answer{min-height:108px;font-size:clamp(22px,1.5vw,34px)}.game-presentation .question-media{min-height:190px}
+    @media(max-width:1450px){.game-layout-duel{grid-template-columns:minmax(280px,.9fr) minmax(360px,1.1fr) minmax(280px,.9fr)}.game-stage-arena{min-height:700px}.question-team-card{min-height:690px}}
+    @media(max-width:1180px){.game-layout-duel{grid-template-columns:1fr}.game-stage-arena,.game-stage-arena #gameCanvas,.question-team-card{min-height:520px}.question-team-card{min-height:auto}.game-presentation .game-layout-duel{height:auto;grid-template-columns:1fr}.game-presentation .question-team-card,.game-presentation .game-stage-arena,.game-presentation .game-stage-arena #gameCanvas{min-height:500px;height:auto}}
+    @media(max-width:760px){.game-top-card{padding:12px}.game-top-title h2{font-size:24px}.team-side-label{font-size:18px}.question-media{min-height:140px}.answers-team{grid-template-columns:1fr}.answers-team .answer{min-height:92px;font-size:clamp(18px,4.7vw,28px)}.duel-toolbar-actions{width:100%}.duel-toolbar-actions .btn{flex:1}}
+
   </style>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar">
-    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC 3D V8</b><small>Vòng quay toàn màn hình • Sổ điểm nhiều lần • Game Toán trình chiếu</small></div></div>
+    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC 3D V9</b><small>Vòng quay toàn màn hình • Sổ điểm nhiều lần • Game đối kháng 2 đội</small></div></div>
     <nav class="tabs">
       <button class="tab active" data-screen="random">🎲 Gọi tên</button>
       <button class="tab" data-screen="students">👨‍🎓 Học sinh</button>
@@ -233,31 +280,70 @@
     </div>
 
     <div id="gamePlay" class="hide">
-      <div class="game-layout game-layout-presentation">
-        <div class="game-stage game-stage-showcase">
+      <div class="game-top-card">
+        <div class="game-top-title">
+          <h2 id="gameTitleHead">⚔️ ĐẤU TRƯỜNG KIẾN THỨC 2 ĐỘI</h2>
+          <div class="muted">Hai đội cùng xem một câu hỏi. Đội mở lượt trả lời trước; nếu sai, quyền trả lời chuyển sang đội còn lại.</div>
+        </div>
+        <div class="top-pills">
+          <span id="qCounter" class="pill">Câu 0</span>
+          <span id="qMeta" class="pill">Chưa có dữ liệu</span>
+          <span id="duelResponderBadge" class="pill">Đội trả lời: —</span>
+        </div>
+        <div class="duel-toolbar-actions">
+          <button class="btn ghost" onclick="toggleGamePresentation()">⛶ Trình chiếu</button>
+          <button class="btn ghost" onclick="exitGame()">← Thoát</button>
+        </div>
+      </div>
+
+      <div class="turns" style="margin-bottom:12px"><button id="turnA" class="turn-btn active a" onclick="setTurn('A')">Đội Xanh mở lượt</button><button id="turnB" class="turn-btn" onclick="setTurn('B')">Đội Đỏ mở lượt</button></div>
+
+      <div class="game-layout game-layout-duel">
+        <div id="teamPanelA" class="card team-panel a active">
+          <div class="team-side-head">
+            <div class="team-side-label"><span class="team-dot"></span><span id="panelAName">ĐỘI XANH</span></div>
+            <span id="teamStatusA" class="team-status">Đang chờ câu hỏi</span>
+          </div>
+          <div class="question-team-card">
+            <div id="qMediaA" class="question-media"><div class="question-media-placeholder"><div class="icon">🧠</div><div>Hình ảnh sẽ hiển thị ở đây</div></div></div>
+            <div class="question-copy-wrap">
+              <div class="question-copy-title">Nội dung câu hỏi</div>
+              <div id="qTextA" class="team-question-copy">Bấm “CÂU TIẾP THEO” để bắt đầu.</div>
+            </div>
+            <div id="answersA" class="answers answers-team"></div>
+          </div>
+        </div>
+
+        <div class="game-stage game-stage-arena">
           <canvas id="gameCanvas"></canvas>
           <div class="hud">
             <div class="scorebox"><div class="team-badge"><b id="hudAName">ĐỘI XANH</b><span>ĐỘI A</span></div><div class="score-num" id="hudAScore">0</div></div>
             <div class="scorebox"><div class="score-num" id="hudBScore">0</div><div class="team-badge"><b id="hudBName">ĐỘI ĐỎ</b><span>ĐỘI B</span></div></div>
           </div>
-          <div class="game-title" id="gameTitle">KÉO CO 3D</div>
+          <div class="game-title" id="gameTitle">KÉO CO 3D • CÙNG MỘT CÂU HỎI</div>
+          <div class="arena-bottom-info"><span id="starterBadge" class="pill">Mở lượt: —</span><span id="turnLabel" class="pill">Đội trả lời: —</span></div>
           <div id="winner" class="winner"><div class="winner-card"><div class="cup">🏆</div><h2 id="winnerText">CHIẾN THẮNG!</h2><button class="btn gold" onclick="resetGame()">Chơi lại</button></div></div>
         </div>
-        <div class="card question-board question-board-stage">
-          <div class="question-toolbar">
-            <div class="row"><span id="qCounter" class="pill">Câu 0</span><span id="qMeta" class="qmeta"></span></div>
-            <div class="row"><button class="btn ghost" onclick="toggleGamePresentation()">⛶ Trình chiếu</button><button class="btn ghost" onclick="exitGame()">← Thoát</button></div>
+
+        <div id="teamPanelB" class="card team-panel b">
+          <div class="team-side-head">
+            <div class="team-side-label"><span class="team-dot"></span><span id="panelBName">ĐỘI ĐỎ</span></div>
+            <span id="teamStatusB" class="team-status">Đang chờ câu hỏi</span>
           </div>
-          <div class="turns"><button id="turnA" class="turn-btn active a" onclick="setTurn('A')">Lượt Đội A</button><button id="turnB" class="turn-btn" onclick="setTurn('B')">Lượt Đội B</button></div>
-          <div class="question-focus">
-            <div id="qText" class="qtext qtext-large">Bấm “Câu tiếp theo” để bắt đầu.</div>
-            <div id="answers" class="answers answers-large"></div>
-          </div>
-          <div id="qExplain" class="explain explain-large">Đội đang trả lời: <b id="turnLabel">ĐỘI XANH</b></div>
-          <div class="game-actions">
-            <div class="row"><button class="btn primary next-question-btn" style="flex:1" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻</button></div>
+          <div class="question-team-card">
+            <div id="qMediaB" class="question-media"><div class="question-media-placeholder"><div class="icon">🧠</div><div>Hình ảnh sẽ hiển thị ở đây</div></div></div>
+            <div class="question-copy-wrap">
+              <div class="question-copy-title">Nội dung câu hỏi</div>
+              <div id="qTextB" class="team-question-copy">Bấm “CÂU TIẾP THEO” để bắt đầu.</div>
+            </div>
+            <div id="answersB" class="answers answers-team"></div>
           </div>
         </div>
+      </div>
+
+      <div id="qExplain" class="duel-explain" style="margin-top:14px">Đội đang trả lời: <b id="turnLabelInline">ĐỘI XANH</b></div>
+      <div class="game-actions" style="margin-top:14px">
+        <div class="row"><button class="btn primary next-question-btn" style="flex:1" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻</button></div>
       </div>
     </div>
   </section>
@@ -310,7 +396,7 @@ const API_PROXY_URL = '/api/sheet';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
-const APP_VERSION='8.0.0';
+const APP_VERSION='9.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let scoresData=safeLoad(LS.scores,[]);
@@ -513,7 +599,7 @@ function normalizeQuestion(q,i=0,source=''){
     return {key:String.fromCharCode(65+j),text:String(v??'')};
   });
   else if(opts&&typeof opts==='object') optionPairs=Object.keys(opts).sort().map(k=>({key:String(k).trim().toUpperCase(),text:String(opts[k]??'')}));
-  return{id:String(q.Id??q.id??`Q_${Date.now()}_${i}`),type:String(q.Type??q.type??'MC'),level:String(q.Level??q.level??''),grade:String(q.Grade??q.grade??''),subject:String(q.Subject??q.subject??''),chapter:String(q.Chapter??q.chapter??''),topic:String(q.Topic??q.topic??q.Lesson??q.lesson??''),question:String(q.Question??q.question??''),options:optionPairs,answer:String(q.CorrectAnswer??q.correctAnswer??q.answer??''),explanation:String(q.Explain??q.explain??q.explanation??''),sourceFile:String(q.sourceFile??source??'')}
+  return{id:String(q.Id??q.id??`Q_${Date.now()}_${i}`),type:String(q.Type??q.type??'MC'),level:String(q.Level??q.level??''),grade:String(q.Grade??q.grade??''),subject:String(q.Subject??q.subject??''),chapter:String(q.Chapter??q.chapter??''),topic:String(q.Topic??q.topic??q.Lesson??q.lesson??''),question:String(q.Question??q.question??''),image:String(q.Image??q.image??''),options:optionPairs,answer:String(q.CorrectAnswer??q.correctAnswer??q.answer??''),explanation:String(q.Explain??q.explain??q.explanation??''),sourceFile:String(q.sourceFile??source??'')}
 }
 function validQuestion(q){return!!(q&&q.question&&Array.isArray(q.options)&&q.options.length>=2)}
 function qkey(q){return String(q.id||'')+'|'+q.grade+'|'+q.chapter+'|'+q.topic}
@@ -535,18 +621,201 @@ function extractImages(text){return(String(text||'').match(/https?:\/\/[^\s]+?\.
 function renderRich(text){const imgs=extractImages(text);let body=esc(stripUrls(text)).replace(/\n/g,'<br>');imgs.forEach(u=>body+=`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`);return body}
 function correctIndex(q){const a=String(q.answer||'').trim().toUpperCase();const byKey=q.options.findIndex(o=>String(o.key).toUpperCase()===a);if(byKey>=0)return byKey;const byText=q.options.findIndex(o=>String(o.text).trim().toUpperCase()===a);if(byText>=0)return byText;const n=Number(a);if(Number.isInteger(n)&&n>=1&&n<=q.options.length)return n-1;return-1}
 
-function startGame(type){if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Khối / Chương / Bài.');if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');game={type,a:0,b:0,turn:'A',used:[],current:null,locked:false};$('#gameHub').classList.add('hide');$('#gamePlay').classList.remove('hide');$('#winner').classList.remove('show');$('#gameTitle').textContent=type==='tug'?'KÉO CO 3D • TRẢ LỜI ĐÚNG ĐỂ KÉO CỜ':'ĐUA XE 3D • TRẢ LỜI ĐÚNG ĐỂ TĂNG TỐC';updateHud();setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());setTimeout(()=>{game3d.resize();nextQuestion()},250)}
-function exitGame(){document.body.classList.remove('game-presentation');game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');if(document.fullscreenElement)document.exitFullscreen?.()}
+
+function startGame(type){
+  if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Khối / Chương / Bài.');
+  if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');
+  game={type,a:0,b:0,turn:'A',starter:'A',responder:'A',attempted:{A:false,B:false},used:[],current:null,locked:false};
+  $('#gameHub').classList.add('hide');
+  $('#gamePlay').classList.remove('hide');
+  $('#winner').classList.remove('show');
+  $('#gameTitle').textContent=type==='tug'?'KÉO CO 3D • HAI ĐỘI CÙNG MỘT CÂU HỎI':'ĐUA XE 3D • HAI ĐỘI CÙNG MỘT CÂU HỎI';
+  $('#gameTitleHead').textContent=type==='tug'?'🪢 KÉO CO KIẾN THỨC • 2 ĐỘI':'🏎️ ĐUA XE KIẾN THỨC • 2 ĐỘI';
+  updateHud();
+  setTurn('A');
+  game3d?.dispose();
+  game3d=new Game3D($('#gameCanvas'),type);
+  game3d.setProgress(0,0,winScore());
+  setTimeout(()=>{game3d.resize();nextQuestion()},250)
+}
+function exitGame(){game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show')}
 function winScore(){return Math.max(1,Math.min(20,Number($('#winScore').value||5)))}
 function names(){return{A:$('#teamAName').value.trim()||'ĐỘI XANH',B:$('#teamBName').value.trim()||'ĐỘI ĐỎ'}}
-function setTurn(t){game.turn=t;const n=names();$('#turnA').className='turn-btn'+(t==='A'?' active a':'');$('#turnB').className='turn-btn'+(t==='B'?' active b':'');$('#turnLabel').textContent=n[t]}
-function updateHud(){const n=names();$('#hudAName').textContent=n.A;$('#hudBName').textContent=n.B;$('#hudAScore').textContent=game.a;$('#hudBScore').textContent=game.b}
-function fitQuestionTypography(q){const text=stripUrls(q?.question||'');const n=text.length;const el=$('#qText');if(!el)return;el.style.fontSize=n<70?'clamp(38px,3.4vw,62px)':n<150?'clamp(32px,2.8vw,52px)':n<260?'clamp(27px,2.25vw,43px)':'clamp(23px,1.9vw,36px)'}
-function nextQuestion(){if(!selectedQuestions.length)return;game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];const q=game.current;$('#qCounter').textContent=`Câu ${game.used.length}/${selectedQuestions.length}`;$('#qMeta').textContent=[q.subject,q.grade&&'Khối '+q.grade,q.chapter,q.topic,q.level].filter(Boolean).join(' • ');$('#qText').innerHTML=renderRich(q.question);fitQuestionTypography(q);$('#qExplain').innerHTML=`Đội đang trả lời: <b>${esc(names()[game.turn])}</b> • Chỉ hiển thị 1 câu hỏi ở mỗi lượt.`;$('#answers').innerHTML=q.options.map((o,i)=>`<button class="answer" data-i="${i}"><b>${esc(o.key)}</b><span class="rich">${renderRich(o.text)}</span></button>`).join('');$$('#answers .answer').forEach(b=>b.onclick=()=>answerQuestion(Number(b.dataset.i)));typeset()}
-function answerQuestion(i){if(game.locked||!game.current)return;game.locked=true;const q=game.current,correct=correctIndex(q);$$('#answers .answer').forEach(b=>b.disabled=true);const chosen=$$('#answers .answer')[i],right=$$('#answers .answer')[correct];if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}if(i===correct){chosen?.classList.add('correct');$('#qExplain').innerHTML=`✅ Chính xác! ${renderRich(q.explanation||'')}`;award(game.turn,true);beep(880,.18)}else{chosen?.classList.add('wrong');right?.classList.add('correct');$('#qExplain').innerHTML=`❌ Chưa đúng. <b>Đáp án: ${esc(q.options[correct]?.key||'')}</b>. ${renderRich(q.explanation||'')}`;game3d?.wrong();beep(210,.18)}typeset()}
-function award(team,fromAnswer=false){if(game.a>=winScore()||game.b>=winScore())return;if(team==='A')game.a++;else game.b++;updateHud();game3d?.score(team,game.a,game.b,winScore());if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),800);beep(1040,.35)}else if(fromAnswer){setTimeout(()=>setTurn(team==='A'?'B':'A'),700)}}
-function manualPoint(t){award(t,false)}
-function resetGame(){game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;$('#winner').classList.remove('show');updateHud();setTurn('A');game3d?.setProgress(0,0,winScore());nextQuestion()}
+function setTurn(t){
+  game.turn=t;
+  const n=names();
+  $('#turnA').className='turn-btn'+(t==='A'?' active a':'');
+  $('#turnB').className='turn-btn'+(t==='B'?' active b':'');
+  $('#turnA').textContent=`${n.A} mở lượt`;
+  $('#turnB').textContent=`${n.B} mở lượt`;
+  $('#starterBadge').textContent=`Mở lượt: ${n[game.starter||game.turn||'A']}`;
+  updateResponderBadges();
+}
+function updateHud(){
+  const n=names();
+  $('#hudAName').textContent=n.A;$('#hudBName').textContent=n.B;
+  $('#panelAName').textContent=n.A;$('#panelBName').textContent=n.B;
+  $('#hudAScore').textContent=game.a;$('#hudBScore').textContent=game.b;
+}
+function questionImageUrls(q){
+  const set=new Set();
+  const arr=[];
+  const push=u=>{u=String(u||'').trim();if(!u||set.has(u))return;set.add(u);arr.push(u)};
+  push(q?.image||'');
+  extractImages(q?.question||'').forEach(push);
+  return arr;
+}
+function questionMediaHtml(q){
+  const imgs=questionImageUrls(q);
+  if(!imgs.length)return '<div class="question-media-placeholder"><div class="icon">🧮</div><div>Hình minh họa / bảng số liệu sẽ hiện ở đây</div></div>';
+  if(imgs.length===1)return `<div class="question-media-single"><img src="${esc(imgs[0])}" alt="Hình câu hỏi" onerror="this.closest('.question-media').innerHTML='<div class=\'question-media-placeholder\'><div class=\'icon\'>🧮</div><div>Không tải được hình minh họa</div></div>'"></div>`;
+  return `<div class="question-media-gallery">${imgs.map(u=>`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`).join('')}</div>`;
+}
+function renderQuestionOnlyText(text){return esc(stripUrls(text)).replace(/\n/g,'<br>')}
+function fitQuestionTypography(q){
+  const text=stripUrls(q?.question||'');
+  const n=text.length;
+  const size=n<70?'clamp(28px,1.95vw,38px)':n<150?'clamp(24px,1.7vw,34px)':n<260?'clamp(21px,1.45vw,30px)':'clamp(18px,1.2vw,26px)';
+  ['#qTextA','#qTextB'].forEach(sel=>{const el=$(sel);if(el)el.style.fontSize=size})
+}
+function updateResponderBadges(){
+  const n=names();
+  const starterName=n[game.starter||game.turn||'A'];
+  const responderName=n[game.responder||game.turn||'A'];
+  $('#starterBadge').textContent=`Mở lượt: ${starterName}`;
+  $('#turnLabel').textContent=`Đội trả lời: ${responderName}`;
+  $('#duelResponderBadge').textContent=`Đội trả lời: ${responderName}`;
+  $('#turnLabelInline').textContent=responderName;
+}
+function renderTeamAnswers(team){
+  const wrap=$('#answers'+team); if(!wrap)return;
+  const q=game.current;
+  if(!q){wrap.innerHTML='';return}
+  const active=game.responder===team && !game.locked;
+  wrap.innerHTML=q.options.map((o,i)=>`<button class="answer ${active?'':'disabled'}" data-team="${team}" data-i="${i}" ${active?'':'disabled'}><span class="opt-key">${esc(o.key)}</span><span class="opt-text rich">${renderRich(o.text)}</span></button>`).join('');
+  $$('#answers'+team+' .answer').forEach(b=>b.onclick=()=>answerQuestion(b.dataset.team,Number(b.dataset.i)));
+}
+function syncTeamPanels(){
+  const namesMap=names();
+  ['A','B'].forEach(team=>{
+    const panel=$('#teamPanel'+team); if(!panel)return;
+    const active=game.responder===team && !game.locked;
+    const attempted=!!game.attempted?.[team];
+    panel.classList.toggle('active',active);
+    panel.classList.toggle('waiting',!active && !attempted);
+    panel.classList.toggle('used',attempted && !active);
+    const status=game.locked ? 'Chờ câu tiếp theo' : active ? 'Đang trả lời' : attempted ? 'Đã trả lời' : 'Chờ lượt';
+    $('#teamStatus'+team).textContent=status;
+    renderTeamAnswers(team);
+  });
+  updateResponderBadges();
+}
+function renderDuelQuestion(){
+  if(!game.current)return;
+  const q=game.current;
+  $('#qCounter').textContent=`Câu ${game.used.length}/${selectedQuestions.length}`;
+  $('#qMeta').textContent=[q.subject,q.grade&&'Khối '+q.grade,q.chapter,q.topic,q.level].filter(Boolean).join(' • ')||'Câu hỏi luyện tập';
+  ['A','B'].forEach(team=>{
+    $('#qMedia'+team).innerHTML=questionMediaHtml(q);
+    $('#qText'+team).innerHTML=renderQuestionOnlyText(q.question||'');
+  });
+  fitQuestionTypography(q);
+  updateHud();
+  syncTeamPanels();
+  $('#qExplain').innerHTML=`Đội mở lượt: <strong>${esc(names()[game.starter])}</strong>. Nếu trả lời sai, quyền trả lời sẽ chuyển cho đội còn lại.`;
+  typeset();
+}
+function setRespondingTeam(team,reason=''){
+  game.responder=team;
+  syncTeamPanels();
+  if(reason)$('#qExplain').innerHTML=reason;
+  typeset();
+}
+function revealCorrect(correct){
+  ['A','B'].forEach(team=>{
+    $$('#answers'+team+' .answer').forEach(btn=>{
+      btn.disabled=true;
+      const idx=Number(btn.dataset.i);
+      if(idx===correct)btn.classList.add('correct','revealed');
+    })
+  })
+}
+function markChoice(team,index,cls){
+  const btn=$(`#answers${team} .answer[data-i="${index}"]`);
+  if(btn)btn.classList.add(cls);
+}
+function nextQuestion(){
+  if(!selectedQuestions.length)return;
+  game.locked=false;
+  let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));
+  if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}
+  const idx=available[Math.floor(Math.random()*available.length)];
+  game.used.push(idx);
+  game.current=selectedQuestions[idx];
+  game.starter=game.turn||'A';
+  game.responder=game.starter;
+  game.attempted={A:false,B:false};
+  renderDuelQuestion();
+}
+function answerQuestion(team,i){
+  if(game.locked||!game.current||team!==game.responder)return;
+  const q=game.current,correct=correctIndex(q);
+  if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}
+  game.attempted[team]=true;
+  $$('#answers'+team+' .answer').forEach(b=>b.disabled=true);
+  if(i===correct){
+    game.locked=true;
+    markChoice(team,i,'correct');
+    revealCorrect(correct);
+    $('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác và được cộng 1 điểm! ${renderRich(q.explanation||'')}`;
+    syncTeamPanels();
+    award(team,true);
+    beep(880,.18);
+  }else{
+    markChoice(team,i,'wrong');
+    game3d?.wrong();
+    beep(210,.18);
+    const other=team==='A'?'B':'A';
+    if(!game.attempted[other]){
+      $('#qExplain').innerHTML=`❌ <strong>${esc(names()[team])}</strong> chưa đúng. Chuyển quyền trả lời cho <strong>${esc(names()[other])}</strong>.`;
+      setRespondingTeam(other);
+    }else{
+      game.locked=true;
+      revealCorrect(correct);
+      $('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;
+      syncTeamPanels();
+      game.turn=game.starter==='A'?'B':'A';
+      typeset();
+    }
+  }
+}
+function award(team,fromAnswer=false){
+  if(game.a>=winScore()||game.b>=winScore())return;
+  if(team==='A')game.a++;else game.b++;
+  updateHud();
+  game3d?.score(team,game.a,game.b,winScore());
+  if(game.a>=winScore()||game.b>=winScore()){
+    const winner=game.a>=winScore()?'A':'B';
+    game.locked=true;
+    syncTeamPanels();
+    game3d?.celebrate(winner);
+    $('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';
+    setTimeout(()=>$('#winner').classList.add('show'),800);
+    beep(1040,.35)
+  }else if(fromAnswer){
+    game.turn=game.starter==='A'?'B':'A';
+    syncTeamPanels();
+  }
+}
+function manualPoint(t){award(t,false);$('#qExplain').innerHTML=`👉 Giáo viên cộng điểm thủ công cho <strong>${esc(names()[t])}</strong>.`;typeset()}
+function resetGame(){
+  game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.turn='A';game.starter='A';game.responder='A';game.attempted={A:false,B:false};
+  $('#winner').classList.remove('show');
+  updateHud();
+  setTurn('A');
+  game3d?.setProgress(0,0,winScore());
+  nextQuestion()
+}
 
 
 class WheelAudio{

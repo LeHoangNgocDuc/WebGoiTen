@@ -1,60 +1,56 @@
-# LỚP HỌC TƯƠNG TÁC TOÁN & TIN V12
+# LỚP HỌC TƯƠNG TÁC TOÁN & TIN V13
 
-Bản V12 khôi phục đầy đủ phần gọi tên / ghi điểm học sinh và hợp nhất trò chơi vào đúng một mục trên thanh điều hướng.
+Bản V13 tập trung vào 3 việc: trình chiếu TV rõ hơn, giữ đầy đủ gọi tên/ghi điểm học sinh, và sửa cơ chế game 2 đội.
 
-## 1. Gọi tên + ghi điểm
-- Vòng quay WebGL 3D chiếm phần lớn màn hình.
-- Có chế độ trình chiếu toàn màn hình.
-- Nạp danh sách học sinh từ Google Sheet hoặc Excel.
-- Cho phép gọi lại học sinh nhiều lần.
-- Mỗi lần gọi có `callNo` riêng và có thể ghi điểm 0-10 + ghi chú.
-- Sổ điểm cả lớp luôn hiển thị bên cạnh vòng quay.
-- Có thể bấm `Gọi & ghi điểm` ngay từ sổ điểm.
-- Có điểm cộng / trừ và lịch sử đầy đủ.
+## 1. Gọi tên + ghi điểm vẫn đầy đủ
+- Vòng quay WebGL 3D.
+- Nạp học sinh từ Google Sheet hoặc Excel.
+- Gọi lại học sinh nhiều lần.
+- Mỗi lần gọi có `callNo` riêng.
+- Ghi điểm 0–10 và ghi chú theo từng lần gọi.
+- Điểm cộng/trừ.
+- Sổ điểm cả lớp và nút `Gọi & ghi điểm`.
+- Chế độ trình chiếu mới: vòng quay nhỏ hơn trước và bảng ghi điểm vẫn hiển thị bên phải trên màn hình lớn.
 
-## 2. Trò chơi là MỘT mục duy nhất
-Trong tab `🎮 Trò chơi`, giáo viên chọn:
-- Môn: Toán / Tin (theo dữ liệu ngân hàng)
-- Khối
-- Chương
-- Bài / chủ đề
-- Loại game: Kéo co 3D hoặc Đua xe 3D
-- Tên hai đội
-- Điểm thắng
-- Thời gian trả lời mỗi lượt
+## 2. Giao diện V13 sáng và hiện đại hơn
+- Nền xanh navy sáng hơn, hiệu ứng kính mờ và gradient cyan/tím.
+- Tăng kích thước chữ ở thanh điều hướng, nút, nhãn, tên học sinh và bảng điểm.
+- Tối ưu cho màn hình TV / máy chiếu Full HD.
 
-Không tạo thêm tab riêng cho Kéo co hay Đua xe.
+## 3. Game: câu hỏi lớn hơn, sân 3D nhỏ hơn
+- Khối câu hỏi nằm trên cùng và được ưu tiên diện tích.
+- Hình / bảng số liệu được phóng lớn hơn.
+- Bấm trực tiếp vào hình câu hỏi để mở chế độ phóng to toàn màn hình.
+- Sân Kéo co / Đua xe chỉ còn là phần minh họa ở giữa bên dưới, cao khoảng 390px ở chế độ thường.
+- Khi trình chiếu, câu hỏi tiếp tục được ưu tiên diện tích; sân 3D thu nhỏ hơn.
 
-## 3. Bố cục game dành cho TV
-- Câu hỏi chỉ hiển thị MỘT lần ở chính giữa phía trên.
-- Nếu có hình ảnh / bảng số liệu, ảnh nằm bên trái nội dung câu hỏi.
-- Nội dung câu hỏi dùng cỡ chữ lớn, tự co giãn theo độ dài.
-- Công thức Toán dùng MathJax.
-- Bên trái: bảng đáp án Đội A.
-- Chính giữa: sân 3D.
-- Bên phải: bảng đáp án Đội B.
-- Đội trả lời sai -> tự chuyển quyền sang đội còn lại.
-- Đội đúng -> cộng 1 điểm + sân 3D chuyển động.
-- Có đồng hồ 10 / 15 / 20 / 30 giây hoặc không giới hạn.
-- Nếu hết giờ -> tự chuyển lượt.
+## 4. Công thức Toán
+- MathJax được gọi lại sau mỗi lần đổi câu hỏi và đáp án.
+- Có cơ chế chờ MathJax tải xong rồi mới typeset, tránh hiện LaTeX thô.
+- Hỗ trợ `$...$`, `$$...$$`, `\\(...\\)`, `\\[...\\]`.
+- Có tự nhận diện một số lệnh LaTeX phổ biến như `\\frac`, `\\sqrt`, `\\pi`, `\\times` nếu câu hỏi thiếu dấu bọc toán.
 
-## 4. QuestionBank V12 hỗ trợ ảnh
-Code.gs V12 tự nâng cấp sheet `QuestionBank` từ cấu trúc cũ sang cấu trúc có thêm cột `image`:
+## 5. Luật trả lời 2 đội mới
+- Đầu mỗi câu: **cả hai đội đều được quyền chọn đáp án**.
+- Đội nào bấm đúng trước: đội đó +1 điểm.
+- Đội nào bấm sai: đội đó bị khóa lượt của câu hiện tại; chỉ còn đội kia được trả lời.
+- Nếu đội còn lại cũng sai: hiện đáp án đúng.
+- Điểm được cập nhật đồng thời ở bảng điểm trên cùng và HUD sân 3D, kèm hiệu ứng phóng số điểm.
+- Nút `+ A` / `+ B` vẫn dùng để cộng điểm thủ công.
 
-`id | type | level | grade | subject | chapter | topic | question | image | optionsJson | correctAnswer | explain | sourceFile | updatedAt`
+## 6. Cập nhật GitHub / Vercel
+1. Thay `index.html` cũ bằng file `index.html` trong thư mục này.
+2. Giữ nguyên `api/sheet.js` hiện đang chạy trên Vercel.
+3. Có thể giữ `Code.gs` V12; nếu muốn đồng bộ phiên bản thì dùng `Code.gs` V13 trong gói này.
+4. Nếu thay `Code.gs`: Apps Script → Deploy → Manage deployments → Edit → New version → Deploy.
+5. Chờ Vercel deploy xong.
+6. Mở web và nhấn `Ctrl + F5`.
 
-Dữ liệu cũ được giữ nguyên; hệ thống chèn cột `image` sau `question`.
+## 7. Gợi ý nhập công thức Toán
+Nên ghi công thức trong JSON / Google Sheet theo một trong các dạng:
 
-## 5. Cập nhật lên GitHub / Vercel
-1. Thay file `index.html` cũ bằng file `index.html` trong thư mục này.
-2. Giữ nguyên `api/sheet.js` hiện tại trên GitHub/Vercel.
-3. Trong Google Sheet -> Extensions -> Apps Script: thay `Code.gs` bằng file mới.
-4. Chọn hàm `setup` -> Run một lần để tự kiểm tra / nâng cấp cấu trúc sheet.
-5. Deploy -> Manage deployments -> Edit -> New version -> Deploy.
-6. Chờ Vercel deploy xong.
-7. Mở web và nhấn `Ctrl + F5`.
+- `$\\frac{3}{4}+\\frac{1}{2}$`
+- `\\(x^2+2x+1\\)`
+- `$$S=\\pi r^2$$`
 
-## 6. Lưu ý
-- URL Apps Script trong `index.html` đang giữ theo file mà giáo viên gửi.
-- Nếu Apps Script được deploy ra URL `/exec` mới, cần cập nhật URL theo hệ thống hiện tại của website / proxy.
-- `api/sheet.js` không có trong gói này vì nên giữ đúng file proxy đang chạy trên Vercel hiện tại.
+V13 cũng cố gắng tự xử lý một số lệnh LaTeX chưa có dấu bọc, nhưng dùng dấu `$...$` vẫn là cách ổn định nhất.

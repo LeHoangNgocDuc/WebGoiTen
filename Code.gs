@@ -1,5 +1,5 @@
 /**
- * LOP HOC TUONG TAC - BACKEND V12.0
+ * LOP HOC TUONG TAC - BACKEND V13.0
  * Google Apps Script bound to the Google Sheet.
  *
  * FIRST USE:
@@ -10,7 +10,7 @@
  */
 
 const APP = {
-  VERSION: '12.0.0',
+  VERSION: '13.0.0',
   DB_KEY: 'CLASSROOM_DB_ID',
   SHEETS: {
     STUDENTS: 'Students',
@@ -196,7 +196,7 @@ function ensureScoresSheet_(ss) {
 
 
 /**
- * V12: QuestionBank hỗ trợ ảnh minh họa riêng cho từng câu hỏi.
+ * V13: QuestionBank hỗ trợ ảnh minh họa riêng cho từng câu hỏi.
  * Cấu trúc: id | type | level | grade | subject | chapter | topic | question | image |
  * optionsJson | correctAnswer | explain | sourceFile | updatedAt
  * Nếu sheet V7/V9 cũ chưa có cột image, tự chèn sau cột question mà không mất dữ liệu.

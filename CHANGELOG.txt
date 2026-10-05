@@ -1,12 +1,13 @@
-V12
-====
-- Khôi phục đầy đủ Gọi tên / Học sinh / Lịch sử / Ghi điểm nhiều lần.
-- Giao diện mở rộng toàn chiều ngang, phù hợp màn hình TV.
-- Vòng quay lớn hơn, tên học sinh lớn hơn.
-- Trò chơi chỉ còn 1 mục trên menu.
-- Chọn Kéo co / Đua xe bằng dropdown.
-- Câu hỏi chỉ xuất hiện 1 lần ở giữa và có cỡ chữ rất lớn.
-- Thêm lọc theo Môn trước Khối / Chương / Bài.
-- Thêm bộ đếm thời gian mỗi lượt và chuyển quyền khi hết giờ.
-- Đúng cộng điểm; sai chuyển đội.
-- QuestionBank backend thêm cột image và tự nâng cấp dữ liệu cũ.
+V13 - TV UI / GAME FIX
+======================
+
+1. Giao diện tổng thể sáng hơn, chữ lớn hơn, phù hợp TV.
+2. Chế độ trình chiếu vòng quay: vòng quay nhỏ hơn, bảng điều khiển + sổ điểm vẫn hiển thị bên phải.
+3. Game: giảm chiều cao sân 3D, tăng diện tích câu hỏi.
+4. Hình / bảng câu hỏi lớn hơn và có click để phóng to.
+5. MathJax được retry + typeset lại khi câu hỏi thay đổi.
+6. Có auto-wrap một số lệnh LaTeX phổ biến nếu dữ liệu chưa có delimiter.
+7. Đầu mỗi câu, cả hai đội cùng có quyền trả lời.
+8. Đội trả lời sai bị khóa; đội còn lại tiếp tục.
+9. Sửa cập nhật điểm đội + hiệu ứng score pop.
+10. Giữ nguyên toàn bộ gọi tên / điểm lần gọi / sổ điểm lớp.

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác Toán & Tin V12</title>
+  <title>Lớp học tương tác Toán & Tin V13</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
@@ -238,12 +238,76 @@
     @media(max-width:1120px){.random-stage{grid-template-columns:1fr}.call-panel{min-height:auto}.call-panel-scroll{height:auto}.game-config-grid{grid-template-columns:repeat(2,1fr)}.game-bank-row{grid-template-columns:1fr 1fr}.tv-game-grid{grid-template-columns:1fr}.central-question-body{grid-template-columns:1fr}.team-answer-panel{min-height:auto}.team-answer-grid{grid-template-columns:repeat(4,1fr)}.tv-arena,.tv-arena #gameCanvas{min-height:520px}.game-presentation .tv-game-grid{height:auto;grid-template-columns:1fr}.game-presentation .team-answer-panel,.game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{height:auto;min-height:500px}}
     @media(max-width:760px){.wrap{padding:7px}.topbar{position:relative}.brand b{font-size:17px}.game-config-grid{grid-template-columns:1fr}.game-config-grid>div{grid-column:span 1!important}.game-bank-row{grid-template-columns:1fr}.game-tv-head{grid-template-columns:1fr}.tv-score.b{justify-content:flex-start}.central-q-text{font-size:clamp(27px,7vw,42px)}.team-answer-grid{grid-template-columns:1fr 1fr}.team-answer-grid .answer{min-height:88px}.game-bottom-actions{flex-wrap:wrap}}
 
+  
+
+    /* ===================== V13 BRIGHT TV UI ===================== */
+    :root{
+      --bg:#07172b;--panel:#102a48;--panel2:#15365b;--line:rgba(191,232,255,.18);--text:#f7fbff;--muted:#b8cce5;
+      --cyan:#42e8ff;--violet:#8b7cff;--good:#45e7a7;--bad:#ff7296;--gold:#ffd765;--radius:24px;--shadow:0 20px 55px rgba(1,10,24,.28)
+    }
+    body{font-size:16px;background:
+      radial-gradient(circle at 9% -8%,rgba(61,227,255,.30),transparent 31%),
+      radial-gradient(circle at 88% -4%,rgba(139,124,255,.25),transparent 31%),
+      linear-gradient(180deg,#0b2440 0,#07182b 48%,#061322 100%)}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.25;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:32px 32px}
+    .wrap{padding:8px 8px 16px}
+    .topbar{top:5px;padding:12px 15px;border-radius:22px;background:linear-gradient(135deg,rgba(13,40,70,.94),rgba(9,26,49,.94));border-color:rgba(111,222,255,.22);box-shadow:0 16px 45px rgba(0,0,0,.24)}
+    .brand b{font-size:25px;letter-spacing:-.6px}.brand small{font-size:13px;color:#c4d8ee}.logo{width:50px;height:50px;box-shadow:0 0 34px rgba(66,232,255,.42)}
+    .tabs{gap:8px}.tab,.btn{font-size:15px;padding:12px 16px;border-radius:15px}.tab{background:rgba(26,63,103,.82)}.tab.active,.btn.primary{background:linear-gradient(135deg,#24c8ed,#7c6cf3);box-shadow:0 10px 25px rgba(72,188,255,.18)}
+    .card{background:linear-gradient(180deg,rgba(18,49,82,.96),rgba(9,29,52,.96));border-color:rgba(163,222,255,.16)}
+    label{font-size:14px}.input{font-size:15px;padding:13px 14px;background:rgba(5,24,45,.82)}
+    .pill{font-size:13px;padding:8px 12px;background:rgba(5,25,46,.72);border-color:rgba(166,226,255,.13)}
+    .muted{color:#bfd0e5}
+
+    /* Gọi tên / trình chiếu: nón nhỏ hơn, bảng điểm luôn nhìn thấy */
+    .random-stage{grid-template-columns:minmax(0,1fr) 500px;gap:12px;min-height:calc(100vh - 92px)}
+    .wheel-card-full .wheel-result .student-name{font-size:clamp(48px,5.4vw,88px)}
+    .call-panel{font-size:14px}.panel-head h3{font-size:20px}.selected-student{font-size:27px}.stat b{font-size:27px}.scorebook-name{font-size:15px}.scorebook-meta{font-size:12px}
+    body.wheel-presentation{overflow:hidden}
+    .wheel-presentation .wrap{max-width:none;padding:0}.wheel-presentation .topbar{display:none}.wheel-presentation #random{padding:0}
+    .wheel-presentation #random .random-stage{height:100vh;min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:8px;padding:8px}
+    .wheel-presentation .wheel-card-full{min-height:calc(100vh - 16px);height:calc(100vh - 16px);border-radius:22px;border:1px solid var(--line)}
+    .wheel-presentation .wheel-card-full .wheel-wrap{inset:58px 36px 142px}
+    .wheel-presentation .wheel-card-full #wheelCanvas{min-height:calc(100vh - 235px);max-height:calc(100vh - 220px)}
+    .wheel-presentation .wheel-result{bottom:108px;width:min(82%,850px);padding:9px 16px}.wheel-presentation .wheel-result .student-name{font-size:clamp(44px,5vw,78px)}
+    .wheel-presentation .wheel-actions{bottom:22px}.wheel-presentation .spin-btn{font-size:21px!important;padding:14px 28px!important}
+    .wheel-presentation .call-panel{position:relative;right:auto;top:auto;bottom:auto;width:auto;min-height:calc(100vh - 16px);height:calc(100vh - 16px);transform:none!important;border-radius:22px;box-shadow:var(--shadow)}
+    .wheel-presentation .call-panel-scroll{height:calc(100vh - 78px)}.wheel-presentation #floatingPanelBtn{display:none!important}
+
+    /* Trò chơi: câu hỏi/hình lớn hơn, sân 3D nhỏ hơn */
+    .game-tv-head{padding:10px 14px;margin-bottom:8px;background:linear-gradient(135deg,rgba(20,61,100,.98),rgba(12,36,67,.98))}.tv-score-name{font-size:19px}.tv-score-number{font-size:38px}.tv-timer b{font-size:38px}
+    .score-pop{animation:scorePop .65s cubic-bezier(.16,1,.3,1)}@keyframes scorePop{0%{transform:scale(1)}35%{transform:scale(1.55);color:#fff08a;text-shadow:0 0 25px rgba(255,224,92,.8)}100%{transform:scale(1)}}
+    .central-question{padding:16px 18px 18px;margin-bottom:8px;background:linear-gradient(180deg,rgba(19,59,98,.99),rgba(10,34,63,.99));border-color:rgba(110,223,255,.23)}
+    .central-question-head{margin-bottom:9px}.central-question-head h2{font-size:29px}
+    .central-question-body{grid-template-columns:minmax(360px,.9fr) minmax(0,1.5fr);gap:22px;align-items:stretch}
+    .central-question-body.no-image{grid-template-columns:1fr}.central-media{min-height:260px;max-height:310px;padding:8px;border-radius:20px;background:#fff;cursor:zoom-in;box-shadow:0 12px 32px rgba(0,0,0,.18)}
+    .central-media img{width:100%;height:100%;max-height:292px;object-fit:contain;border-radius:12px;image-rendering:auto}.central-q-copy{min-height:260px}.central-q-label{font-size:14px;color:#c9dcf3}.central-q-text{font-size:clamp(44px,3.45vw,72px);line-height:1.18;letter-spacing:-.8px}.central-q-foot{font-size:15px;padding:9px 12px}
+    .central-q-text mjx-container,.team-answer-grid mjx-container{font-size:1.12em!important;color:inherit!important}.central-q-text mjx-container[display="true"]{margin:.28em 0!important}
+    .dual-ready-strip{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;padding:10px 14px;border-radius:17px;background:linear-gradient(90deg,rgba(49,207,241,.22),rgba(132,105,246,.19));border:1px solid rgba(104,224,255,.25);font-size:17px}.dual-ready-strip b{font-size:18px}.dual-ready-strip small{color:#d5e4f5;font-size:13px}
+    .tv-game-grid{grid-template-columns:minmax(320px,.9fr) minmax(430px,1.08fr) minmax(320px,.9fr);gap:10px}
+    .team-answer-panel{min-height:390px;padding:12px}.team-answer-name{font-size:24px}.team-answer-help{font-size:13px}.team-answer-grid{gap:9px}.team-answer-grid .answer{min-height:86px;font-size:clamp(21px,1.5vw,31px);border-radius:17px}.team-answer-grid .answer:disabled{opacity:.30}.team-answer-panel.active{box-shadow:0 0 0 2px rgba(91,234,255,.58),0 0 35px rgba(63,217,255,.16),var(--shadow)}.team-answer-panel.attempted{filter:saturate(.72)}
+    .tv-arena,.tv-arena #gameCanvas{min-height:390px;height:390px}.tv-arena{border-radius:20px}.tv-arena .hud{top:10px}.tv-arena-caption{top:66px}
+    .game-feedback{font-size:17px;min-height:52px;padding:11px 14px}.game-bottom-actions .next-question-btn{font-size:18px}
+
+    /* Trình chiếu game: dành phần lớn cho câu hỏi, sân chỉ làm minh họa */
+    body.game-presentation{overflow:hidden}.game-presentation #games{padding:6px}.game-presentation .game-tv-head{margin-bottom:5px;padding:7px 11px}
+    .game-presentation .central-question{margin-bottom:5px;padding:10px 14px}.game-presentation .central-question-head{margin-bottom:6px}.game-presentation .central-question-body{grid-template-columns:minmax(390px,.92fr) minmax(0,1.55fr);gap:18px}.game-presentation .central-media{min-height:270px;max-height:330px}.game-presentation .central-media img{max-height:314px}.game-presentation .central-q-copy{min-height:270px}.game-presentation .central-q-text{font-size:clamp(48px,3.6vw,78px);line-height:1.15}.game-presentation .central-q-foot{font-size:14px}
+    .game-presentation .dual-ready-strip{margin-bottom:5px;padding:7px 12px}
+    .game-presentation .tv-game-grid{height:calc(100vh - 455px);min-height:300px;grid-template-columns:minmax(300px,.9fr) minmax(400px,1.05fr) minmax(300px,.9fr);gap:6px}.game-presentation .team-answer-panel,.game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{height:100%;min-height:300px}.game-presentation .team-answer-grid .answer{min-height:72px;font-size:clamp(21px,1.45vw,31px)}
+    .game-presentation .game-feedback{bottom:58px}.game-presentation .game-bottom-actions{bottom:6px}
+
+    /* Zoom hình/bảng câu hỏi */
+    .question-zoom{position:fixed;inset:0;z-index:500;display:none;place-items:center;padding:28px;background:rgba(2,12,25,.88);backdrop-filter:blur(12px)}.question-zoom.show{display:grid}.question-zoom img{max-width:94vw;max-height:90vh;object-fit:contain;background:#fff;border-radius:20px;padding:12px;box-shadow:0 30px 90px rgba(0,0,0,.48)}.question-zoom-close{position:fixed;right:24px;top:20px;width:54px;height:54px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:#102d4c;color:#fff;font-size:25px;font-weight:900;cursor:pointer}
+
+    @media(max-width:1250px){.random-stage{grid-template-columns:minmax(0,1fr) 420px}.central-question-body{grid-template-columns:minmax(300px,.85fr) minmax(0,1.45fr)}.tv-game-grid{grid-template-columns:minmax(280px,.9fr) minmax(360px,1.05fr) minmax(280px,.9fr)}}
+    @media(max-width:980px){.random-stage{grid-template-columns:1fr}.central-question-body{grid-template-columns:1fr}.central-media{min-height:220px}.tv-game-grid{grid-template-columns:1fr}.tv-arena,.tv-arena #gameCanvas{height:auto;min-height:380px}.wheel-presentation #random .random-stage{grid-template-columns:1fr}.wheel-presentation .call-panel{display:none}.wheel-presentation .wheel-card-full .wheel-wrap{inset:54px 10px 130px}}
+
   </style>
 </head>
 <body>
 <div class="wrap">
   <header class="topbar">
-    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC • TOÁN & TIN</b><small>Gọi tên • Ghi điểm nhiều lần • Trò chơi trình chiếu TV</small></div></div>
+    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC • TOÁN & TIN</b><small>Gọi tên • Ghi điểm theo lần • Trò chơi kiến thức dành cho màn hình lớn</small></div></div>
     <nav class="tabs">
       <button class="tab active" data-screen="random">🎲 Gọi tên</button>
       <button class="tab" data-screen="students">👨‍🎓 Học sinh</button>
@@ -373,7 +437,7 @@
         <div id="bankSummary" class="bank-summary" style="margin-top:10px">Chưa có câu hỏi.</div>
         <div id="questionPreview" class="question-preview hide"></div>
         <div class="game-start-row">
-          <div class="game-preview-strip"><span class="pill">💡 Sai → chuyển đội</span><span class="pill">✅ Đúng → +1 điểm</span><span class="pill">⛶ Có chế độ trình chiếu</span></div>
+          <div class="game-preview-strip"><span class="pill">⚡ Hai đội cùng được chọn lúc đầu</span><span class="pill">💡 Sai → khóa đội đó, chuyển quyền</span><span class="pill">✅ Đúng → +1 điểm</span><span class="pill">⛶ Có chế độ trình chiếu</span></div>
           <button class="btn primary" onclick="startSelectedGame()">▶ BẮT ĐẦU TRÒ CHƠI</button>
         </div>
       </div>
@@ -397,12 +461,12 @@
         </div>
       </div>
 
-      <div class="turns" style="margin-bottom:9px"><button id="turnA" class="turn-btn active a" onclick="setTurn('A')">ĐỘI XANH mở lượt</button><button id="turnB" class="turn-btn" onclick="setTurn('B')">ĐỘI ĐỎ mở lượt</button></div>
+      <div class="dual-ready-strip" id="dualReadyStrip"><span>⚡</span><b>CẢ HAI ĐỘI CÙNG ĐƯỢC QUYỀN TRẢ LỜI</b><small>Đội nào chọn sai sẽ bị khóa lượt; quyền trả lời chỉ còn cho đội kia.</small></div>
 
       <div class="tv-game-grid">
         <div id="teamPanelA" class="card team-answer-panel a active">
           <div class="team-answer-head"><div id="panelAName" class="team-answer-name">ĐỘI XANH</div><span id="teamStatusA" class="team-status">Đang trả lời</span></div>
-          <div class="team-answer-help">Bảng đáp án của Đội A • chỉ bấm khi đến lượt.</div>
+          <div class="team-answer-help">Bảng đáp án Đội A • đầu câu cả hai đội đều có thể chọn.</div>
           <div id="answersA" class="team-answer-grid"></div>
         </div>
 
@@ -416,7 +480,7 @@
 
         <div id="teamPanelB" class="card team-answer-panel b">
           <div class="team-answer-head"><div id="panelBName" class="team-answer-name">ĐỘI ĐỎ</div><span id="teamStatusB" class="team-status">Chờ lượt</span></div>
-          <div class="team-answer-help">Bảng đáp án của Đội B • nếu Đội A sai, quyền chuyển sang đây.</div>
+          <div class="team-answer-help">Bảng đáp án Đội B • đầu câu cả hai đội đều có thể chọn.</div>
           <div id="answersB" class="team-answer-grid"></div>
         </div>
       </div>
@@ -433,7 +497,7 @@
         <p class="muted"><b>V12 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
         <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
           <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
-          <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
+          <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJGI14qSGHWHJWVi75tMzKcir_uU8OoxajKt2VDbPLtz4krl-uJWbgSjABX81r6yOE/exec';
 
 // V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
 const API_PROXY_URL = '/api/sheet';</code>
@@ -464,7 +528,7 @@ const API_PROXY_URL = '/api/sheet';</code>
 // Nếu Deploy lại và Google cấp URL mới, chỉ thay đúng chuỗi nằm trong dấu nháy.
 // KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
 // ============================================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyoZgw74NhN9a7B5deTfoeoLdsXPqr4SK4xolVZ8T2gmAoE0EAxOSn6m_-fQTvDqdw/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxW_kzCJ_R13Es_nxPyPCZ9NQpI6BaLVxXkBUQ1SjxvIPtTkZZmHHmqQAQAYNn959DY/exec';
 
 // V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
 const API_PROXY_URL = '/api/sheet';
@@ -474,7 +538,7 @@ const API_PROXY_URL = '/api/sheet';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
-const APP_VERSION='12.0.0';
+const APP_VERSION='13.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let scoresData=safeLoad(LS.scores,[]);
@@ -489,7 +553,17 @@ function saveLocal(){localStorage.setItem(LS.students,JSON.stringify(students));
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),4200)}
 function fmtTime(v){if(!v)return'';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('vi-VN')}
-function typeset(){setTimeout(()=>window.MathJax?.typesetPromise?.().catch(()=>{}),0)}
+function typeset(root=document){
+  let tries=0;
+  const run=()=>{
+    tries++;
+    if(!window.MathJax?.typesetPromise){if(tries<18)setTimeout(run,140);return}
+    try{window.MathJax.typesetClear?.(root&&root!==document?[root]:undefined)}catch{}
+    const nodes=root&&root!==document?[root]:undefined;
+    window.MathJax.typesetPromise(nodes).catch(()=>{});
+  };
+  setTimeout(run,25)
+}
 function beep(freq=600,d=.09){if(!$('#soundMode')?.checked)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.05,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch{}}
 
 $$('.tab[data-screen]').forEach(b=>b.onclick=()=>go(b.dataset.screen));
@@ -728,7 +802,13 @@ async function loadQuestionBankFromSheet(silent=false){try{const d=await apiGet(
 
 function stripUrls(text){return String(text||'').replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').trim()}
 function extractImages(text){return(String(text||'').match(/https?:\/\/[^\s]+?\.(?:png|jpe?g|webp|gif)(?:\?[^\s]*)?/gi)||[]).map(u=>u.replace(/[),.;]+$/,''))}
-function renderRich(text){const imgs=extractImages(text);let body=esc(stripUrls(text)).replace(/\n/g,'<br>');imgs.forEach(u=>body+=`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`);return body}
+function normalizeBareTex(text){
+  let s=String(text||'');
+  if(/\$\$|\$[^$]+\$|\\\(|\\\[/.test(s))return s;
+  // Tự bọc các lệnh LaTeX phổ biến nếu ngân hàng câu hỏi chưa có dấu $...$ hoặc \\(...\\).
+  return s.replace(/\\(?:frac\{[^{}]*\}\{[^{}]*\}|sqrt(?:\[[^\]]*\])?\{[^{}]*\}|overline\{[^{}]*\}|vec\{[^{}]*\}|hat\{[^{}]*\}|bar\{[^{}]*\}|sum(?:_\{[^{}]*\})?(?:\^\{[^{}]*\})?|pi|theta|alpha|beta|gamma|Delta|times|cdot|div|leq?|geq?|neq|infty)/g,m=>`\\(${m}\\)`)
+}
+function renderRich(text){const imgs=extractImages(text);let body=esc(normalizeBareTex(stripUrls(text))).replace(/\n/g,'<br>');imgs.forEach(u=>body+=`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`);return body}
 function correctIndex(q){const a=String(q.answer||'').trim().toUpperCase();const byKey=q.options.findIndex(o=>String(o.key).toUpperCase()===a);if(byKey>=0)return byKey;const byText=q.options.findIndex(o=>String(o.text).trim().toUpperCase()===a);if(byText>=0)return byText;const n=Number(a);if(Number.isInteger(n)&&n>=1&&n<=q.options.length)return n-1;return-1}
 
 
@@ -737,45 +817,57 @@ function startGame(type){
   if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
   if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');
   stopGameTimer();
-  game={type,a:0,b:0,turn:'A',starter:'A',responder:'A',attempted:{A:false,B:false},used:[],current:null,locked:false,timeLeft:0,timer:null};
+  game={type,a:0,b:0,turn:'A',starter:null,responder:null,attempted:{A:false,B:false},used:[],current:null,locked:false,timeLeft:0,timer:null,lastChoice:null,revealedCorrect:null};
   $('#gameHub').classList.add('hide');$('#gamePlay').classList.remove('hide');$('#winner').classList.remove('show');
   const tug=type==='tug';
   $('#gameTitle').textContent=tug?'KÉO CO 3D':'ĐUA XE 3D';
   $('#gameTitleHead').textContent=tug?'🪢 KÉO CO KIẾN THỨC':'🏎️ ĐUA XE KIẾN THỨC';
-  $('#arenaCaption').textContent=tug?'Trả lời đúng để kéo cờ về phía đội mình':'Trả lời đúng để xe tăng tốc về đích';
-  updateHud();setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());
+  $('#arenaCaption').textContent=tug?'Đúng → cờ dịch chuyển về phía đội ghi điểm':'Đúng → xe tăng tốc về phía đích';
+  updateHud(false);setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());
   setTimeout(()=>{game3d.resize();nextQuestion()},220)
 }
 function exitGame(){stopGameTimer();game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');document.body.classList.remove('game-presentation')}
 function winScore(){return Math.max(1,Math.min(20,Number($('#winScore').value||5)))}
 function names(){return{A:$('#teamAName').value.trim()||'ĐỘI XANH',B:$('#teamBName').value.trim()||'ĐỘI ĐỎ'}}
-function setTurn(t){
-  game.turn=t;const n=names();
-  $('#turnA').className='turn-btn'+(t==='A'?' active a':'');$('#turnB').className='turn-btn'+(t==='B'?' active b':'');
-  $('#turnA').textContent=`${n.A} mở lượt`;$('#turnB').textContent=`${n.B} mở lượt`;updateResponderBadges()
+function setTurn(t){game.turn=t;updateResponderBadges()}
+function pulseScore(team){
+  ['#tv'+team+'Score','#hud'+team+'Score'].forEach(sel=>{const el=$(sel);if(!el)return;el.classList.remove('score-pop');void el.offsetWidth;el.classList.add('score-pop')});
 }
-function updateHud(){
+function updateHud(pulse=false,team=''){
   const n=names();
   $('#hudAName').textContent=n.A;$('#hudBName').textContent=n.B;$('#panelAName').textContent=n.A;$('#panelBName').textContent=n.B;
-  $('#tvAName').textContent=n.A;$('#tvBName').textContent=n.B;$('#hudAScore').textContent=game.a;$('#hudBScore').textContent=game.b;$('#tvAScore').textContent=game.a;$('#tvBScore').textContent=game.b
+  $('#tvAName').textContent=n.A;$('#tvBName').textContent=n.B;$('#hudAScore').textContent=Number(game.a||0);$('#hudBScore').textContent=Number(game.b||0);$('#tvAScore').textContent=Number(game.a||0);$('#tvBScore').textContent=Number(game.b||0);
+  if(pulse&&team)pulseScore(team)
 }
 function questionImageUrls(q){const set=new Set(),arr=[];const push=u=>{u=String(u||'').trim();if(!u||set.has(u))return;set.add(u);arr.push(u)};push(q?.image||'');extractImages(q?.question||'').forEach(push);return arr}
-function centralQuestionMedia(q){const imgs=questionImageUrls(q);if(!imgs.length)return'';return imgs.slice(0,2).map(u=>`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`).join('')}
-function renderQuestionOnlyText(text){return esc(stripUrls(text)).replace(/\n/g,'<br>')}
-function fitQuestionTypography(q){const text=stripUrls(q?.question||''),n=text.length,el=$('#qCentralText');if(!el)return;el.style.fontSize=n<75?'clamp(40px,3.2vw,66px)':n<150?'clamp(35px,2.7vw,56px)':n<260?'clamp(30px,2.25vw,47px)':'clamp(25px,1.85vw,39px)'}
-function updateResponderBadges(){
-  const n=names(),starter=n[game.starter||game.turn||'A'],responder=n[game.responder||game.turn||'A'];
-  $('#duelResponderBadge').textContent=`Đội trả lời: ${responder}`;$('#turnLabelInline').textContent=responder;
-  $('#qCentralFoot').innerHTML=`Mở lượt: <b>${esc(starter)}</b> • Đang trả lời: <b>${esc(responder)}</b>`
+function centralQuestionMedia(q){const imgs=questionImageUrls(q);if(!imgs.length)return'';const u=imgs[0];return `<img src="${esc(u)}" alt="Hình / bảng của câu hỏi" title="Bấm để phóng to" onclick="openQuestionImage(this.src)" onerror="this.style.display='none'">`}
+function openQuestionImage(src){
+  let z=$('#questionZoom');
+  if(!z){z=document.createElement('div');z.id='questionZoom';z.className='question-zoom';z.innerHTML='<button class="question-zoom-close" aria-label="Đóng">✕</button><img alt="Phóng to hình câu hỏi">';document.body.appendChild(z);z.onclick=e=>{if(e.target===z||e.target.closest('.question-zoom-close'))z.classList.remove('show')}}
+  $('img',z).src=src;z.classList.add('show')
 }
+function renderQuestionOnlyText(text){return esc(normalizeBareTex(stripUrls(text))).replace(/\n/g,'<br>')}
+function fitQuestionTypography(q){const text=stripUrls(q?.question||''),n=text.length,el=$('#qCentralText');if(!el)return;el.style.fontSize=n<75?'clamp(44px,3.45vw,72px)':n<150?'clamp(38px,3vw,62px)':n<260?'clamp(32px,2.5vw,52px)':'clamp(27px,2.08vw,44px)'}
+function updateResponderBadges(){
+  const n=names();
+  const responder=game.responder?n[game.responder]:'CẢ HAI ĐỘI';
+  $('#duelResponderBadge').textContent=`Quyền trả lời: ${responder}`;
+  $('#turnLabelInline').textContent=responder;
+  if($('#qCentralFoot'))$('#qCentralFoot').innerHTML=game.responder?`Quyền trả lời hiện tại: <b>${esc(responder)}</b>`:`⚡ <b>Cả ${esc(n.A)} và ${esc(n.B)}</b> đều được quyền chọn đáp án. Đội chọn sai sẽ mất lượt câu này.`
+}
+function teamCanAnswer(team){return !game.locked&&!game.attempted?.[team]&&(game.responder===null||game.responder===team)}
 function renderTeamAnswers(team){
   const wrap=$('#answers'+team);if(!wrap)return;const q=game.current;if(!q){wrap.innerHTML='';return}
-  const active=game.responder===team&&!game.locked;
+  const active=teamCanAnswer(team);
   wrap.innerHTML=q.options.map((o,i)=>`<button class="answer" data-team="${team}" data-i="${i}" ${active?'':'disabled'}><span class="opt-key">${esc(o.key)}</span><span class="opt-text rich">${renderRich(o.text)}</span></button>`).join('');
-  $$('#answers'+team+' .answer').forEach(b=>b.onclick=()=>answerQuestion(b.dataset.team,Number(b.dataset.i)))
+  $$('#answers'+team+' .answer').forEach(b=>b.onclick=()=>answerQuestion(b.dataset.team,Number(b.dataset.i)));
+  // Giữ lại dấu đúng/sai sau khi re-render.
+  if(game.lastChoice?.team===team){const btn=$(`#answers${team} .answer[data-i="${game.lastChoice.i}"]`);btn?.classList.add(game.lastChoice.correct?'correct':'wrong')}
+  if(Number.isInteger(game.revealedCorrect)){const right=$(`#answers${team} .answer[data-i="${game.revealedCorrect}"]`);right?.classList.add('correct','revealed')}
 }
 function syncTeamPanels(){
-  ['A','B'].forEach(team=>{const p=$('#teamPanel'+team);if(!p)return;const active=game.responder===team&&!game.locked,attempted=!!game.attempted?.[team];p.classList.toggle('active',active);const status=game.locked?'Chờ câu tiếp theo':active?'Đang trả lời':attempted?'Đã trả lời':'Chờ lượt';$('#teamStatus'+team).textContent=status;renderTeamAnswers(team)});updateResponderBadges()
+  ['A','B'].forEach(team=>{const p=$('#teamPanel'+team);if(!p)return;const can=teamCanAnswer(team),attempted=!!game.attempted?.[team];p.classList.toggle('active',can);p.classList.toggle('attempted',attempted);const status=game.locked?'Chờ câu tiếp theo':can?(game.responder? 'Đang có quyền trả lời':'Sẵn sàng trả lời'):attempted?'Đã mất lượt':'Chờ quyền';$('#teamStatus'+team).textContent=status;renderTeamAnswers(team)});
+  updateResponderBadges();typeset($('#gamePlay'))
 }
 function renderDuelQuestion(){
   if(!game.current)return;const q=game.current,imgs=questionImageUrls(q);
@@ -783,9 +875,9 @@ function renderDuelQuestion(){
   $('#qCentralText').innerHTML=renderQuestionOnlyText(q.question||'');fitQuestionTypography(q);
   const media=$('#qCentralMedia'),body=$('#centralQuestionBody');
   if(imgs.length){media.innerHTML=centralQuestionMedia(q);media.classList.remove('hide');body.classList.remove('no-image')}else{media.innerHTML='';media.classList.add('hide');body.classList.add('no-image')}
-  updateHud();syncTeamPanels();$('#qExplain').innerHTML=`Đội mở lượt: <strong>${esc(names()[game.starter])}</strong>. Nếu trả lời sai, quyền trả lời chuyển sang đội còn lại.`;typeset();startGameTimer()
+  updateHud(false);syncTeamPanels();$('#qExplain').innerHTML=`⚡ <strong>Cả hai đội cùng được quyền trả lời.</strong> Đội nào chọn sai sẽ bị khóa, đội còn lại tiếp tục trả lời.`;typeset($('#gamePlay'));startGameTimer()
 }
-function setRespondingTeam(team,reason=''){game.responder=team;syncTeamPanels();if(reason)$('#qExplain').innerHTML=reason;typeset();startGameTimer()}
+function setRespondingTeam(team,reason=''){game.responder=team;syncTeamPanels();if(reason)$('#qExplain').innerHTML=reason;typeset($('#gamePlay'));startGameTimer()}
 function revealCorrect(correct){['A','B'].forEach(team=>{$$('#answers'+team+' .answer').forEach(btn=>{btn.disabled=true;const idx=Number(btn.dataset.i);if(idx===correct)btn.classList.add('correct','revealed')})})}
 function markChoice(team,index,cls){const btn=$(`#answers${team} .answer[data-i="${index}"]`);if(btn)btn.classList.add(cls)}
 function gameTimeLimit(){return Math.max(0,Number($('#gameTimeLimit')?.value||0))}
@@ -796,25 +888,37 @@ function startGameTimer(){
   game.timer=setInterval(()=>{game.timeLeft--;paintGameTimer();if(game.timeLeft<=5&&game.timeLeft>0)beep(510,.045);if(game.timeLeft<=0){stopGameTimer();timeOutCurrentTeam()}},1000)
 }
 function timeOutCurrentTeam(){
-  if(game.locked||!game.current)return;const team=game.responder,other=team==='A'?'B':'A';game.attempted[team]=true;beep(210,.18);game3d?.wrong();
-  if(!game.attempted[other])setRespondingTeam(other,`⏱️ <strong>${esc(names()[team])}</strong> hết thời gian. Chuyển quyền cho <strong>${esc(names()[other])}</strong>.`);
-  else{game.locked=true;const correct=correctIndex(game.current);if(correct>=0)revealCorrect(correct);syncTeamPanels();$('#qExplain').innerHTML=`⏱️ Cả hai đội đã hết lượt. <strong>Đáp án: ${esc(game.current.options[correct]?.key||'')}</strong>. ${renderRich(game.current.explanation||'')}`;game.turn=game.starter==='A'?'B':'A';typeset()}
+  if(game.locked||!game.current)return;const correct=correctIndex(game.current);
+  if(game.responder===null){game.locked=true;if(correct>=0){game.revealedCorrect=correct;revealCorrect(correct);}syncTeamPanels();$('#qExplain').innerHTML=`⏱️ Hết thời gian. <strong>Đáp án: ${esc(game.current.options[correct]?.key||'')}</strong>. ${renderRich(game.current.explanation||'')}`;typeset($('#gamePlay'));return}
+  const team=game.responder,other=team==='A'?'B':'A';game.attempted[team]=true;beep(210,.18);game3d?.wrong();
+  if(!game.attempted[other])setRespondingTeam(other,`⏱️ <strong>${esc(names()[team])}</strong> hết thời gian. Chỉ còn <strong>${esc(names()[other])}</strong> được quyền trả lời.`);
+  else{game.locked=true;if(correct>=0){game.revealedCorrect=correct;revealCorrect(correct);}syncTeamPanels();$('#qExplain').innerHTML=`⏱️ Cả hai đội đã hết lượt. <strong>Đáp án: ${esc(game.current.options[correct]?.key||'')}</strong>. ${renderRich(game.current.explanation||'')}`;typeset($('#gamePlay'))}
 }
 function nextQuestion(){
-  if(!selectedQuestions.length)return toast('Chưa có câu hỏi đang chọn.');stopGameTimer();game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];game.starter=game.turn||'A';game.responder=game.starter;game.attempted={A:false,B:false};renderDuelQuestion()
+  if(!selectedQuestions.length)return toast('Chưa có câu hỏi đang chọn.');stopGameTimer();game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;renderDuelQuestion()
 }
 function answerQuestion(team,i){
-  if(game.locked||!game.current||team!==game.responder)return;stopGameTimer();const q=game.current,correct=correctIndex(q);if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}game.attempted[team]=true;$$('#answers'+team+' .answer').forEach(b=>b.disabled=true);
-  if(i===correct){game.locked=true;markChoice(team,i,'correct');revealCorrect(correct);$('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác và được cộng 1 điểm! ${renderRich(q.explanation||'')}`;syncTeamPanels();award(team,true);beep(880,.18)}
-  else{markChoice(team,i,'wrong');game3d?.wrong();beep(210,.18);const other=team==='A'?'B':'A';if(!game.attempted[other])setRespondingTeam(other,`❌ <strong>${esc(names()[team])}</strong> chưa đúng. Chuyển quyền trả lời cho <strong>${esc(names()[other])}</strong>.`);else{game.locked=true;revealCorrect(correct);$('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;syncTeamPanels();game.turn=game.starter==='A'?'B':'A';typeset()}}
+  if(game.locked||!game.current||!teamCanAnswer(team))return;stopGameTimer();const q=game.current,correct=correctIndex(q);if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}
+  // Nếu đây là cú bấm đầu tiên của câu, xác định đội vừa giành quyền trả lời.
+  if(game.responder===null)game.responder=team;
+  game.attempted[team]=true;
+  const isCorrect=i===correct;game.lastChoice={team,i,correct:isCorrect};
+  if(isCorrect){
+    game.locked=true;game.revealedCorrect=correct;markChoice(team,i,'correct');award(team,true);revealCorrect(correct);syncTeamPanels();$('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác — <strong>+1 điểm</strong>. Tỉ số: <strong>${game.a} - ${game.b}</strong>. ${renderRich(q.explanation||'')}`;beep(880,.18);typeset($('#gamePlay'))
+  }else{
+    markChoice(team,i,'wrong');game3d?.wrong();beep(210,.18);const other=team==='A'?'B':'A';
+    if(!game.attempted[other]){game.responder=other;syncTeamPanels();$('#qExplain').innerHTML=`❌ <strong>${esc(names()[team])}</strong> trả lời sai và đã mất lượt. Chỉ còn <strong>${esc(names()[other])}</strong> được quyền trả lời.`;startGameTimer()}
+    else{game.locked=true;game.revealedCorrect=correct;revealCorrect(correct);syncTeamPanels();$('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;typeset($('#gamePlay'))}
+  }
 }
 function award(team,fromAnswer=false){
-  if(game.a>=winScore()||game.b>=winScore())return;if(team==='A')game.a++;else game.b++;updateHud();game3d?.score(team,game.a,game.b,winScore());
-  if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game.locked=true;stopGameTimer();syncTeamPanels();game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),650);beep(1040,.35)}
-  else if(fromAnswer){game.turn=game.starter==='A'?'B':'A';syncTeamPanels()}
+  if(game.a>=winScore()||game.b>=winScore())return;
+  if(team==='A')game.a=Number(game.a||0)+1;else game.b=Number(game.b||0)+1;
+  updateHud(true,team);game3d?.score(team,game.a,game.b,winScore());
+  if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game.locked=true;stopGameTimer();game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),650);beep(1040,.35)}
 }
-function manualPoint(t){award(t,false);$('#qExplain').innerHTML=`👉 Giáo viên cộng điểm thủ công cho <strong>${esc(names()[t])}</strong>.`;typeset()}
-function resetGame(){stopGameTimer();game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.turn='A';game.starter='A';game.responder='A';game.attempted={A:false,B:false};$('#winner').classList.remove('show');updateHud();setTurn('A');game3d?.setProgress(0,0,winScore());nextQuestion()}
+function manualPoint(t){award(t,false);syncTeamPanels();$('#qExplain').innerHTML=`➕ Giáo viên cộng thủ công <strong>1 điểm</strong> cho <strong>${esc(names()[t])}</strong>. Tỉ số: <strong>${game.a} - ${game.b}</strong>.`;typeset($('#gamePlay'))}
+function resetGame(){stopGameTimer();game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.turn='A';game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;$('#winner').classList.remove('show');updateHud(false);setTurn('A');game3d?.setProgress(0,0,winScore());nextQuestion()}
 
 
 class WheelAudio{

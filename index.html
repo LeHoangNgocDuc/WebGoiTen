@@ -3,78 +3,900 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Đấu trường Toán & Tin V2</title>
-  <link rel="stylesheet" href="./css/base.css">
-  <link rel="stylesheet" href="./css/themes.css">
-  <link rel="stylesheet" href="./css/games.css">
+  <title>Lớp học tương tác Toán & Tin V12</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']]},svg:{fontCache:'global'}};</script>
   <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+  <style>
+    :root{
+      --bg:#050b16;--panel:#0d1a2e;--panel2:#11223b;--line:rgba(255,255,255,.09);--text:#eef6ff;--muted:#93a9c7;
+      --cyan:#48dcff;--violet:#7d69ff;--good:#3fe0a1;--bad:#ff6682;--gold:#ffd45f;--radius:22px;--shadow:0 26px 70px rgba(0,0,0,.4)
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;background:
+      radial-gradient(circle at 10% -10%,rgba(72,220,255,.17),transparent 35%),radial-gradient(circle at 88% 0,rgba(125,105,255,.18),transparent 32%),linear-gradient(180deg,#06101e 0,#050b16 70%)}
+    button,input,select{font:inherit}.wrap{max-width:1540px;margin:auto;padding:16px}.topbar{position:sticky;top:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 14px;background:rgba(5,12,24,.82);border:1px solid var(--line);border-radius:22px;backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+    .brand{display:flex;align-items:center;gap:11px}.logo{width:43px;height:43px;border-radius:14px;background:conic-gradient(from 210deg,#43e2ff,#7764ff,#ff73b7,#43e2ff);box-shadow:0 0 32px rgba(72,220,255,.35)}.brand b{display:block;font-size:20px}.brand small{color:var(--muted)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.tab,.btn{border:0;border-radius:14px;padding:11px 15px;color:#fff;background:#142844;font-weight:850;cursor:pointer;transition:.2s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}.tab:hover,.btn:hover{transform:translateY(-2px);filter:brightness(1.08)}.tab.active,.btn.primary{background:linear-gradient(135deg,#2bbbe0,#7659ea)}.btn.good{background:linear-gradient(135deg,#17a96f,#3fe0a1)}.btn.bad{background:linear-gradient(135deg,#ce3e5d,#ff6682)}.btn.gold{background:linear-gradient(135deg,#d49b2c,#ffd45f);color:#231700}.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.14)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .screen{display:none;padding-top:18px}.screen.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.span4{grid-column:span 4}.span5{grid-column:span 5}.span6{grid-column:span 6}.span7{grid-column:span 7}.span8{grid-column:span 8}.span12{grid-column:span 12}.card{background:linear-gradient(180deg,rgba(17,34,59,.97),rgba(8,21,40,.97));border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}.card h2,.card h3{margin:0 0 12px}.muted{color:var(--muted)}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.space{justify-content:space-between}.hide{display:none!important}
+    label{display:block;margin:9px 0 6px;color:#bfd2ed;font-size:13px;font-weight:850}.input{width:100%;padding:12px 13px;border-radius:13px;border:1px solid rgba(255,255,255,.13);background:#071427;color:#fff;outline:none}.input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(72,220,255,.11)}
+    .hero{min-height:465px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden}.hero:before{content:"";position:absolute;width:450px;height:450px;border-radius:50%;background:radial-gradient(circle,rgba(72,220,255,.22),rgba(125,105,255,.08) 45%,transparent 70%);animation:pulse 3s ease-in-out infinite}.hero>*{position:relative}.student-name{font-size:clamp(45px,7vw,95px);font-weight:1000;letter-spacing:-2px;text-shadow:0 15px 45px rgba(0,0,0,.48);margin:14px 0}.pill{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:#07172b;color:#c5d6ed;font-size:12px;font-weight:900;border:1px solid rgba(255,255,255,.06)}
+    .points{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.statrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{background:#07172b;border:1px solid rgba(255,255,255,.06);padding:14px;border-radius:16px}.stat b{display:block;font-size:24px;margin-top:4px}.tablewrap{max-height:540px;overflow:auto;border-radius:14px}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}th{position:sticky;top:0;background:#0c1b31;color:#c5d7ee;z-index:2}.drop{border:1.5px dashed rgba(72,220,255,.45);border-radius:17px;padding:22px;text-align:center;background:rgba(72,220,255,.04)}
+    .data-status{margin-top:12px;padding:11px 12px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);color:#bcd0eb;font-size:13px}.data-status.ok{border-color:rgba(63,224,161,.35);color:#8df3ca}.data-status.err{border-color:rgba(255,102,130,.35);color:#ff9caf}.status-dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;background:#60718c}.status-dot.ok{background:var(--good);box-shadow:0 0 14px rgba(63,224,161,.7)}.status-dot.err{background:var(--bad);box-shadow:0 0 14px rgba(255,102,130,.65)}
+    .toast{position:fixed;right:20px;bottom:20px;z-index:200;padding:13px 16px;border-radius:14px;background:#0d1b31;border:1px solid var(--line);box-shadow:var(--shadow);opacity:0;transform:translateY(18px);pointer-events:none;transition:.25s;max-width:480px}.toast.show{opacity:1;transform:none}
+
+    /* WHEEL OF NAMES 3D */
+    .wheel-card{min-height:650px;position:relative;overflow:hidden;padding:14px;background:
+      radial-gradient(circle at 50% 22%,rgba(83,231,255,.14),transparent 32%),
+      radial-gradient(circle at 50% 80%,rgba(124,93,255,.12),transparent 36%),
+      linear-gradient(180deg,#10213a,#071425 78%)}
+    .wheel-head{position:absolute;left:16px;right:16px;top:14px;z-index:8;display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:none}
+    .wheel-wrap{position:absolute;inset:58px 10px 88px;perspective:1200px;display:grid;place-items:center}
+    #wheelCanvas{display:block;width:100%;height:100%;min-height:500px;filter:drop-shadow(0 30px 45px rgba(0,0,0,.52))}
+    .wheel-pointer{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:9;width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-bottom:0;border-top:52px solid #ffd45f;filter:drop-shadow(0 8px 7px rgba(0,0,0,.45));pointer-events:none}
+    .wheel-pointer:after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff7c9;left:-8px;top:10px;box-shadow:0 0 18px rgba(255,212,95,.85)}
+    .wheel-result{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);z-index:10;width:min(86%,760px);text-align:center;padding:10px 18px;border-radius:18px;background:rgba(4,12,24,.82);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);box-shadow:0 16px 45px rgba(0,0,0,.4)}
+    .wheel-result .student-name{font-size:clamp(30px,4.2vw,62px);margin:0;letter-spacing:-1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wheel-actions{position:absolute;left:0;right:0;bottom:18px;z-index:12;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+    .spin-btn{font-size:20px!important;padding:15px 28px!important;box-shadow:0 12px 28px rgba(66,190,255,.22),inset 0 0 0 1px rgba(255,255,255,.12)!important}
+    .spin-btn.spinning{animation:spinGlow .55s ease-in-out infinite alternate}
+    @keyframes spinGlow{to{filter:brightness(1.22);box-shadow:0 0 38px rgba(89,219,255,.52),0 0 58px rgba(124,93,255,.32)}}
+    .control-card{display:flex;flex-direction:column;gap:12px}.score-session{border-radius:18px;padding:14px;background:linear-gradient(180deg,rgba(7,23,43,.96),rgba(6,18,35,.96));border:1px solid rgba(255,212,95,.22)}
+    .score-session.empty{opacity:.68}.selected-student{font-size:23px;font-weight:950;line-height:1.2;margin:2px 0 4px}.call-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}.score-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.score-big{font-size:27px;text-align:center;font-weight:950}.quick-scores{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:8px}.quick-score{padding:9px 5px;border-radius:11px;border:1px solid rgba(255,255,255,.1);background:#112640;color:#fff;font-weight:900;cursor:pointer}.quick-score:hover{background:#1a3960;transform:translateY(-1px)}
+    .score-history{margin-top:10px;max-height:150px;overflow:auto;display:grid;gap:6px}.score-record{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;background:#07172b;border:1px solid rgba(255,255,255,.07);padding:8px 9px;border-radius:11px;font-size:12px}.score-record strong{color:#ffe192;font-size:16px}.score-empty{font-size:12px;color:var(--muted);padding:8px 0}.reward-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}.reward-row .btn{padding:8px 11px;font-size:12px}
+    .wheel-legend{font-size:11px;color:#9eb4cf;max-width:540px;line-height:1.35}
+    @media(max-width:1050px){.wheel-card{min-height:610px}.wheel-wrap{inset:58px 5px 100px}.wheel-pointer{top:65px}.quick-scores{grid-template-columns:repeat(3,1fr)}}
+
+    /* QUESTION BANK */
+    .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bank-summary{padding:12px;border-radius:14px;background:#07172b;border:1px solid rgba(255,255,255,.07);line-height:1.55}.question-preview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}.qmini{padding:12px;border-radius:14px;background:#08182d;border:1px solid rgba(255,255,255,.07)}.qmini b{display:block;margin-bottom:6px}.qmini small{color:var(--muted)}
+
+    /* GAME HUB */
+    .game-hub{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.game-choice{position:relative;min-height:290px;border-radius:25px;overflow:hidden;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:linear-gradient(145deg,#0f2541,#071322);box-shadow:var(--shadow);transition:.35s}.game-choice:hover{transform:translateY(-7px) scale(1.01)}.game-choice:before{content:"";position:absolute;inset:-50%;background:conic-gradient(from 90deg,transparent,rgba(72,220,255,.13),transparent 25%,rgba(125,105,255,.14),transparent 55%);animation:spin 9s linear infinite}.game-choice .copy{position:absolute;left:20px;bottom:18px;right:20px;z-index:3}.game-choice h3{font-size:27px;margin:0 0 5px}.game-choice .visual{position:absolute;inset:0;perspective:900px}.tug-preview{position:absolute;left:10%;right:10%;top:36%;height:18px;border-radius:10px;background:repeating-linear-gradient(45deg,#d9aa65 0 10px,#855026 10px 20px);transform:rotateX(62deg);box-shadow:0 20px 30px rgba(0,0,0,.5)}.tug-preview:before,.tug-preview:after{content:"";position:absolute;width:92px;height:105px;top:-47px;border-radius:32px;background:linear-gradient(145deg,#50dfff,#1b5ad7);box-shadow:0 22px 25px rgba(0,0,0,.42)}.tug-preview:before{left:-45px}.tug-preview:after{right:-45px;background:linear-gradient(145deg,#ff6e87,#bc294e)}.race-preview{position:absolute;left:12%;right:12%;top:20%;height:150px;background:linear-gradient(90deg,#171c25,#282f3a);transform:rotateX(64deg) rotateZ(-5deg);border-radius:20px;box-shadow:0 32px 45px rgba(0,0,0,.5)}.race-preview:before{content:"";position:absolute;left:0;right:0;top:50%;height:3px;background:repeating-linear-gradient(90deg,#fff 0 24px,transparent 24px 48px)}.race-preview:after{content:"🏎️   🏎️";font-size:45px;position:absolute;left:18%;top:21%;letter-spacing:120px;filter:drop-shadow(0 18px 8px rgba(0,0,0,.45))}
+
+    /* WEBGL GAME */
+    .game-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(390px,.8fr);gap:16px}.game-stage{position:relative;min-height:690px;border-radius:26px;overflow:hidden;background:#07111e;border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow)}#gameCanvas{display:block;width:100%;height:100%;min-height:690px}.hud{position:absolute;left:16px;right:16px;top:15px;display:flex;justify-content:space-between;align-items:center;pointer-events:none;z-index:4}.scorebox{display:flex;align-items:center;gap:10px;background:rgba(5,12,23,.74);backdrop-filter:blur(13px);border:1px solid rgba(255,255,255,.13);padding:10px 13px;border-radius:16px}.team-badge{min-width:135px;text-align:center}.team-badge b{font-size:20px;display:block}.team-badge span{font-size:12px;color:#b4c8e1}.score-num{font-size:30px;font-weight:1000;color:var(--gold)}.game-title{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:4;background:rgba(5,12,23,.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12);padding:8px 13px;border-radius:999px;font-size:12px;font-weight:900;color:#d2e1f4}
+    .question-board{min-height:690px;display:flex;flex-direction:column}.turns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.turn-btn{padding:12px;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:#08182d;color:#dceaff;font-weight:900;cursor:pointer}.turn-btn.active.a{background:linear-gradient(135deg,#167ecb,#3bd6ff);box-shadow:0 0 0 3px rgba(72,220,255,.12)}.turn-btn.active.b{background:linear-gradient(135deg,#b22f54,#ff6c88);box-shadow:0 0 0 3px rgba(255,102,130,.12)}.qhead{margin-top:12px;display:flex;gap:7px;flex-wrap:wrap}.qmeta{font-size:12px;color:#a7bdd8}.qtext{font-size:19px;line-height:1.55;font-weight:800;margin:12px 0;max-height:250px;overflow:auto}.qtext img,.rich img{display:block;max-width:100%;max-height:260px;object-fit:contain;margin:10px auto;border-radius:14px;background:#fff;padding:5px}.answers{display:grid;gap:8px}.answer{width:100%;text-align:left;padding:12px 13px;border-radius:14px;border:1px solid rgba(255,255,255,.09);background:#08182d;color:#eef6ff;cursor:pointer;line-height:1.35;transition:.18s}.answer:hover{transform:translateX(3px);border-color:rgba(72,220,255,.45)}.answer.correct{background:rgba(63,224,161,.16);border-color:rgba(63,224,161,.7)}.answer.wrong{background:rgba(255,102,130,.16);border-color:rgba(255,102,130,.7)}.answer:disabled{cursor:default}.explain{margin-top:10px;padding:10px 11px;border-radius:13px;background:#07172b;color:#c9d9ed;line-height:1.45;min-height:42px}.game-actions{margin-top:auto;padding-top:12px}.winner{position:absolute;inset:0;z-index:10;display:none;place-items:center;background:rgba(3,8,16,.55);backdrop-filter:blur(7px)}.winner.show{display:grid}.winner-card{text-align:center;background:linear-gradient(180deg,#142c49,#09192d);border:1px solid rgba(255,212,95,.45);border-radius:25px;padding:25px 35px;box-shadow:0 0 70px rgba(255,212,95,.22)}.winner-card .cup{font-size:72px;animation:bounce 1s ease-in-out infinite}.winner-card h2{font-size:34px;margin:6px 0;color:#ffe192}
+    @keyframes pulse{50%{transform:scale(1.08);opacity:.75}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes bounce{50%{transform:translateY(-12px) rotate(-4deg)}}
+    @media(max-width:1050px){.span4,.span5,.span6,.span7,.span8{grid-column:span 12}.game-layout{grid-template-columns:1fr}.question-board{min-height:auto}.game-stage,#gameCanvas{min-height:540px}.topbar{position:relative;align-items:flex-start}.game-hub{grid-template-columns:1fr}.filters,.question-preview{grid-template-columns:1fr}.statrow{grid-template-columns:repeat(2,1fr)}}
+
+
+    /* ========================= V8 PRESENTATION UI ========================= */
+    .random-stage{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:14px;min-height:calc(100vh - 105px)}
+    .wheel-card-full{min-height:calc(100vh - 105px);padding:10px;border-radius:26px}
+    .wheel-card-full .wheel-wrap{inset:54px 8px 108px}
+    .wheel-card-full #wheelCanvas{min-height:calc(100vh - 185px)}
+    .wheel-card-full .wheel-result{bottom:92px;width:min(92%,900px)}
+    .wheel-card-full .wheel-result .student-name{font-size:clamp(38px,5.4vw,82px);white-space:normal;line-height:1.02}
+    .wheel-card-full .wheel-actions{bottom:18px}
+    .call-panel{min-height:calc(100vh - 105px);padding:12px;overflow:hidden;position:relative}
+    .call-panel-scroll{height:calc(100vh - 155px);overflow:auto;padding-right:3px;display:flex;flex-direction:column;gap:12px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .panel-hint{font-size:12px;margin-top:3px}.panel-collapse-btn{padding:8px 11px}
+    .control-section{padding-bottom:2px}.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .check-card{grid-column:span 2;display:flex!important;gap:9px;align-items:flex-start;margin:0!important;padding:10px 11px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);cursor:pointer}
+    .check-card.compact{grid-column:span 1;align-items:center}.check-card input{margin-top:3px}.check-card small{display:block;color:var(--muted);font-weight:650;margin-top:3px;line-height:1.35}
+    .class-scorebook{border-radius:18px;padding:12px;background:linear-gradient(180deg,rgba(9,28,50,.98),rgba(5,18,34,.98));border:1px solid rgba(72,220,255,.18)}
+    .scorebook-title{margin-bottom:9px}.class-scorebook-list{display:grid;gap:7px;margin-top:8px;max-height:370px;overflow:auto;padding-right:2px}
+    .scorebook-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 10px;border-radius:13px;background:#07172b;border:1px solid rgba(255,255,255,.07);transition:.18s}
+    .scorebook-row.active{border-color:rgba(255,212,95,.72);box-shadow:0 0 0 2px rgba(255,212,95,.08)}.scorebook-row:hover{transform:translateY(-1px);border-color:rgba(72,220,255,.34)}
+    .scorebook-name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.scorebook-meta{font-size:11px;color:var(--muted);margin-top:2px}.score-chips{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+    .score-chip{font-size:11px;font-weight:950;padding:3px 7px;border-radius:999px;background:rgba(63,224,161,.13);border:1px solid rgba(63,224,161,.25);color:#a8f6d8}.score-chip.empty{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.08);color:#8298b6}
+    .scorebook-call{padding:7px 9px!important;font-size:11px!important;white-space:nowrap}.floating-panel-btn{position:fixed;right:14px;bottom:14px;z-index:190;border:0;border-radius:999px;padding:13px 17px;background:linear-gradient(135deg,#d49b2c,#ffd45f);color:#231700;font-weight:1000;box-shadow:0 12px 35px rgba(0,0,0,.38);cursor:pointer}
+
+    body.wheel-presentation{overflow:hidden}.wheel-presentation .wrap{max-width:none;padding:0}.wheel-presentation .topbar{display:none}.wheel-presentation #random{padding:0}.wheel-presentation #random .random-stage{min-height:100vh;grid-template-columns:1fr}.wheel-presentation .wheel-card-full{min-height:100vh;border-radius:0;border:0}.wheel-presentation .wheel-card-full .wheel-wrap{inset:18px 10px 126px}.wheel-presentation .wheel-card-full #wheelCanvas{min-height:calc(100vh - 145px)}.wheel-presentation .wheel-head{top:16px;left:18px;right:18px}.wheel-presentation .wheel-pointer{top:28px}.wheel-presentation .wheel-result{bottom:101px;width:min(92%,1080px)}.wheel-presentation .wheel-result .student-name{font-size:clamp(54px,7vw,116px)}.wheel-presentation .call-panel{position:fixed;z-index:160;right:14px;top:14px;bottom:14px;width:min(420px,92vw);min-height:0;transform:translateX(calc(100% + 30px));transition:transform .25s ease;box-shadow:0 30px 90px rgba(0,0,0,.62)}.wheel-presentation .call-panel.open{transform:none}.wheel-presentation .call-panel-scroll{height:calc(100vh - 78px)}.wheel-presentation #floatingPanelBtn{display:block!important}.wheel-presentation .wheel-actions{bottom:20px}.wheel-presentation .spin-btn{font-size:24px!important;padding:17px 38px!important}
+
+    /* Game: câu hỏi là nội dung chính khi trình chiếu */
+    .game-layout-presentation{grid-template-columns:minmax(340px,.75fr) minmax(0,1.45fr);align-items:stretch}
+    .game-stage-showcase,.game-stage-showcase #gameCanvas{min-height:760px}.question-board-stage{min-height:760px;padding:20px;overflow:hidden}.question-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}.question-focus{display:flex;flex-direction:column;justify-content:center;min-height:500px}
+    .qtext-large{font-size:clamp(28px,2.4vw,46px);line-height:1.42;font-weight:950;max-height:none;overflow:visible;text-align:center;margin:18px 4px 24px;letter-spacing:-.3px}.qtext-large mjx-container{font-size:1.08em!important;max-width:100%;overflow-x:auto;overflow-y:hidden;padding:4px 0}.qtext-large mjx-container[display="true"]{margin:.45em 0!important}
+    .answers-large{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.answers-large .answer{font-size:clamp(19px,1.45vw,27px);line-height:1.38;padding:16px 17px;border-radius:17px;font-weight:800;min-height:74px;display:flex;align-items:center;gap:9px}.answers-large .answer>b{display:inline-grid;place-items:center;flex:0 0 36px;height:36px;border-radius:11px;background:rgba(72,220,255,.12);color:#bcefff}.answers-large .answer .rich{min-width:0}.answers-large mjx-container{font-size:1.05em!important}
+    .explain-large{font-size:16px;min-height:54px}.next-question-btn{font-size:18px;padding:14px}.question-board-stage .turn-btn{font-size:16px;padding:13px}
+    body.game-presentation{overflow:hidden}.game-presentation .wrap{max-width:none;padding:0}.game-presentation .topbar{display:none}.game-presentation #games{padding:0}.game-presentation #gameHub{display:none!important}.game-presentation #gamePlay{display:block!important}.game-presentation .game-layout-presentation{height:100vh;grid-template-columns:minmax(300px,.62fr) minmax(0,1.7fr);gap:0}.game-presentation .game-stage-showcase,.game-presentation .game-stage-showcase #gameCanvas,.game-presentation .question-board-stage{min-height:100vh;border-radius:0}.game-presentation .question-board-stage{border-left:1px solid rgba(255,255,255,.1);padding:24px 30px}.game-presentation .question-focus{min-height:calc(100vh - 260px)}.game-presentation .qtext-large{font-size:clamp(34px,3.15vw,62px)}.game-presentation .answers-large .answer{font-size:clamp(22px,1.8vw,32px);min-height:86px}.game-presentation .hud{top:14px;left:10px;right:10px;gap:6px}.game-presentation .scorebox{padding:8px 10px}.game-presentation .team-badge{min-width:105px}.game-presentation .team-badge b{font-size:16px}.game-presentation .score-num{font-size:25px}
+
+    /* Nâng đồ họa thẻ chọn game */
+    .game-choice{min-height:320px;background:radial-gradient(circle at 50% 20%,rgba(72,220,255,.18),transparent 32%),linear-gradient(145deg,#102b4c,#06111f 72%)}.game-choice:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 35%,rgba(3,9,18,.78));pointer-events:none}.game-choice .copy{z-index:4}.game-choice h3{font-size:30px;text-shadow:0 8px 25px rgba(0,0,0,.5)}.tug-preview{box-shadow:0 20px 35px rgba(0,0,0,.5),0 0 45px rgba(72,220,255,.12)}.race-preview{box-shadow:0 32px 45px rgba(0,0,0,.5),0 0 50px rgba(125,105,255,.14)}
+
+    @media(max-width:1200px){.random-stage{grid-template-columns:minmax(0,1fr) 380px}.game-layout-presentation{grid-template-columns:1fr}.game-stage-showcase,.game-stage-showcase #gameCanvas{min-height:480px}.question-board-stage{min-height:650px}.answers-large{grid-template-columns:1fr}}
+    @media(max-width:900px){.random-stage{grid-template-columns:1fr}.call-panel{min-height:auto}.call-panel-scroll{height:auto;max-height:none}.wheel-card-full{min-height:650px}.wheel-card-full #wheelCanvas{min-height:540px}.class-scorebook-list{max-height:300px}.question-toolbar{align-items:flex-start;flex-direction:column}.qtext-large{font-size:clamp(25px,6vw,40px)}}
+
+  
+
+    /* ===================== V9 DUEL GAME LAYOUT ===================== */
+    .game-top-card{margin-bottom:16px;padding:14px 16px;border-radius:24px;background:linear-gradient(135deg,rgba(8,20,37,.96),rgba(10,30,58,.96));border:1px solid rgba(255,255,255,.09);box-shadow:var(--shadow);display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .game-top-title{display:flex;flex-direction:column;gap:4px}.game-top-title h2{margin:0;font-size:30px}.game-top-title .muted{font-size:13px}
+    .top-pills{display:flex;gap:8px;flex-wrap:wrap}.top-pills .pill{font-size:13px}
+    .game-layout-duel{display:grid;grid-template-columns:minmax(320px,.9fr) minmax(420px,1.2fr) minmax(320px,.9fr);gap:16px;align-items:stretch}
+    .team-panel{padding:14px;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(15,33,61,.98),rgba(7,18,34,.98));border:1px solid rgba(255,255,255,.09)}
+    .team-panel.b{background:linear-gradient(180deg,rgba(59,19,31,.96),rgba(32,10,18,.98))}
+    .team-panel.active{box-shadow:0 0 0 2px rgba(255,212,95,.28),0 0 30px rgba(255,212,95,.18)}
+    .team-panel.waiting{opacity:.92}.team-panel.used{opacity:.87}
+    .team-side-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+    .team-side-label{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:1000}
+    .team-dot{width:16px;height:16px;border-radius:50%;display:inline-block;box-shadow:0 0 18px rgba(255,255,255,.2)}
+    .team-panel.a .team-dot{background:#48dcff;box-shadow:0 0 18px rgba(72,220,255,.6)}
+    .team-panel.b .team-dot{background:#ff6682;box-shadow:0 0 18px rgba(255,102,130,.6)}
+    .team-status{padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:12px;font-weight:900;white-space:nowrap}
+    .question-team-card{display:flex;flex-direction:column;gap:14px;min-height:710px;border-radius:24px;padding:16px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.08)}
+    .team-panel.a .question-team-card{background:linear-gradient(180deg,rgba(88,140,233,.19),rgba(34,71,123,.16))}
+    .team-panel.b .question-team-card{background:linear-gradient(180deg,rgba(210,88,88,.18),rgba(110,26,41,.15))}
+    .question-media{min-height:180px;display:grid;place-items:center;padding:14px;border-radius:18px;background:rgba(255,255,255,.86);border:1px solid rgba(255,255,255,.22);overflow:hidden}
+    .question-media-gallery,.question-media-single{width:100%;display:grid;gap:10px;place-items:center}
+    .question-media img{display:block;max-width:100%;max-height:210px;object-fit:contain;border-radius:14px;background:#fff;box-shadow:0 10px 24px rgba(0,0,0,.14)}
+    .question-media-placeholder{display:grid;place-items:center;gap:10px;width:100%;height:150px;border-radius:16px;background:linear-gradient(135deg,rgba(72,220,255,.12),rgba(125,105,255,.1));color:#234;font-weight:900}
+    .question-media-placeholder .icon{font-size:46px}
+    .question-copy-wrap{padding:4px 2px}.question-copy-title{font-size:13px;font-weight:900;color:#d4e1f5;letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+    .team-question-copy{font-size:clamp(21px,1.72vw,34px);line-height:1.36;font-weight:950;text-align:center;text-wrap:balance}
+    .answers-team{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:auto}
+    .answers-team .answer{min-height:116px;padding:14px 14px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.88);color:#1c2942;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:6px;font-size:clamp(21px,1.5vw,34px);font-weight:1000;line-height:1.18;box-shadow:0 8px 0 rgba(0,0,0,.16);transition:transform .18s ease,filter .18s ease,border-color .18s ease,background .18s ease}
+    .answers-team .answer:hover:not(:disabled){transform:translateY(-2px) scale(1.01);filter:brightness(1.02)}
+    .answers-team .answer .opt-key{display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 12px;border-radius:14px;background:#203657;color:#fff;font-size:.82em;box-shadow:0 6px 14px rgba(0,0,0,.15)}
+    .answers-team .answer .opt-text{display:block;width:100%}.answers-team .answer.disabled,.answers-team .answer:disabled{opacity:.48;cursor:not-allowed;transform:none}
+    .answers-team .answer.correct{background:linear-gradient(180deg,rgba(102,255,196,.95),rgba(69,218,156,.95));border-color:rgba(63,224,161,.95);color:#123a2c}
+    .answers-team .answer.wrong{background:linear-gradient(180deg,rgba(255,196,206,.98),rgba(255,129,160,.98));border-color:rgba(255,102,130,.96);color:#531a2d}
+    .answers-team .answer.revealed{box-shadow:0 0 0 2px rgba(255,255,255,.22),0 8px 0 rgba(0,0,0,.12)}
+    .team-panel.a .answers-team .answer{box-shadow:0 8px 0 rgba(21,46,82,.35)}.team-panel.b .answers-team .answer{box-shadow:0 8px 0 rgba(73,17,28,.34)}
+    .game-stage-arena{min-height:760px;position:relative;background:radial-gradient(circle at 50% 15%,rgba(72,220,255,.18),transparent 22%),radial-gradient(circle at 50% 100%,rgba(255,102,130,.1),transparent 24%),linear-gradient(180deg,#071321,#04111d 78%)}
+    .arena-bottom-info{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:5;display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 14px;border-radius:999px;background:rgba(5,12,23,.76);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12)}
+    .arena-bottom-info .pill{background:rgba(255,255,255,.06)}
+    .duel-explain{font-size:18px;line-height:1.55;padding:12px 14px;border-radius:16px;background:rgba(6,18,35,.86);border:1px solid rgba(255,255,255,.08);min-height:72px}
+    .duel-explain strong{color:#ffe192}
+    .next-question-btn{font-size:19px!important}.duel-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    body.game-presentation{overflow:hidden}.game-presentation .wrap{max-width:none;padding:0}.game-presentation .topbar{display:none}.game-presentation #games{padding:0}.game-presentation #gameHub{display:none!important}.game-presentation #gamePlay{display:block!important;padding:12px}.game-presentation .game-top-card{margin-bottom:10px}.game-presentation .game-layout-duel{height:calc(100vh - 118px);grid-template-columns:minmax(280px,.95fr) minmax(360px,1.15fr) minmax(280px,.95fr)}.game-presentation .game-stage-arena,.game-presentation .game-stage-arena #gameCanvas{min-height:calc(100vh - 118px)}.game-presentation .question-team-card{min-height:calc(100vh - 118px)}.game-presentation .team-question-copy{font-size:clamp(24px,1.7vw,36px)}.game-presentation .answers-team .answer{min-height:108px;font-size:clamp(22px,1.5vw,34px)}.game-presentation .question-media{min-height:190px}
+    @media(max-width:1450px){.game-layout-duel{grid-template-columns:minmax(280px,.9fr) minmax(360px,1.1fr) minmax(280px,.9fr)}.game-stage-arena{min-height:700px}.question-team-card{min-height:690px}}
+    @media(max-width:1180px){.game-layout-duel{grid-template-columns:1fr}.game-stage-arena,.game-stage-arena #gameCanvas,.question-team-card{min-height:520px}.question-team-card{min-height:auto}.game-presentation .game-layout-duel{height:auto;grid-template-columns:1fr}.game-presentation .question-team-card,.game-presentation .game-stage-arena,.game-presentation .game-stage-arena #gameCanvas{min-height:500px;height:auto}}
+    @media(max-width:760px){.game-top-card{padding:12px}.game-top-title h2{font-size:24px}.team-side-label{font-size:18px}.question-media{min-height:140px}.answers-team{grid-template-columns:1fr}.answers-team .answer{min-height:92px;font-size:clamp(18px,4.7vw,28px)}.duel-toolbar-actions{width:100%}.duel-toolbar-actions .btn{flex:1}}
+
+  
+
+    /* ===================== V12 TV-FIRST UI ===================== */
+    :root{--tv-gap:14px;--tv-top:82px}
+    body{background:
+      radial-gradient(circle at 7% -10%,rgba(72,220,255,.20),transparent 30%),
+      radial-gradient(circle at 94% -8%,rgba(125,105,255,.19),transparent 28%),
+      linear-gradient(180deg,#06111f 0,#040a13 72%);overflow-x:hidden}
+    .wrap{max-width:none;width:100%;margin:0;padding:10px 12px 18px}
+    .topbar{top:8px;border-radius:20px;padding:10px 12px;background:rgba(5,13,25,.88);box-shadow:0 14px 42px rgba(0,0,0,.32)}
+    .brand b{font-size:21px;letter-spacing:-.35px}.brand small{font-size:12px}.logo{width:45px;height:45px}
+    .tabs{gap:7px}.tab{padding:10px 13px;border-radius:13px;font-size:14px}
+    .screen{padding-top:12px}.card{border-radius:22px}
+
+    /* Gọi tên: ưu tiên chiếm màn hình TV */
+    .random-stage{grid-template-columns:minmax(0,1fr) 470px;gap:var(--tv-gap);min-height:calc(100vh - 90px)}
+    .wheel-card-full{min-height:calc(100vh - 90px);border-radius:25px}
+    .wheel-card-full .wheel-wrap{inset:52px 6px 112px}
+    .wheel-card-full #wheelCanvas{min-height:calc(100vh - 170px)}
+    .wheel-card-full .wheel-result{bottom:94px;width:min(94%,1050px)}
+    .wheel-card-full .wheel-result .student-name{font-size:clamp(44px,5.8vw,94px);line-height:1.02}
+    .call-panel{min-height:calc(100vh - 90px);padding:12px}
+    .call-panel-scroll{height:calc(100vh - 142px)}
+    .class-scorebook-list{max-height:420px}
+    .scorebook-row{padding:10px 11px}.scorebook-name{font-size:14px}.scorebook-meta{font-size:11px}
+    .spin-btn{font-size:22px!important;padding:16px 34px!important}
+
+    /* Game Hub chỉ là MỘT mục, chọn loại game bằng dropdown */
+    .game-config-card{padding:16px;background:linear-gradient(135deg,rgba(10,29,52,.98),rgba(7,18,34,.98));border:1px solid rgba(255,255,255,.09)}
+    .game-config-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+    .game-config-head h2{font-size:28px;margin:0 0 4px}.game-config-head .muted{font-size:13px}
+    .game-config-grid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;align-items:end}
+    .cfg-subject{grid-column:span 1}.cfg-grade{grid-column:span 1}.cfg-chapter{grid-column:span 1}.cfg-topic{grid-column:span 1}
+    .cfg-type{grid-column:span 1}.cfg-team{grid-column:span 1}.cfg-score{grid-column:span 1}.cfg-time{grid-column:span 1}
+    .game-config-grid label{font-size:12px;margin-top:0}.game-config-grid .input{padding:11px 12px}
+    .game-bank-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:9px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+    .game-bank-row .drop{padding:12px;text-align:left;display:flex;align-items:center;gap:12px;justify-content:space-between}.game-bank-row .drop p{margin:2px 0 0;font-size:12px}
+    .game-bank-row .btn{white-space:nowrap}
+    .game-start-row{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px}.game-start-row .btn.primary{font-size:18px;padding:14px 24px}
+    .game-preview-strip{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-right:auto}.game-preview-strip .pill{font-size:12px}
+
+    /* Game Play: câu hỏi 1 lần, lớn và ở chính giữa phía trên */
+    #gamePlay{padding-bottom:6px}
+    .game-tv-head{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:12px 14px;margin-bottom:12px;border-radius:22px;background:linear-gradient(135deg,rgba(8,24,46,.98),rgba(7,17,32,.98));border:1px solid rgba(255,255,255,.09);box-shadow:var(--shadow)}
+    .tv-score{display:flex;align-items:center;gap:12px;padding:9px 13px;border-radius:17px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
+    .tv-score.b{justify-content:flex-end}.tv-score-name{font-size:17px;font-weight:950}.tv-score-number{font-size:32px;font-weight:1000;color:var(--gold);min-width:34px;text-align:center}
+    .tv-timer{display:grid;place-items:center;min-width:114px;padding:7px 18px;border-radius:18px;background:#050d19;border:1px solid rgba(255,212,95,.27);box-shadow:0 0 26px rgba(255,212,95,.08)}
+    .tv-timer small{font-size:10px;color:#afc1da;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.tv-timer b{font-size:34px;line-height:1.05;color:#fff}
+    .tv-timer.danger b{color:#ff8da3;animation:timerPulse .55s ease-in-out infinite alternate}@keyframes timerPulse{to{transform:scale(1.12)}}
+
+    .central-question{padding:16px 18px;margin-bottom:12px;border-radius:24px;background:
+      radial-gradient(circle at 12% 0,rgba(72,220,255,.12),transparent 30%),
+      linear-gradient(180deg,rgba(14,36,64,.99),rgba(7,20,38,.99));border:1px solid rgba(255,255,255,.1);box-shadow:var(--shadow)}
+    .central-question-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .central-question-head h2{margin:0;font-size:25px}.central-meta{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+    .central-question-body{display:grid;grid-template-columns:minmax(220px,.62fr) minmax(0,1.55fr);gap:18px;align-items:center}
+    .central-question-body.no-image{grid-template-columns:1fr}
+    .central-media{min-height:180px;max-height:235px;display:grid;place-items:center;padding:10px;border-radius:18px;background:#f6f9ff;overflow:hidden;color:#233956;box-shadow:inset 0 0 0 1px rgba(10,35,70,.08)}
+    .central-media img{display:block;max-width:100%;max-height:210px;object-fit:contain;border-radius:11px;background:#fff}
+    .central-media-placeholder{display:grid;place-items:center;text-align:center;gap:6px;color:#365270;font-weight:900}.central-media-placeholder .icon{font-size:46px}
+    .central-q-copy{display:flex;flex-direction:column;justify-content:center;min-height:190px}.central-q-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#a9bedb;font-weight:950;margin-bottom:8px}
+    .central-q-text{font-size:clamp(36px,3vw,62px);line-height:1.25;font-weight:1000;text-align:center;text-wrap:balance;letter-spacing:-.7px;text-shadow:0 8px 24px rgba(0,0,0,.24)}
+    .central-q-text mjx-container{font-size:1.08em!important;max-width:100%;overflow-x:auto;overflow-y:hidden}.central-q-text mjx-container[display="true"]{margin:.3em 0!important}
+    .central-q-foot{margin-top:10px;padding:8px 11px;border-radius:13px;background:rgba(255,255,255,.05);text-align:center;color:#c7d6ea;font-size:13px}
+
+    .tv-game-grid{display:grid;grid-template-columns:minmax(340px,.76fr) minmax(520px,1.42fr) minmax(340px,.76fr);gap:12px;align-items:stretch}
+    .team-answer-panel{padding:13px;display:flex;flex-direction:column;min-height:510px;overflow:hidden;position:relative}
+    .team-answer-panel.a{background:linear-gradient(180deg,rgba(19,58,95,.98),rgba(6,20,38,.99))}.team-answer-panel.b{background:linear-gradient(180deg,rgba(76,24,40,.96),rgba(31,9,18,.99))}
+    .team-answer-panel.active{box-shadow:0 0 0 2px rgba(255,212,95,.42),0 0 34px rgba(255,212,95,.15),var(--shadow)}
+    .team-answer-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px}.team-answer-name{font-size:22px;font-weight:1000}.team-status{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-size:11px;font-weight:950}
+    .team-answer-help{text-align:center;color:#bbcee7;font-size:12px;line-height:1.4;margin:2px 0 10px}
+    .team-answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+    .team-answer-grid .answer{min-height:104px;padding:11px 10px;border-radius:18px;background:linear-gradient(180deg,#f9fbff,#e9eff6);color:#17263f;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px;font-size:clamp(20px,1.45vw,30px);font-weight:1000;line-height:1.12;box-shadow:0 7px 0 rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.18);transition:.18s}
+    .team-answer-grid .answer:hover:not(:disabled){transform:translateY(-2px) scale(1.01)}.team-answer-grid .answer:disabled{opacity:.42;cursor:not-allowed}
+    .team-answer-grid .answer .opt-key{display:grid;place-items:center;min-width:40px;height:38px;padding:0 10px;border-radius:12px;background:#203a63;color:#fff;font-size:17px}.team-answer-grid .answer .opt-text{width:100%}
+    .team-answer-grid .answer.correct{background:linear-gradient(180deg,#caffef,#73edbd);border-color:#3fe0a1;color:#123a2d}.team-answer-grid .answer.wrong{background:linear-gradient(180deg,#ffd9e2,#ff90ad);border-color:#ff6682;color:#5a1d31}.team-answer-grid .answer.revealed{box-shadow:0 0 0 2px rgba(255,255,255,.25),0 7px 0 rgba(0,0,0,.14)}
+
+    .tv-arena{min-height:510px;border-radius:22px}.tv-arena #gameCanvas{min-height:510px}.tv-arena .hud{top:12px;left:12px;right:12px}.tv-arena .scorebox{padding:8px 10px}.tv-arena .team-badge{min-width:115px}.tv-arena .team-badge b{font-size:17px}.tv-arena .score-num{font-size:25px}
+    .tv-arena-caption{position:absolute;left:50%;top:72px;transform:translateX(-50%);z-index:5;padding:7px 12px;border-radius:999px;background:rgba(5,14,27,.72);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.1);font-size:11px;font-weight:900;white-space:nowrap}
+    .tv-arena .game-title{bottom:12px}
+    .game-feedback{margin-top:12px;padding:11px 14px;border-radius:16px;background:rgba(6,18,35,.9);border:1px solid rgba(255,255,255,.08);font-size:17px;line-height:1.48;min-height:50px}.game-feedback strong{color:#ffe293}
+    .game-bottom-actions{display:flex;gap:9px;align-items:center;margin-top:10px}.game-bottom-actions .next-question-btn{flex:1;font-size:20px;padding:15px}.game-bottom-actions .btn:not(.next-question-btn){min-width:64px}
+
+    /* Trình chiếu game toàn màn hình */
+    body.game-presentation{overflow:hidden}.game-presentation .wrap{max-width:none;padding:0}.game-presentation .topbar{display:none}.game-presentation #games{padding:8px}.game-presentation #gameHub{display:none!important}.game-presentation #gamePlay{display:block!important}
+    .game-presentation .game-tv-head{margin-bottom:7px;padding:8px 12px}.game-presentation .central-question{margin-bottom:7px;padding:10px 14px}.game-presentation .central-question-body{grid-template-columns:minmax(180px,.5fr) minmax(0,1.8fr);gap:14px}.game-presentation .central-media{min-height:142px;max-height:170px}.game-presentation .central-media img{max-height:150px}.game-presentation .central-q-copy{min-height:145px}.game-presentation .central-q-text{font-size:clamp(44px,3.5vw,76px);line-height:1.18}.game-presentation .central-q-foot{display:none}
+    .game-presentation .tv-game-grid{height:calc(100vh - 306px);grid-template-columns:minmax(330px,.78fr) minmax(540px,1.5fr) minmax(330px,.78fr);gap:8px}.game-presentation .team-answer-panel,.game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{min-height:100%;height:100%}.game-presentation .team-answer-grid .answer{min-height:92px;font-size:clamp(22px,1.55vw,34px)}.game-presentation .game-feedback{position:fixed;left:10px;right:10px;bottom:66px;z-index:50;background:rgba(4,13,26,.88);backdrop-filter:blur(10px)}.game-presentation .game-bottom-actions{position:fixed;left:10px;right:10px;bottom:8px;z-index:51}.game-presentation .game-bottom-actions .next-question-btn{padding:12px}
+
+    @media(max-width:1450px){.random-stage{grid-template-columns:minmax(0,1fr) 420px}.game-config-grid{grid-template-columns:repeat(4,1fr)}.cfg-subject,.cfg-grade,.cfg-chapter,.cfg-topic,.cfg-type,.cfg-team,.cfg-score,.cfg-time{grid-column:span 1}.tv-game-grid{grid-template-columns:minmax(285px,.72fr) minmax(460px,1.35fr) minmax(285px,.72fr)}.team-answer-grid .answer{font-size:clamp(18px,1.3vw,27px)}.central-q-text{font-size:clamp(32px,2.65vw,54px)}}
+    @media(max-width:1120px){.random-stage{grid-template-columns:1fr}.call-panel{min-height:auto}.call-panel-scroll{height:auto}.game-config-grid{grid-template-columns:repeat(2,1fr)}.game-bank-row{grid-template-columns:1fr 1fr}.tv-game-grid{grid-template-columns:1fr}.central-question-body{grid-template-columns:1fr}.team-answer-panel{min-height:auto}.team-answer-grid{grid-template-columns:repeat(4,1fr)}.tv-arena,.tv-arena #gameCanvas{min-height:520px}.game-presentation .tv-game-grid{height:auto;grid-template-columns:1fr}.game-presentation .team-answer-panel,.game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{height:auto;min-height:500px}}
+    @media(max-width:760px){.wrap{padding:7px}.topbar{position:relative}.brand b{font-size:17px}.game-config-grid{grid-template-columns:1fr}.game-config-grid>div{grid-column:span 1!important}.game-bank-row{grid-template-columns:1fr}.game-tv-head{grid-template-columns:1fr}.tv-score.b{justify-content:flex-start}.central-q-text{font-size:clamp(27px,7vw,42px)}.team-answer-grid{grid-template-columns:1fr 1fr}.team-answer-grid .answer{min-height:88px}.game-bottom-actions{flex-wrap:wrap}}
+
+  </style>
 </head>
-<body data-theme="math-neon">
-<div class="app">
+<body>
+<div class="wrap">
   <header class="topbar">
-    <div class="brand"><div class="logo"></div><div><b>ĐẤU TRƯỜNG TOÁN & TIN V2</b><small>Kéo co • Đua xe • Chủ đề Toán/Tin • Âm thanh thật</small></div></div>
-    <div class="toolbar"><button id="soundBtn" class="btn ghost">🔊 Tắt âm</button><button id="fullscreenBtn" class="btn ghost">⛶ Toàn màn hình</button></div>
+    <div class="brand"><div class="logo"></div><div><b>LỚP HỌC TƯƠNG TÁC • TOÁN & TIN</b><small>Gọi tên • Ghi điểm nhiều lần • Trò chơi trình chiếu TV</small></div></div>
+    <nav class="tabs">
+      <button class="tab active" data-screen="random">🎲 Gọi tên</button>
+      <button class="tab" data-screen="students">👨‍🎓 Học sinh</button>
+      <button class="tab" data-screen="history">📜 Lịch sử</button>
+      <button class="tab" data-screen="games">🎮 Trò chơi</button>
+      <button class="tab" data-screen="settings">⚙️ Cài đặt</button>
+      <button class="tab" onclick="toggleFullscreen()">⛶ Toàn màn hình</button>
+    </nav>
   </header>
 
-  <section class="control-panel">
-    <div class="field"><label>Môn học</label><select id="subjectSelect" class="input"><option value="math">📐 Toán</option><option value="it">💻 Tin học</option></select></div>
-    <div class="field"><label>Trò chơi</label><select id="gameSelect" class="input"><option value="tug">🪢 Kéo co</option><option value="race">🏎️ Đua xe</option></select></div>
-    <div class="field"><label>Chủ đề</label><select id="themeSelect" class="input"><option value="math-neon">Toán • Neon</option><option value="math-board">Toán • Bảng xanh</option><option value="it-cyber">Tin • Cyber</option><option value="it-terminal">Tin • Terminal</option></select></div>
-    <div class="field"><label>Đội A</label><input id="teamAName" class="input" value="ĐỘI XANH"></div>
-    <div class="field"><label>Đội B</label><input id="teamBName" class="input" value="ĐỘI ĐỎ"></div>
-    <div class="field"><label>Điểm thắng</label><input id="winScoreInput" class="input" type="number" min="1" max="20" value="5"></div>
-    <div class="field"><label>Thời gian / lượt</label><select id="countdownSelect" class="input"><option value="10">10 giây</option><option value="15" selected>15 giây</option><option value="20">20 giây</option><option value="30">30 giây</option></select></div>
-    <div class="field"><label>Ngân hàng riêng</label><input id="jsonFile" class="input" type="file" accept=".json"></div>
-  </section>
-
-  <section class="game-top">
-    <div class="game-title"><h1 id="gameTitle">🪢 KÉO CO KIẾN THỨC</h1><p id="gameDesc">Trả lời đúng để kéo cờ về phía đội mình.</p></div>
-    <div class="score-center">
-      <div class="scorebox a"><span class="name" id="hudAName">ĐỘI XANH</span><span class="score" id="hudAScore">0</span></div>
-      <div class="timer" id="timer">15</div>
-      <div class="scorebox b"><span class="score" id="hudBScore">0</span><span class="name" id="hudBName">ĐỘI ĐỎ</span></div>
-    </div>
-    <div class="meta-row"><span id="bankInfo" class="pill">Đang nạp...</span><span id="themeBadge" class="pill">Toán • Neon</span><span id="qCounter" class="pill">Câu 0</span><span id="qMeta" class="pill">Chưa có câu hỏi</span></div>
-  </section>
-
-  <main class="stage-layout">
-    <section id="panelA" class="panel answer-panel a active">
-      <div class="team-head"><div class="team-name"><span class="dot"></span><span id="panelAName">ĐỘI XANH</span></div><span id="stateA" class="state">Đang trả lời</span></div>
-      <div class="answer-board"><div class="board-title">🎯 BẢNG ĐÁP ÁN ĐỘI A<small>Chỉ bấm khi đến lượt đội mình</small></div><div id="answersA" class="answers"></div></div>
-    </section>
-
-    <section class="center">
-      <div class="panel question-card">
-        <div class="question-head"><h2>📚 CÂU HỎI TRUNG TÂM</h2><div class="meta-row"><span id="starterBadge" class="pill">Mở lượt: ĐỘI XANH</span><span id="responderBadge" class="pill">Đội trả lời: ĐỘI XANH</span></div></div>
-        <div class="question-wrap">
-          <div id="questionMedia" class="question-media"><div class="placeholder"><div class="ico">🧠</div><div>Ảnh minh họa hoặc bảng số liệu sẽ hiện ở đây</div></div></div>
-          <div><div id="questionText" class="question-text">Bấm “CÂU TIẾP THEO” để bắt đầu.</div><div id="questionNote" class="question-note">Toán và Tin học hỗ trợ công thức MathJax, hình ảnh và câu hỏi nhiều lựa chọn.</div></div>
+  <section id="random" class="screen active">
+    <div class="random-stage">
+      <div class="card wheel-card wheel-card-full">
+        <div class="wheel-head">
+          <span class="pill" id="callBadge">Chưa có dữ liệu</span>
+          <span class="pill">🎡 VÒNG QUAY GỌI TÊN</span>
+        </div>
+        <div class="wheel-pointer"></div>
+        <div class="wheel-wrap"><canvas id="wheelCanvas"></canvas></div>
+        <div class="wheel-result">
+          <div id="studentName" class="student-name">SẴN SÀNG QUAY?</div>
+          <div id="wheelSub" class="muted" style="margin-top:2px">Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên</div>
+        </div>
+        <div class="wheel-actions">
+          <button id="callBtn" class="btn primary spin-btn" onclick="callRandomStudent()">🎡 QUAY NÓN</button>
+          <button class="btn gold" onclick="toggleWheelPresentation()">⛶ TRÌNH CHIẾU</button>
+          <button class="btn ghost" onclick="resetRound()">↻ Vòng mới</button>
+          <button class="btn ghost" onclick="rebuildWheel()">⟳ Làm mới nón</button>
         </div>
       </div>
 
-      <div class="panel scene-card">
-        <div class="scene-toolbar"><span class="pill">✨ Đồ họa chuyển động theo điểm số</span><span class="pill" id="sceneStarter">Mở lượt: ĐỘI XANH</span></div>
-        <div id="scene" class="scene"></div>
-        <div class="scene-labels"><span id="sceneResponder" class="pill">Đội trả lời: ĐỘI XANH</span></div>
+      <aside id="callPanel" class="card control-card call-panel">
+        <div class="panel-head">
+          <div><h3 style="margin:0">🎯 Điều khiển & ghi điểm</h3><div class="muted panel-hint">Giữ sổ điểm cả lớp ngay cạnh vòng quay.</div></div>
+          <button class="btn ghost panel-collapse-btn" onclick="toggleCallPanel()" title="Thu gọn bảng điều khiển">⇆</button>
+        </div>
+
+        <div class="call-panel-scroll">
+          <div class="control-section">
+            <label>Lớp hiện tại</label><select id="classSelect" class="input"></select>
+            <div class="option-grid">
+              <label class="check-card"><input id="noRepeat" type="checkbox"> <span><b>Không gọi lại trong cùng vòng</b><small>Mặc định tắt để một học sinh có thể được gọi nhiều lần và có nhiều cột điểm.</small></span></label>
+              <label class="check-card compact"><input id="fairMode" type="checkbox"> <span><b>Ưu tiên ít lượt</b></span></label>
+              <label class="check-card compact"><input id="soundMode" type="checkbox" checked> <span><b>Âm thanh</b></span></label>
+            </div>
+            <div class="statrow" style="margin-top:12px">
+              <div class="stat"><span class="muted">Sĩ số</span><b id="statStudents">0</b></div>
+              <div class="stat"><span class="muted">Đã gọi</span><b id="statCalled">0</b></div>
+              <div class="stat"><span class="muted">Điểm +/-</span><b id="statPoints">0</b></div>
+              <div class="stat"><span class="muted">Câu hỏi</span><b id="statQuestions">0</b></div>
+            </div>
+            <div class="row" style="margin-top:12px"><button class="btn primary" style="flex:1" onclick="loadStudentsFromSheet()">↻ Nạp danh sách từ Sheet</button><button class="btn ghost" onclick="go('students')">👨‍🎓 Danh sách</button></div>
+            <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
+          </div>
+
+          <div id="scoreSession" class="score-session empty">
+            <div class="row space"><h3 style="margin:0">📝 Điểm lần gọi</h3><span id="callNoBadge" class="pill">Chưa gọi</span></div>
+            <div id="selectedStudentName" class="selected-student">Chưa có học sinh</div>
+            <div class="call-meta"><span id="selectedStudentClass" class="pill">—</span><span id="selectedTotalPoint" class="pill">Điểm +/-: 0</span></div>
+            <div class="score-grid">
+              <div><label>Điểm 0–10</label><input id="callScoreInput" class="input score-big" type="number" min="0" max="10" step="0.25" placeholder="8.5"></div>
+              <div><label>Ghi chú</label><input id="callScoreNote" class="input" placeholder="Kiểm tra bài cũ"></div>
+            </div>
+            <div class="quick-scores">
+              <button class="quick-score" onclick="setQuickScore(10)">10</button><button class="quick-score" onclick="setQuickScore(9)">9</button><button class="quick-score" onclick="setQuickScore(8)">8</button><button class="quick-score" onclick="setQuickScore(7)">7</button><button class="quick-score" onclick="setQuickScore(6)">6</button><button class="quick-score" onclick="setQuickScore(5)">5</button>
+            </div>
+            <button id="saveCallScoreBtn" class="btn gold" style="width:100%;margin-top:9px" onclick="saveCallScore()" disabled>💾 LƯU ĐIỂM LẦN GỌI NÀY</button>
+            <div class="reward-row">
+              <button class="btn good" onclick="changePoint(.5)">+0.5</button><button class="btn good" onclick="changePoint(1)">+1</button><button class="btn good" onclick="changePoint(2)">+2</button>
+              <button class="btn bad" onclick="changePoint(-.5)">-0.5</button><button class="btn bad" onclick="changePoint(-1)">-1</button>
+            </div>
+            <div style="margin-top:10px;font-size:12px;font-weight:900;color:#bfd2ed">Các điểm đã ghi của học sinh đang chọn</div>
+            <div id="studentScoreHistory" class="score-history"><div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div></div>
+          </div>
+
+          <div class="class-scorebook">
+            <div class="row space scorebook-title"><div><h3 style="margin:0">📒 Sổ điểm cả lớp</h3><small class="muted">Luôn giữ điểm của các học sinh khác trên màn hình.</small></div><span id="scorebookCount" class="pill">0 HS</span></div>
+            <input id="scorebookSearch" class="input" placeholder="🔎 Tìm học sinh..." autocomplete="off">
+            <div id="classScorebookList" class="class-scorebook-list"></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <button id="floatingPanelBtn" class="floating-panel-btn hide" onclick="toggleCallPanel()">📝 Sổ điểm</button>
+  </section>
+
+  <section id="students" class="screen">
+    <div class="grid">
+      <div class="card span4">
+        <h2>Danh sách học sinh</h2>
+        <div class="drop"><b>Nạp Excel .xlsx / .xls</b><p class="muted">Hỗ trợ cột STT, Họ và tên, Lớp.</p><input id="excelFile" type="file" accept=".xlsx,.xls"></div>
+        <div class="row" style="margin-top:12px"><button class="btn primary" onclick="loadStudentsFromSheet()">↻ Tải từ Sheet</button><button class="btn good" onclick="syncStudents()">☁️ Ghi lên Sheet</button></div>
       </div>
-    </section>
+      <div class="card span8"><div class="row space"><h2>Học sinh</h2><span class="pill" id="studentCount">0 học sinh</span></div><div class="tablewrap"><table><thead><tr><th>STT</th><th>Họ tên</th><th>Lớp</th><th>Điểm +/-</th><th>Lần gọi</th></tr></thead><tbody id="studentBody"></tbody></table></div></div>
+    </div>
+  </section>
 
-    <section id="panelB" class="panel answer-panel b inactive">
-      <div class="team-head"><div class="team-name"><span class="dot"></span><span id="panelBName">ĐỘI ĐỎ</span></div><span id="stateB" class="state">Chờ lượt</span></div>
-      <div class="answer-board"><div class="board-title">🎯 BẢNG ĐÁP ÁN ĐỘI B<small>Sẽ sáng lên khi được quyền trả lời</small></div><div id="answersB" class="answers"></div></div>
-    </section>
-  </main>
+  <section id="history" class="screen">
+    <div class="card"><div class="row space"><h2>Lịch sử dò bài</h2><button class="btn primary" onclick="loadHistoryFromSheet()">↻ Tải lịch sử Sheet</button></div><div class="tablewrap"><table><thead><tr><th>Thời gian</th><th>Lớp</th><th>Học sinh</th><th>Loại</th><th>Giá trị</th><th>Ghi chú</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
+  </section>
 
-  <div id="explain" class="explain">Bấm <b>CÂU TIẾP THEO</b> để bắt đầu trận đấu.</div>
-  <div class="actions"><button id="nextBtn" class="btn primary next">❓ CÂU TIẾP THEO</button><button id="addA" class="btn good">+ A</button><button id="addB" class="btn bad">+ B</button><button id="resetBtn" class="btn ghost">↻ Đặt lại</button></div>
+  <section id="games" class="screen">
+    <div id="gameHub">
+      <div class="card game-config-card">
+        <div class="game-config-head">
+          <div><h2>🎮 Trò chơi Toán & Tin</h2><div class="muted">Một mục trò chơi duy nhất • chọn Kéo co hoặc Đua xe • câu hỏi lớn để chiếu TV.</div></div>
+          <div class="row"><span class="pill" id="gameBankBadge">0 câu</span><span class="pill">MathJax ✓</span><span class="pill">WebGL 3D ✓</span></div>
+        </div>
+
+        <div class="game-config-grid">
+          <div class="cfg-subject"><label>Môn</label><select id="subjectSelect" class="input"></select></div>
+          <div class="cfg-grade"><label>Khối</label><select id="gradeSelect" class="input"></select></div>
+          <div class="cfg-chapter"><label>Chương</label><select id="chapterSelect" class="input"></select></div>
+          <div class="cfg-topic"><label>Bài / Chủ đề</label><select id="topicSelect" class="input"></select></div>
+          <div class="cfg-type"><label>Loại game</label><select id="gameTypeSelect" class="input"><option value="tug">🪢 Kéo co 3D</option><option value="race">🏎️ Đua xe 3D</option></select></div>
+          <div class="cfg-team"><label>Đội A / Đội B</label><div class="row" style="gap:5px"><input id="teamAName" class="input" value="ĐỘI XANH" style="min-width:0"><input id="teamBName" class="input" value="ĐỘI ĐỎ" style="min-width:0"></div></div>
+          <div class="cfg-score"><label>Điểm thắng</label><input id="winScore" class="input" type="number" min="1" max="20" value="5"></div>
+          <div class="cfg-time"><label>Thời gian / lượt</label><select id="gameTimeLimit" class="input"><option value="0">Không giới hạn</option><option value="10">10 giây</option><option value="15" selected>15 giây</option><option value="20">20 giây</option><option value="30">30 giây</option></select></div>
+        </div>
+
+        <div class="game-bank-row">
+          <div class="drop"><div><b>📚 Ngân hàng câu hỏi JSON</b><p class="muted">Id, Grade, Subject, Chapter, Topic, Question, Image, Options, CorrectAnswer, Explain.</p></div><input id="jsonFile" type="file" accept=".json"></div>
+          <button class="btn primary" onclick="loadQuestionBankFromSheet()">↻ Nạp từ Sheet</button>
+          <button class="btn good" onclick="syncQuestionBank()">☁️ Lưu lên Sheet</button>
+          <button class="btn ghost" onclick="toggleQuestionPreview()">👁 Xem câu hỏi</button>
+        </div>
+        <div id="bankSummary" class="bank-summary" style="margin-top:10px">Chưa có câu hỏi.</div>
+        <div id="questionPreview" class="question-preview hide"></div>
+        <div class="game-start-row">
+          <div class="game-preview-strip"><span class="pill">💡 Sai → chuyển đội</span><span class="pill">✅ Đúng → +1 điểm</span><span class="pill">⛶ Có chế độ trình chiếu</span></div>
+          <button class="btn primary" onclick="startSelectedGame()">▶ BẮT ĐẦU TRÒ CHƠI</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gamePlay" class="hide">
+      <div class="game-tv-head">
+        <div class="tv-score a"><div><div class="muted" style="font-size:10px;font-weight:900">ĐỘI A</div><div id="tvAName" class="tv-score-name">ĐỘI XANH</div></div><div id="tvAScore" class="tv-score-number">0</div></div>
+        <div id="gameTimerBox" class="tv-timer"><small>Thời gian</small><b id="gameTimer">15</b></div>
+        <div class="tv-score b"><div id="tvBScore" class="tv-score-number">0</div><div style="text-align:right"><div class="muted" style="font-size:10px;font-weight:900">ĐỘI B</div><div id="tvBName" class="tv-score-name">ĐỘI ĐỎ</div></div></div>
+      </div>
+
+      <div class="central-question">
+        <div class="central-question-head">
+          <h2 id="gameTitleHead">🪢 KÉO CO KIẾN THỨC</h2>
+          <div class="central-meta"><span id="qCounter" class="pill">Câu 0</span><span id="qMeta" class="pill"></span><span id="duelResponderBadge" class="pill">Đội trả lời: —</span><button class="btn ghost" onclick="toggleGamePresentation()">⛶ Trình chiếu</button><button class="btn ghost" onclick="exitGame()">← Thoát</button></div>
+        </div>
+        <div id="centralQuestionBody" class="central-question-body no-image">
+          <div id="qCentralMedia" class="central-media hide"></div>
+          <div class="central-q-copy"><div class="central-q-label">NỘI DUNG CÂU HỎI</div><div id="qCentralText" class="central-q-text">Bấm “CÂU TIẾP THEO” để bắt đầu.</div><div id="qCentralFoot" class="central-q-foot">Câu hỏi chỉ hiển thị một lần để cả lớp cùng quan sát.</div></div>
+        </div>
+      </div>
+
+      <div class="turns" style="margin-bottom:9px"><button id="turnA" class="turn-btn active a" onclick="setTurn('A')">ĐỘI XANH mở lượt</button><button id="turnB" class="turn-btn" onclick="setTurn('B')">ĐỘI ĐỎ mở lượt</button></div>
+
+      <div class="tv-game-grid">
+        <div id="teamPanelA" class="card team-answer-panel a active">
+          <div class="team-answer-head"><div id="panelAName" class="team-answer-name">ĐỘI XANH</div><span id="teamStatusA" class="team-status">Đang trả lời</span></div>
+          <div class="team-answer-help">Bảng đáp án của Đội A • chỉ bấm khi đến lượt.</div>
+          <div id="answersA" class="team-answer-grid"></div>
+        </div>
+
+        <div class="game-stage tv-arena">
+          <canvas id="gameCanvas"></canvas>
+          <div class="hud"><div class="scorebox"><div class="team-badge"><b id="hudAName">ĐỘI XANH</b><span>ĐỘI A</span></div><div class="score-num" id="hudAScore">0</div></div><div class="scorebox"><div class="score-num" id="hudBScore">0</div><div class="team-badge"><b id="hudBName">ĐỘI ĐỎ</b><span>ĐỘI B</span></div></div></div>
+          <div class="tv-arena-caption" id="arenaCaption">Trả lời đúng để tạo chuyển động</div>
+          <div class="game-title" id="gameTitle">KÉO CO 3D</div>
+          <div id="winner" class="winner"><div class="winner-card"><div class="cup">🏆</div><h2 id="winnerText">CHIẾN THẮNG!</h2><button class="btn gold" onclick="resetGame()">Chơi lại</button></div></div>
+        </div>
+
+        <div id="teamPanelB" class="card team-answer-panel b">
+          <div class="team-answer-head"><div id="panelBName" class="team-answer-name">ĐỘI ĐỎ</div><span id="teamStatusB" class="team-status">Chờ lượt</span></div>
+          <div class="team-answer-help">Bảng đáp án của Đội B • nếu Đội A sai, quyền chuyển sang đây.</div>
+          <div id="answersB" class="team-answer-grid"></div>
+        </div>
+      </div>
+
+      <div id="qExplain" class="game-feedback">Đội đang trả lời: <strong id="turnLabelInline">ĐỘI XANH</strong></div>
+      <div class="game-bottom-actions"><button class="btn primary next-question-btn" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻ Đặt lại</button></div>
+    </div>
+  </section>
+
+  <section id="settings" class="screen">
+    <div class="grid">
+      <div class="card span7">
+        <h2>Kết nối Google Apps Script</h2>
+        <p class="muted"><b>V12 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
+        <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
+          <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
+          <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyWe5ZCHBAiIq7uyS4J0SW4rpyZMgmuQPFVqzXW2OlwHdp7GhpmaiwqPVNNjy0u1iLb/exec';
+
+// V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
+const API_PROXY_URL = '/api/sheet';</code>
+        </div>
+        <label>URL mà index.html đang sử dụng</label><input id="apiUrl" class="input" readonly>
+        <div class="row" style="margin-top:12px"><button class="btn good" onclick="testApi()">🔌 Kiểm tra và nạp dữ liệu</button><button class="btn ghost" onclick="openProxyTest()">↗ Test proxy</button><button class="btn ghost" onclick="openDirectApiTest()">↗ Test Apps Script trực tiếp</button></div>
+        <div id="apiStatus" class="data-status" style="margin-top:14px"><span class="status-dot"></span>Chưa kiểm tra.</div>
+        <pre id="apiDiag" style="white-space:pre-wrap;color:#a9bed9;background:#071427;padding:12px;border-radius:13px;min-height:95px;overflow:auto"></pre>
+      </div>
+      <div class="card span5">
+        <h3>Triển khai đúng</h3>
+        <p class="muted"><b>1.</b> Mở đúng Google Sheet → Extensions → Apps Script → dán Code.gs mới.</p>
+        <p class="muted"><b>2.</b> Trên thanh chọn hàm <b>setup</b> → Run → cấp quyền. Chỉ làm 1 lần.</p>
+        <p class="muted"><b>3.</b> Deploy → Manage deployments → Edit → <b>New version</b> → Execute as Me → Who has access: Anyone.</p>
+        <p class="muted"><b>4.</b> GitHub/Vercel phải có thêm file <b>api/sheet.js</b>. Đây là proxy giúp tránh lỗi gọi trực tiếp Google từ trình duyệt.</p>
+        <p class="muted"><b>5.</b> Upload <b>index.html</b> và thư mục <b>api/sheet.js</b> lên GitHub/Vercel → chờ Ready → Ctrl+F5 → Kiểm tra và nạp dữ liệu.</p>
+      </div>
+    </div>
+  </section>
 </div>
+<div id="toast" class="toast"></div>
 
-<div id="winner" class="winner"><div class="winner-card"><div class="cup">🏆</div><h2 id="winnerText">CHIẾN THẮNG!</h2><p id="winnerSub">Tỉ số</p><button id="winnerAgain" class="btn gold">Chơi lại</button></div></div>
-<div id="confetti" class="confetti"></div><div id="toast" class="toast"></div>
+<script>
+'use strict';
 
-<script src="./js/tug.js"></script>
-<script src="./js/race.js"></script>
-<script src="./js/app.js"></script>
+// ============================================================================
+// 🔴🔴🔴 DÁN LINK GOOGLE APPS SCRIPT WEB APP (/exec) TẠI ĐÂY 🔴🔴🔴
+// Nếu Deploy lại và Google cấp URL mới, chỉ thay đúng chuỗi nằm trong dấu nháy.
+// KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
+// ============================================================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyoZgw74NhN9a7B5deTfoeoLdsXPqr4SK4xolVZ8T2gmAoE0EAxOSn6m_-fQTvDqdw/exec';
+
+// V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
+const API_PROXY_URL = '/api/sheet';
+// ============================================================================
+// 🔴🔴🔴 HẾT VÙNG DÁN LINK - KHÔNG SỬA CÁC DÒNG BÊN DƯỚI 🔴🔴🔴
+// ============================================================================
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
+const APP_VERSION='12.0.0';
+let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
+let historyData=safeLoad(LS.history,[]);
+let scoresData=safeLoad(LS.scores,[]);
+let questionBank=safeLoad(LS.bank,[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'')).filter(validQuestion);
+let selectedQuestions=[];
+let currentStudent=null,calledIds=new Set(),loadingStudents=false;
+let game={type:null,a:0,b:0,turn:'A',used:[],current:null,locked:false};
+let game3d=null,wheel3d=null,wheelAudio=null;
+
+function safeLoad(k,d){try{const x=JSON.parse(localStorage.getItem(k));return x??d}catch{return d}}
+function saveLocal(){localStorage.setItem(LS.students,JSON.stringify(students));localStorage.setItem(LS.history,JSON.stringify(historyData));localStorage.setItem(LS.scores,JSON.stringify(scoresData));localStorage.setItem(LS.bank,JSON.stringify(questionBank))}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),4200)}
+function fmtTime(v){if(!v)return'';const d=new Date(v);return isNaN(d)?String(v):d.toLocaleString('vi-VN')}
+function typeset(){setTimeout(()=>window.MathJax?.typesetPromise?.().catch(()=>{}),0)}
+function beep(freq=600,d=.09){if(!$('#soundMode')?.checked)return;try{const a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.05,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+d);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+d)}catch{}}
+
+$$('.tab[data-screen]').forEach(b=>b.onclick=()=>go(b.dataset.screen));
+function go(id){$$('.screen').forEach(x=>x.classList.toggle('active',x.id===id));$$('.tab[data-screen]').forEach(x=>x.classList.toggle('active',x.dataset.screen===id));if(id==='games')setTimeout(()=>game3d?.resize(),100);if(id==='random')setTimeout(()=>wheel3d?.resize(),100)}
+
+function normalizeStudent(s,i=0){return{id:String(s?.id??i+1).trim(),stt:Number(s?.stt??i+1)||i+1,name:String(s?.name??'').trim(),className:String(s?.className??'').trim(),totalPoint:Number(s?.totalPoint??0)||0,callCount:Number(s?.callCount??0)||0,lastCalled:String(s?.lastCalled??''),active:s?.active!==false}}
+function currentClass(){return $('#classSelect')?.value||localStorage.getItem(LS.className)||''}
+function classes(){return[...new Set(students.map(s=>s.className).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}))}
+function populateClasses(preferred=''){const sel=$('#classSelect'),list=classes();const old=preferred||localStorage.getItem(LS.className)||sel.value;sel.innerHTML=list.length?list.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join(''):'<option value="">Chưa có lớp</option>';if(list.includes(old))sel.value=old;else if(list[0])sel.value=list[0];localStorage.setItem(LS.className,sel.value||'')}
+$('#classSelect').addEventListener('change',()=>{localStorage.setItem(LS.className,currentClass());calledIds.clear();currentStudent=null;renderAll();rebuildWheel();});
+$('#noRepeat').addEventListener('change',()=>rebuildWheel());$('#fairMode').addEventListener('change',()=>rebuildWheel());
+function classStudents(activeOnly=true){const c=currentClass();return students.filter(s=>(!c||s.className===c)&&(!activeOnly||s.active!==false))}
+
+function renderAll(){populateClasses(currentClass());const list=classStudents(true);$('#statStudents').textContent=list.length;$('#statCalled').textContent=[...calledIds].filter(id=>list.some(s=>String(s.id)===String(id))).length;$('#statPoints').textContent=list.reduce((a,s)=>a+Number(s.totalPoint||0),0);$('#statQuestions').textContent=selectedQuestions.length;$('#callBadge').textContent=currentClass()?`Lớp ${currentClass()} • ${calledIds.size}/${list.length} đã gọi`:`Chưa có lớp • ${list.length} học sinh`;$('#studentCount').textContent=`${students.length} học sinh`;
+  $('#studentBody').innerHTML=students.map(s=>`<tr><td>${s.stt}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.className)}</td><td>${s.totalPoint}</td><td>${s.callCount}</td></tr>`).join('');
+  $('#historyBody').innerHTML=historyData.slice().reverse().slice(0,700).map(h=>`<tr><td>${fmtTime(h.timestamp)}</td><td>${esc(h.className)}</td><td><b>${esc(h.studentName)}</b></td><td>${esc(h.action)}</td><td>${esc(h.value)}</td><td>${esc(h.note)}</td></tr>`).join('');
+  setStudentStatus(list.length?`Đã nạp ${list.length} học sinh lớp ${currentClass()||'(chưa chọn)'}.`:'Chưa có học sinh phù hợp lớp đang chọn.',!!list.length);
+  renderSelectedStudent();renderClassScorebook();renderBank();
+}
+function setStudentStatus(msg,ok=false){const el=$('#studentStatus');el.textContent=msg;el.className='data-status '+(ok?'ok':'')}
+
+function eligiblePool(){let pool=classStudents(true);if($('#noRepeat').checked)pool=pool.filter(s=>!calledIds.has(String(s.id)));if($('#fairMode').checked&&pool.length){const m=Math.min(...pool.map(s=>s.callCount));pool=pool.filter(s=>s.callCount===m)}return pool}
+
+function rebuildWheel(){const list=eligiblePool().length?eligiblePool():classStudents(true);if(typeof THREE==='undefined'||!$('#wheelCanvas'))return;wheel3d?.dispose();wheel3d=new Wheel3D($('#wheelCanvas'));wheel3d.setStudents(list);wheel3d.resize();if(!list.length)$('#wheelSub').textContent='Chưa có học sinh để tạo vòng quay';else $('#wheelSub').textContent=`${list.length} học sinh đang ở trên vòng quay`}
+
+async function callRandomStudent(){
+  const btn=$('#callBtn');if(btn.disabled)return;if(!wheelAudio)wheelAudio=new WheelAudio();wheelAudio.ensure();btn.disabled=true;btn.classList.add('spinning');
+  try{
+    if(!students.length&&getApi())await loadStudentsFromSheet(true);
+    const pool=eligiblePool();
+    if(!pool.length){toast($('#noRepeat').checked?'Đã gọi hết lớp. Bấm “Vòng mới”.':'Không có học sinh lớp đang chọn.');return}
+    if(typeof THREE==='undefined')throw new Error('Không tải được thư viện Three.js. Kiểm tra Internet.');
+    if(!wheel3d)rebuildWheel();
+    wheel3d.setStudents(pool);
+    const targetIndex=Math.floor(Math.random()*pool.length);
+    $('#wheelSub').textContent='Vòng quay đang chọn học sinh...';
+    const winner=await wheel3d.spinTo(targetIndex,pool);
+    currentStudent=winner;
+    $('#studentName').textContent=currentStudent.name;
+    calledIds.add(String(currentStudent.id));
+    currentStudent.callCount=Number(currentStudent.callCount||0)+1;
+    currentStudent.lastCalled=new Date().toISOString();
+    addHistory({action:'CALL',value:'',note:'Gọi bằng Chiếc nón 3D'});
+    saveLocal();renderAll();
+    $('#wheelSub').textContent=`🎉 Lần gọi thứ ${currentStudent.callCount} • ${currentStudent.className}`;
+    wheelWinSound();
+  }catch(err){toast(err.message||String(err))}
+  finally{btn.disabled=false;btn.classList.remove('spinning')}
+}
+
+function resetRound(){calledIds.clear();currentStudent=null;$('#studentName').textContent='SẴN SÀNG QUAY?';$('#wheelSub').textContent='Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên';renderAll();rebuildWheel();toast('Đã bắt đầu vòng mới.')}
+function changePoint(v){if(!currentStudent)return toast('Chưa gọi học sinh.');const note=prompt(v>0?'Ghi chú điểm cộng:':'Ghi chú điểm trừ:','')||'';currentStudent.totalPoint+=v;addHistory({action:v>0?'PLUS':'MINUS',value:v,note});saveLocal();renderAll();beep(v>0?760:230,.13)}
+function setQuickScore(v){$('#callScoreInput').value=v;$('#callScoreInput').focus()}
+function scoresForStudent(student){if(!student)return[];return scoresData.filter(x=>String(x.studentId||'')===String(student.id)||(!x.studentId&&x.studentName===student.name&&x.className===student.className)).slice().sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp))}
+function currentStudentScores(){return scoresForStudent(currentStudent)}
+function renderSelectedStudent(){
+  const box=$('#scoreSession');if(!box)return;
+  if(!currentStudent){box.classList.add('empty');$('#selectedStudentName').textContent='Chưa có học sinh';$('#selectedStudentClass').textContent='—';$('#selectedTotalPoint').textContent='Điểm +/-: 0';$('#callNoBadge').textContent='Chưa gọi';$('#saveCallScoreBtn').disabled=true;$('#studentScoreHistory').innerHTML='<div class="score-empty">Điểm từng lần gọi sẽ hiện ở đây.</div>';return}
+  box.classList.remove('empty');$('#selectedStudentName').textContent=currentStudent.name;$('#selectedStudentClass').textContent=`Lớp ${currentStudent.className}`;$('#selectedTotalPoint').textContent=`Điểm +/-: ${currentStudent.totalPoint}`;$('#callNoBadge').textContent=`Lần gọi #${currentStudent.callCount}`;$('#saveCallScoreBtn').disabled=false;
+  const arr=currentStudentScores();$('#studentScoreHistory').innerHTML=arr.length?arr.slice(0,8).map((x,i)=>`<div class="score-record"><span>${x.callNo?`Lần ${esc(x.callNo)}`:`#${arr.length-i}`}</span><span>${esc(x.note||'')}</span><strong>${esc(x.score)}</strong></div>`).join(''):'<div class="score-empty">Chưa có điểm chính thức cho học sinh này.</div>';
+  const same=arr.find(x=>Number(x.callNo)===Number(currentStudent.callCount));if(same){$('#callScoreInput').value=same.score;$('#callScoreNote').value=same.note||''}else{$('#callScoreInput').value='';$('#callScoreNote').value=''}
+}
+function renderClassScorebook(){
+  const host=$('#classScorebookList');if(!host)return;
+  const q=String($('#scorebookSearch')?.value||'').trim().toLocaleLowerCase('vi');
+  const list=classStudents(true).filter(s=>!q||s.name.toLocaleLowerCase('vi').includes(q)||String(s.stt).includes(q));
+  $('#scorebookCount').textContent=`${list.length} HS`;
+  host.innerHTML=list.length?list.map(s=>{
+    const arr=scoresForStudent(s),avg=arr.length?(arr.reduce((a,x)=>a+Number(x.score||0),0)/arr.length).toFixed(1):'—';
+    const chips=arr.length?arr.slice(0,4).map(x=>`<span class="score-chip">L${esc(x.callNo||'•')}: ${esc(x.score)}</span>`).join(''):'<span class="score-chip empty">Chưa có điểm</span>';
+    const active=currentStudent&&String(currentStudent.id)===String(s.id)?' active':'';
+    return `<div class="scorebook-row${active}"><div><div class="scorebook-name">${esc(s.stt)}. ${esc(s.name)}</div><div class="scorebook-meta">${esc(s.className)} • ${s.callCount} lượt gọi • TB điểm: ${avg} • +/- ${s.totalPoint}</div><div class="score-chips">${chips}</div></div><button class="btn primary scorebook-call" data-id="${esc(s.id)}">Gọi & ghi điểm</button></div>`
+  }).join(''):'<div class="score-empty">Không tìm thấy học sinh.</div>';
+  $$('#classScorebookList .scorebook-call').forEach(b=>b.onclick=()=>manualCallStudent(b.dataset.id));
+}
+function manualCallStudent(id){
+  const s=classStudents(true).find(x=>String(x.id)===String(id));if(!s)return toast('Không tìm thấy học sinh.');
+  currentStudent=s;calledIds.add(String(s.id));s.callCount=Number(s.callCount||0)+1;s.lastCalled=new Date().toISOString();
+  $('#studentName').textContent=s.name;$('#wheelSub').textContent=`👋 Gọi thủ công • Lần ${s.callCount} • ${s.className}`;
+  addHistory({action:'CALL',value:'',note:'Gọi thủ công từ sổ điểm'});saveLocal();renderAll();if($('#noRepeat').checked)rebuildWheel();
+  if(document.body.classList.contains('wheel-presentation'))$('#callPanel').classList.add('open');
+  $('#scoreSession')?.scrollIntoView({behavior:'smooth',block:'nearest'});beep(720,.12)
+}
+$('#scorebookSearch')?.addEventListener('input',renderClassScorebook);
+async function saveCallScore(){
+  if(!currentStudent)return toast('Chưa gọi học sinh.');
+  const raw=$('#callScoreInput').value;const score=Number(String(raw).replace(',','.'));
+  if(!Number.isFinite(score)||score<0||score>10)return toast('Điểm phải từ 0 đến 10.');
+  const note=$('#callScoreNote').value.trim()||'Dò bài';
+  const entry={...entryBase(),callNo:Number(currentStudent.callCount||1),score,note};
+  const key=x=>String(x.studentId||'')===String(entry.studentId)&&Number(x.callNo||0)===entry.callNo;
+  const pos=scoresData.findIndex(key);if(pos>=0)scoresData[pos]={...scoresData[pos],...entry};else scoresData.push(entry);
+  historyData.push({...entry,action:'SCORE',value:score});saveLocal();renderAll();
+  const ok=await apiPost({action:'saveScore',entry});
+  toast(ok?`Đã lưu ${score} điểm cho ${currentStudent.name} – lần ${entry.callNo}.`:'Đã lưu tạm trên máy nhưng chưa ghi được lên Sheet.');
+  if(ok)beep(920,.18)
+}
+function enterScore(){saveCallScore()}
+function entryBase(){return{timestamp:new Date().toISOString(),className:currentStudent?.className||currentClass(),studentId:currentStudent?.id||'',studentName:currentStudent?.name||''}}
+function addHistory(x){const e={...entryBase(),...x};historyData.push(e);apiPost({action:'addHistory',entry:e})}
+function wait(ms){return new Promise(r=>setTimeout(r,ms))}
+
+$('#excelFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const wb=XLSX.read(await f.arrayBuffer());const ws=wb.Sheets[wb.SheetNames[0]];const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});const lower=o=>Object.fromEntries(Object.entries(o).map(([k,v])=>[k.trim().toLowerCase(),v]));students=rows.map((r,i)=>{r=lower(r);return normalizeStudent({id:r.id||i+1,stt:r.stt||r['số thứ tự']||i+1,name:r.name||r['họ và tên']||r['họ tên']||r['tên']||'',className:r.classname||r['lớp']||r.lop||currentClass(),active:true},i)}).filter(s=>s.name);saveLocal();populateClasses();renderAll();rebuildWheel();toast(`Đã nạp ${students.length} học sinh từ Excel.`)}catch(err){toast('Không đọc được Excel: '+err.message)}finally{e.target.value=''}});
+
+function getApi(){
+  return String(API_PROXY_URL||'').trim();
+}
+function copyApiUrl(){
+  const u=APPS_SCRIPT_URL;
+  if(navigator.clipboard?.writeText){navigator.clipboard.writeText(u).then(()=>toast('Đã copy URL Apps Script.')).catch(()=>toast(u));}
+  else toast(u);
+}
+async function apiGet(action,params={}){
+  const q=new URLSearchParams({action,_:Date.now().toString(),...params});
+  const url=getApi()+'?'+q.toString();
+  let r;
+  try{
+    r=await fetch(url,{method:'GET',cache:'no-store',headers:{'Accept':'application/json'}});
+  }catch(err){
+    throw new Error('Không gọi được proxy Vercel /api/sheet: '+err.message);
+  }
+  const text=await r.text();
+  let data;
+  try{data=JSON.parse(text)}catch{
+    throw new Error('Proxy không trả về JSON. HTTP '+r.status+'. Nội dung: '+text.slice(0,160));
+  }
+  if(!r.ok||data?.ok===false)throw new Error(data?.error||('HTTP '+r.status));
+  return data;
+}
+async function apiPost(payload){
+  let r;
+  try{
+    r=await fetch(getApi(),{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)});
+  }catch(err){
+    toast('Không ghi được qua proxy: '+err.message);return false;
+  }
+  let data=null;try{data=await r.json()}catch{}
+  if(!r.ok||data?.ok===false){toast(data?.error||('Ghi dữ liệu thất bại HTTP '+r.status));return false}
+  return true;
+}
+function setApiStatus(ok,msg,diag=''){const el=$('#apiStatus');el.className='data-status '+(ok?'ok':'err');el.innerHTML=`<span class="status-dot ${ok?'ok':'err'}"></span>${esc(msg)}`;$('#apiDiag').textContent=diag}
+async function testApi(){
+  setApiStatus(false,'Đang kiểm tra proxy và Apps Script...','');
+  try{
+    const alive=await apiGet('alive');
+    const ping=await apiGet('ping');
+    const stu=await apiGet('students');
+    students=(stu.students||[]).map(normalizeStudent).filter(s=>s.name);
+    saveLocal();populateClasses();
+    let qCount='?';
+    try{
+      const qb=await apiGet('questions');
+      qCount=(qb.questions||[]).length;
+      if(!questionBank.length&&qCount){questionBank=(qb.questions||[]).map((q,i)=>normalizeQuestion(q,i,'Google Sheet')).filter(validQuestion);saveLocal();refreshQuestionFilters()}
+    }catch{}
+    renderAll();
+    setApiStatus(true,`Kết nối thành công: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nProxy: OK\nApps Script alive: ${alive.version||'?'}\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}\nCâu hỏi đọc được: ${qCount}\nHeaders: ${(ping.studentHeaders||[]).join(' | ')}`);
+    toast(`Đã kết nối và nạp ${students.length} học sinh.`)
+  }catch(err){
+    setApiStatus(false,err.message,`Lỗi: ${err.message}\n\nNếu lỗi nói Apps Script trả về HTML/trang đăng nhập: deployment chưa thực sự công khai hoặc tài khoản trường chặn "Anyone".\nNếu alive OK nhưng ping lỗi: chạy setup() hoặc điền SPREADSHEET_ID trong Code.gs.\nNếu proxy 404: GitHub/Vercel thiếu file api/sheet.js.`);
+    toast(err.message)
+  }
+}
+function openProxyTest(){window.open(getApi()+'?action=ping','_blank')}
+function openDirectApiTest(){window.open(APPS_SCRIPT_URL+'?action=alive','_blank')}
+async function loadStudentsFromSheet(silent=false){
+  if(loadingStudents)return false;loadingStudents=true;
+  try{
+    const d=await apiGet('students');
+    students=(d.students||[]).map(normalizeStudent).filter(s=>s.name);
+    saveLocal();populateClasses();calledIds.clear();currentStudent=null;
+    $('#studentName').textContent='SẴN SÀNG QUAY?';$('#wheelSub').textContent='Nhấn QUAY NÓN để chọn học sinh ngẫu nhiên';renderAll();rebuildWheel();
+    if(!silent)toast(`Đã nạp ${students.length} học sinh từ Sheet.`);return true
+  }catch(err){setStudentStatus(err.message,false);if(!silent)toast(err.message);return false}
+  finally{loadingStudents=false}
+}
+async function syncStudents(){if(!students.length)return toast('Danh sách web đang trống; không ghi đè Sheet.');if(!confirm(`Ghi ${students.length} học sinh lên sheet Students?`))return;const sent=await apiPost({action:'saveStudents',students});if(!sent)return;await wait(500);const ok=await loadStudentsFromSheet(true);toast(ok?'Đã ghi và kiểm tra lại Students.':'Đã gửi dữ liệu nhưng chưa đọc kiểm tra được.')}
+async function loadHistoryFromSheet(){try{const d=await apiGet('history');historyData=d.history||[];saveLocal();renderAll();toast('Đã tải lịch sử.')}catch(err){toast(err.message)}}
+async function loadScoresFromSheet(silent=false){try{const d=await apiGet('scores');if(!d?.ok)throw new Error(d?.error||'Không đọc được Scores.');scoresData=d.scores||[];saveLocal();renderSelectedStudent();renderClassScorebook();if(!silent)toast(`Đã tải ${scoresData.length} bản ghi điểm.`);return true}catch(err){if(!silent)toast(err.message);return false}}
+
+function normalizeQuestion(q,i=0,source=''){
+  q=q||{};let opts=q.Options??q.options??q.answers??[];let optionPairs=[];
+  if(Array.isArray(opts)) optionPairs=opts.map((v,j)=>{
+    if(v&&typeof v==='object'&&!Array.isArray(v)) return {key:String(v.key??v.label??String.fromCharCode(65+j)).trim().toUpperCase(),text:String(v.text??v.value??v.answer??'')};
+    return {key:String.fromCharCode(65+j),text:String(v??'')};
+  });
+  else if(opts&&typeof opts==='object') optionPairs=Object.keys(opts).sort().map(k=>({key:String(k).trim().toUpperCase(),text:String(opts[k]??'')}));
+  return{id:String(q.Id??q.id??`Q_${Date.now()}_${i}`),type:String(q.Type??q.type??'MC'),level:String(q.Level??q.level??''),grade:String(q.Grade??q.grade??''),subject:String(q.Subject??q.subject??''),chapter:String(q.Chapter??q.chapter??''),topic:String(q.Topic??q.topic??q.Lesson??q.lesson??''),question:String(q.Question??q.question??''),image:String(q.Image??q.image??''),options:optionPairs,answer:String(q.CorrectAnswer??q.correctAnswer??q.answer??''),explanation:String(q.Explain??q.explain??q.explanation??''),sourceFile:String(q.sourceFile??source??'')}
+}
+function validQuestion(q){return!!(q&&q.question&&Array.isArray(q.options)&&q.options.length>=2)}
+function qkey(q){return String(q.id||'')+'|'+q.grade+'|'+q.chapter+'|'+q.topic}
+function mergeQuestions(items){const m=new Map(questionBank.map(q=>[qkey(q),q]));items.forEach(q=>m.set(qkey(q),q));questionBank=[...m.values()].filter(validQuestion);saveLocal()}
+function unique(xs){return[...new Set(xs.map(x=>String(x||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi',{numeric:true}))}
+function fillSelect(sel,values,allLabel,preferred=''){const vals=unique(values);sel.innerHTML=`<option value="">${allLabel}</option>`+vals.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');if(vals.includes(preferred))sel.value=preferred;return vals}
+function refreshQuestionFilters(pref={}){
+  const saved=safeLoad(LS.selection,{});
+  const sPref=pref.subject??saved.subject??$('#subjectSelect')?.value??'';
+  fillSelect($('#subjectSelect'),questionBank.map(q=>q.subject),'Tất cả môn',sPref);
+  const s=$('#subjectSelect').value;
+  const byS=questionBank.filter(q=>!s||q.subject===s);
+  const gPref=pref.grade??saved.grade??$('#gradeSelect').value;
+  fillSelect($('#gradeSelect'),byS.map(q=>q.grade),'Tất cả khối',gPref);
+  const g=$('#gradeSelect').value;
+  const byG=byS.filter(q=>!g||q.grade===g);
+  const cPref=pref.chapter??saved.chapter??$('#chapterSelect').value;
+  fillSelect($('#chapterSelect'),byG.map(q=>q.chapter),'Tất cả chương',cPref);
+  const c=$('#chapterSelect').value;
+  const byC=byG.filter(q=>!c||q.chapter===c);
+  const tPref=pref.topic??saved.topic??$('#topicSelect').value;
+  fillSelect($('#topicSelect'),byC.map(q=>q.topic),'Tất cả bài',tPref);
+  applyQuestionSelection(false)
+}
+function applyQuestionSelection(save=true){
+  const s=$('#subjectSelect')?.value||'',g=$('#gradeSelect').value,c=$('#chapterSelect').value,t=$('#topicSelect').value;
+  selectedQuestions=questionBank.filter(q=>(!s||q.subject===s)&&(!g||q.grade===g)&&(!c||q.chapter===c)&&(!t||q.topic===t));
+  if(save)localStorage.setItem(LS.selection,JSON.stringify({subject:s,grade:g,chapter:c,topic:t}));
+  renderBank();renderAllStatsOnly()
+}
+function renderAllStatsOnly(){$('#statQuestions').textContent=selectedQuestions.length}
+function renderBank(){
+  if(!$('#bankSummary'))return;
+  const s=$('#subjectSelect')?.value||'',g=$('#gradeSelect')?.value||'',c=$('#chapterSelect')?.value||'',t=$('#topicSelect')?.value||'';
+  $('#gameBankBadge').textContent=`${selectedQuestions.length} câu`;
+  $('#bankSummary').innerHTML=questionBank.length?`<b>${selectedQuestions.length}</b> câu đang chọn / <b>${questionBank.length}</b> câu đã lưu <span class="muted">• ${[s,g&&'Khối '+g,c,t].filter(Boolean).map(esc).join(' → ')||'Toàn bộ ngân hàng'}</span>`:'Chưa có câu hỏi. Nạp JSON hoặc tải từ Sheet.';
+  $('#questionPreview').innerHTML=selectedQuestions.slice(0,8).map((q,i)=>`<div class="qmini"><b>${i+1}. ${esc(stripUrls(q.question).slice(0,125))}${q.question.length>125?'…':''}</b><small>${esc([q.subject,q.level,q.grade&&'Khối '+q.grade,q.chapter,q.topic].filter(Boolean).join(' • '))}</small></div>`).join('')
+}
+function toggleQuestionPreview(){$('#questionPreview')?.classList.toggle('hide')}
+$('#subjectSelect')?.addEventListener('change',()=>refreshQuestionFilters({subject:$('#subjectSelect').value,grade:'',chapter:'',topic:''}));
+$('#gradeSelect').addEventListener('change',()=>refreshQuestionFilters({subject:$('#subjectSelect')?.value||'',grade:$('#gradeSelect').value,chapter:'',topic:''}));
+$('#chapterSelect').addEventListener('change',()=>{const s=$('#subjectSelect')?.value||'',g=$('#gradeSelect').value,c=$('#chapterSelect').value;const by=questionBank.filter(q=>(!s||q.subject===s)&&(!g||q.grade===g)&&(!c||q.chapter===c));fillSelect($('#topicSelect'),by.map(q=>q.topic),'Tất cả bài','');applyQuestionSelection(true)});
+$('#topicSelect').addEventListener('change',()=>applyQuestionSelection(true));
+$('#jsonFile').addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=JSON.parse(await f.text());const rows=Array.isArray(data)?data:(Array.isArray(data.questions)?data.questions:[]);const imported=rows.map((q,i)=>normalizeQuestion(q,i,f.name)).filter(validQuestion);if(!imported.length)throw new Error('Không tìm thấy câu hỏi hợp lệ.');mergeQuestions(imported);const first=imported[0];refreshQuestionFilters({subject:first.subject,grade:first.grade,chapter:first.chapter,topic:first.topic});if(getApi()){await saveQuestionChunks(imported);await wait(800)}renderAll();toast(`Đã nạp ${imported.length} câu từ ${f.name}.`)}catch(err){toast('JSON lỗi: '+err.message)}finally{e.target.value=''}});
+async function saveQuestionChunks(items){for(let i=0;i<items.length;i+=40){const ok=await apiPost({action:'saveQuestions',questions:items.slice(i,i+40)});if(!ok)throw new Error('Không gửi được QuestionBank.');await wait(180)}}
+async function syncQuestionBank(){if(!questionBank.length)return toast('Chưa có câu hỏi.');try{await saveQuestionChunks(questionBank);toast(`Đã gửi ${questionBank.length} câu hỏi lên Sheet.`)}catch(err){toast(err.message)}}
+async function loadQuestionBankFromSheet(silent=false){try{const d=await apiGet('questions');if(!d?.ok)throw new Error(d?.error||'Không đọc được QuestionBank.');const arr=(d.questions||[]).map((q,i)=>normalizeQuestion(q,i,q.sourceFile||'Google Sheet')).filter(validQuestion);mergeQuestions(arr);refreshQuestionFilters();renderAll();if(!silent)toast(`Đã nạp ${arr.length} câu từ Sheet.`);return true}catch(err){if(!silent)toast(err.message);return false}}
+
+function stripUrls(text){return String(text||'').replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').trim()}
+function extractImages(text){return(String(text||'').match(/https?:\/\/[^\s]+?\.(?:png|jpe?g|webp|gif)(?:\?[^\s]*)?/gi)||[]).map(u=>u.replace(/[),.;]+$/,''))}
+function renderRich(text){const imgs=extractImages(text);let body=esc(stripUrls(text)).replace(/\n/g,'<br>');imgs.forEach(u=>body+=`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`);return body}
+function correctIndex(q){const a=String(q.answer||'').trim().toUpperCase();const byKey=q.options.findIndex(o=>String(o.key).toUpperCase()===a);if(byKey>=0)return byKey;const byText=q.options.findIndex(o=>String(o.text).trim().toUpperCase()===a);if(byText>=0)return byText;const n=Number(a);if(Number.isInteger(n)&&n>=1&&n<=q.options.length)return n-1;return-1}
+
+
+function startSelectedGame(){startGame($('#gameTypeSelect')?.value||'tug')}
+function startGame(type){
+  if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
+  if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');
+  stopGameTimer();
+  game={type,a:0,b:0,turn:'A',starter:'A',responder:'A',attempted:{A:false,B:false},used:[],current:null,locked:false,timeLeft:0,timer:null};
+  $('#gameHub').classList.add('hide');$('#gamePlay').classList.remove('hide');$('#winner').classList.remove('show');
+  const tug=type==='tug';
+  $('#gameTitle').textContent=tug?'KÉO CO 3D':'ĐUA XE 3D';
+  $('#gameTitleHead').textContent=tug?'🪢 KÉO CO KIẾN THỨC':'🏎️ ĐUA XE KIẾN THỨC';
+  $('#arenaCaption').textContent=tug?'Trả lời đúng để kéo cờ về phía đội mình':'Trả lời đúng để xe tăng tốc về đích';
+  updateHud();setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());
+  setTimeout(()=>{game3d.resize();nextQuestion()},220)
+}
+function exitGame(){stopGameTimer();game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');document.body.classList.remove('game-presentation')}
+function winScore(){return Math.max(1,Math.min(20,Number($('#winScore').value||5)))}
+function names(){return{A:$('#teamAName').value.trim()||'ĐỘI XANH',B:$('#teamBName').value.trim()||'ĐỘI ĐỎ'}}
+function setTurn(t){
+  game.turn=t;const n=names();
+  $('#turnA').className='turn-btn'+(t==='A'?' active a':'');$('#turnB').className='turn-btn'+(t==='B'?' active b':'');
+  $('#turnA').textContent=`${n.A} mở lượt`;$('#turnB').textContent=`${n.B} mở lượt`;updateResponderBadges()
+}
+function updateHud(){
+  const n=names();
+  $('#hudAName').textContent=n.A;$('#hudBName').textContent=n.B;$('#panelAName').textContent=n.A;$('#panelBName').textContent=n.B;
+  $('#tvAName').textContent=n.A;$('#tvBName').textContent=n.B;$('#hudAScore').textContent=game.a;$('#hudBScore').textContent=game.b;$('#tvAScore').textContent=game.a;$('#tvBScore').textContent=game.b
+}
+function questionImageUrls(q){const set=new Set(),arr=[];const push=u=>{u=String(u||'').trim();if(!u||set.has(u))return;set.add(u);arr.push(u)};push(q?.image||'');extractImages(q?.question||'').forEach(push);return arr}
+function centralQuestionMedia(q){const imgs=questionImageUrls(q);if(!imgs.length)return'';return imgs.slice(0,2).map(u=>`<img src="${esc(u)}" alt="Hình câu hỏi" onerror="this.style.display='none'">`).join('')}
+function renderQuestionOnlyText(text){return esc(stripUrls(text)).replace(/\n/g,'<br>')}
+function fitQuestionTypography(q){const text=stripUrls(q?.question||''),n=text.length,el=$('#qCentralText');if(!el)return;el.style.fontSize=n<75?'clamp(40px,3.2vw,66px)':n<150?'clamp(35px,2.7vw,56px)':n<260?'clamp(30px,2.25vw,47px)':'clamp(25px,1.85vw,39px)'}
+function updateResponderBadges(){
+  const n=names(),starter=n[game.starter||game.turn||'A'],responder=n[game.responder||game.turn||'A'];
+  $('#duelResponderBadge').textContent=`Đội trả lời: ${responder}`;$('#turnLabelInline').textContent=responder;
+  $('#qCentralFoot').innerHTML=`Mở lượt: <b>${esc(starter)}</b> • Đang trả lời: <b>${esc(responder)}</b>`
+}
+function renderTeamAnswers(team){
+  const wrap=$('#answers'+team);if(!wrap)return;const q=game.current;if(!q){wrap.innerHTML='';return}
+  const active=game.responder===team&&!game.locked;
+  wrap.innerHTML=q.options.map((o,i)=>`<button class="answer" data-team="${team}" data-i="${i}" ${active?'':'disabled'}><span class="opt-key">${esc(o.key)}</span><span class="opt-text rich">${renderRich(o.text)}</span></button>`).join('');
+  $$('#answers'+team+' .answer').forEach(b=>b.onclick=()=>answerQuestion(b.dataset.team,Number(b.dataset.i)))
+}
+function syncTeamPanels(){
+  ['A','B'].forEach(team=>{const p=$('#teamPanel'+team);if(!p)return;const active=game.responder===team&&!game.locked,attempted=!!game.attempted?.[team];p.classList.toggle('active',active);const status=game.locked?'Chờ câu tiếp theo':active?'Đang trả lời':attempted?'Đã trả lời':'Chờ lượt';$('#teamStatus'+team).textContent=status;renderTeamAnswers(team)});updateResponderBadges()
+}
+function renderDuelQuestion(){
+  if(!game.current)return;const q=game.current,imgs=questionImageUrls(q);
+  $('#qCounter').textContent=`Câu ${game.used.length}/${selectedQuestions.length}`;$('#qMeta').textContent=[q.subject,q.grade&&'Khối '+q.grade,q.chapter,q.topic,q.level].filter(Boolean).join(' • ')||'Câu hỏi luyện tập';
+  $('#qCentralText').innerHTML=renderQuestionOnlyText(q.question||'');fitQuestionTypography(q);
+  const media=$('#qCentralMedia'),body=$('#centralQuestionBody');
+  if(imgs.length){media.innerHTML=centralQuestionMedia(q);media.classList.remove('hide');body.classList.remove('no-image')}else{media.innerHTML='';media.classList.add('hide');body.classList.add('no-image')}
+  updateHud();syncTeamPanels();$('#qExplain').innerHTML=`Đội mở lượt: <strong>${esc(names()[game.starter])}</strong>. Nếu trả lời sai, quyền trả lời chuyển sang đội còn lại.`;typeset();startGameTimer()
+}
+function setRespondingTeam(team,reason=''){game.responder=team;syncTeamPanels();if(reason)$('#qExplain').innerHTML=reason;typeset();startGameTimer()}
+function revealCorrect(correct){['A','B'].forEach(team=>{$$('#answers'+team+' .answer').forEach(btn=>{btn.disabled=true;const idx=Number(btn.dataset.i);if(idx===correct)btn.classList.add('correct','revealed')})})}
+function markChoice(team,index,cls){const btn=$(`#answers${team} .answer[data-i="${index}"]`);if(btn)btn.classList.add(cls)}
+function gameTimeLimit(){return Math.max(0,Number($('#gameTimeLimit')?.value||0))}
+function stopGameTimer(){if(game?.timer){clearInterval(game.timer);game.timer=null}}
+function paintGameTimer(){const box=$('#gameTimerBox'),el=$('#gameTimer');if(!box||!el)return;const limit=gameTimeLimit();el.textContent=limit?Math.max(0,game.timeLeft):'∞';box.classList.toggle('danger',limit>0&&game.timeLeft<=5)}
+function startGameTimer(){
+  stopGameTimer();const limit=gameTimeLimit();game.timeLeft=limit;paintGameTimer();if(!limit||game.locked)return;
+  game.timer=setInterval(()=>{game.timeLeft--;paintGameTimer();if(game.timeLeft<=5&&game.timeLeft>0)beep(510,.045);if(game.timeLeft<=0){stopGameTimer();timeOutCurrentTeam()}},1000)
+}
+function timeOutCurrentTeam(){
+  if(game.locked||!game.current)return;const team=game.responder,other=team==='A'?'B':'A';game.attempted[team]=true;beep(210,.18);game3d?.wrong();
+  if(!game.attempted[other])setRespondingTeam(other,`⏱️ <strong>${esc(names()[team])}</strong> hết thời gian. Chuyển quyền cho <strong>${esc(names()[other])}</strong>.`);
+  else{game.locked=true;const correct=correctIndex(game.current);if(correct>=0)revealCorrect(correct);syncTeamPanels();$('#qExplain').innerHTML=`⏱️ Cả hai đội đã hết lượt. <strong>Đáp án: ${esc(game.current.options[correct]?.key||'')}</strong>. ${renderRich(game.current.explanation||'')}`;game.turn=game.starter==='A'?'B':'A';typeset()}
+}
+function nextQuestion(){
+  if(!selectedQuestions.length)return toast('Chưa có câu hỏi đang chọn.');stopGameTimer();game.locked=false;let available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));if(!available.length){game.used=[];available=selectedQuestions.map((_,i)=>i)}const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];game.starter=game.turn||'A';game.responder=game.starter;game.attempted={A:false,B:false};renderDuelQuestion()
+}
+function answerQuestion(team,i){
+  if(game.locked||!game.current||team!==game.responder)return;stopGameTimer();const q=game.current,correct=correctIndex(q);if(correct<0){$('#qExplain').textContent='Không xác định được CorrectAnswer trong JSON.';game3d?.wrong();return}game.attempted[team]=true;$$('#answers'+team+' .answer').forEach(b=>b.disabled=true);
+  if(i===correct){game.locked=true;markChoice(team,i,'correct');revealCorrect(correct);$('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác và được cộng 1 điểm! ${renderRich(q.explanation||'')}`;syncTeamPanels();award(team,true);beep(880,.18)}
+  else{markChoice(team,i,'wrong');game3d?.wrong();beep(210,.18);const other=team==='A'?'B':'A';if(!game.attempted[other])setRespondingTeam(other,`❌ <strong>${esc(names()[team])}</strong> chưa đúng. Chuyển quyền trả lời cho <strong>${esc(names()[other])}</strong>.`);else{game.locked=true;revealCorrect(correct);$('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;syncTeamPanels();game.turn=game.starter==='A'?'B':'A';typeset()}}
+}
+function award(team,fromAnswer=false){
+  if(game.a>=winScore()||game.b>=winScore())return;if(team==='A')game.a++;else game.b++;updateHud();game3d?.score(team,game.a,game.b,winScore());
+  if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game.locked=true;stopGameTimer();syncTeamPanels();game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),650);beep(1040,.35)}
+  else if(fromAnswer){game.turn=game.starter==='A'?'B':'A';syncTeamPanels()}
+}
+function manualPoint(t){award(t,false);$('#qExplain').innerHTML=`👉 Giáo viên cộng điểm thủ công cho <strong>${esc(names()[t])}</strong>.`;typeset()}
+function resetGame(){stopGameTimer();game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.turn='A';game.starter='A';game.responder='A';game.attempted={A:false,B:false};$('#winner').classList.remove('show');updateHud();setTurn('A');game3d?.setProgress(0,0,winScore());nextQuestion()}
+
+
+class WheelAudio{
+  constructor(){this.ctx=null;this.whirr=null;this.whirrGain=null}
+  ensure(){if(!$('#soundMode')?.checked)return null;try{if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();return this.ctx}catch{return null}}
+  tick(intensity=.7){const a=this.ensure();if(!a)return;const o=a.createOscillator(),g=a.createGain();o.type='square';o.frequency.value=900+intensity*650;g.gain.setValueAtTime(.035+intensity*.02,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.028);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.03)}
+  startWhirr(){const a=this.ensure();if(!a||this.whirr)return;const o=a.createOscillator(),g=a.createGain();o.type='sawtooth';o.frequency.value=70;g.gain.value=.0001;o.connect(g);g.connect(a.destination);o.start();this.whirr=o;this.whirrGain=g}
+  updateWhirr(speed){if(!this.whirr)return;const a=this.ctx;this.whirr.frequency.setTargetAtTime(65+Math.min(240,speed*16),a.currentTime,.03);this.whirrGain.gain.setTargetAtTime(.006+Math.min(.025,speed*.0018),a.currentTime,.04)}
+  stopWhirr(){if(!this.whirr)return;const a=this.ctx,o=this.whirr,g=this.whirrGain;g.gain.setTargetAtTime(.0001,a.currentTime,.08);setTimeout(()=>{try{o.stop()}catch{}},220);this.whirr=null;this.whirrGain=null}
+  win(){const a=this.ensure();if(!a)return;[523.25,659.25,783.99,1046.5].forEach((f,i)=>setTimeout(()=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.055,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.22);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+.24)},i*85))}
+}
+function wheelWinSound(){if(!wheelAudio)wheelAudio=new WheelAudio();wheelAudio.win()}
+
+class Wheel3D{
+  constructor(canvas){this.canvas=canvas;this.items=[];this.disposed=false;this.spinning=false;this.currentRotation=0;this.lastPointerIndex=-1;this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.scene=new THREE.Scene();this.camera=new THREE.PerspectiveCamera(37,1,.1,50);this.camera.position.set(0,.75,13.2);this.camera.lookAt(0,0,0);this.scene.add(new THREE.HemisphereLight(0xcbeeff,0x101628,1.8));const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(-4,7,9);key.castShadow=true;key.shadow.mapSize.set(1024,1024);this.scene.add(key);const rim=new THREE.PointLight(0x6c5cff,18,24);rim.position.set(5,-2,6);this.scene.add(rim);this.root=new THREE.Group();this.root.rotation.x=-.16;this.scene.add(this.root);this.wheel=new THREE.Group();this.root.add(this.wheel);this.makeStand();this._resize=()=>this.resize();window.addEventListener('resize',this._resize);if(!wheelAudio)wheelAudio=new WheelAudio();this.animate()}
+  makeStand(){const mat=new THREE.MeshStandardMaterial({color:0x162c48,metalness:.72,roughness:.28});const base=new THREE.Mesh(new THREE.CylinderGeometry(2.0,2.5,.5,48),mat);base.rotation.x=Math.PI/2;base.position.set(0,-4.35,-.95);base.castShadow=true;this.root.add(base);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,3.2,24),mat);pole.position.set(0,-3.0,-.9);pole.castShadow=true;this.root.add(pole)}
+  clearWheel(){while(this.wheel.children.length){const o=this.wheel.children.pop();o.traverse?.(x=>{x.geometry?.dispose?.();if(x.material){(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.map?.dispose?.();m.dispose?.()})}})}}
+  shortName(s){s=s||{};const parts=String(s.name||'').trim().split(/\s+/);let n=parts.length>1?parts.slice(-2).join(' '):parts[0]||'';if(n.length>15)n=n.slice(0,14)+'…';return `${s.stt||''}. ${n}`.trim()}
+  textSprite(text,scale=.74){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.font='900 42px Arial';x.textAlign='center';x.textBaseline='middle';x.lineWidth=8;x.strokeStyle='rgba(0,0,0,.5)';x.strokeText(text,256,64);x.fillStyle='#ffffff';x.fillText(text,256,64);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=this.renderer.capabilities.getMaxAnisotropy();const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true}));sp.scale.set(2.55*scale,.64*scale,1);return sp}
+  setStudents(items){if(this.spinning)return;this.items=[...items];this.clearWheel();const n=Math.max(1,this.items.length),step=Math.PI*2/n,R=4.15;const colors=[0x22b8df,0x735eea,0xf25582,0xf0ad3d,0x22bb7d,0x3578e5,0xd656c1,0x43b5a5];for(let i=0;i<this.items.length;i++){const a0=i*step,a1=(i+1)*step;const shape=new THREE.Shape();shape.moveTo(0,0);const segs=8;for(let j=0;j<=segs;j++){const a=a0+(a1-a0)*j/segs;shape.lineTo(Math.cos(a)*R,Math.sin(a)*R)}shape.lineTo(0,0);const geo=new THREE.ExtrudeGeometry(shape,{depth:.42,bevelEnabled:true,bevelSize:.035,bevelThickness:.035,bevelSegments:1,steps:1});geo.translate(0,0,-.21);const mat=new THREE.MeshStandardMaterial({color:colors[i%colors.length],metalness:.3,roughness:.42,emissive:colors[i%colors.length],emissiveIntensity:.035});const mesh=new THREE.Mesh(geo,mat);mesh.castShadow=true;mesh.receiveShadow=true;this.wheel.add(mesh);const mid=(a0+a1)/2,r=n>26?2.75:2.85;const sp=this.textSprite(this.shortName(this.items[i]),n>30?.55:n>20?.66:.78);sp.position.set(Math.cos(mid)*r,Math.sin(mid)*r,.34);sp.material.rotation=mid+Math.PI/2;this.wheel.add(sp)}const rimMat=new THREE.MeshStandardMaterial({color:0xe7f3ff,metalness:.86,roughness:.2});const rim=new THREE.Mesh(new THREE.TorusGeometry(R+.05,.12,12,128),rimMat);rim.position.z=.22;rim.castShadow=true;this.wheel.add(rim);const rim2=new THREE.Mesh(new THREE.TorusGeometry(R-.35,.06,10,128),new THREE.MeshStandardMaterial({color:0x7f9bb9,metalness:.7,roughness:.28}));rim2.position.z=.25;this.wheel.add(rim2);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.74,.74,.52,48),new THREE.MeshStandardMaterial({color:0xffd45f,metalness:.75,roughness:.24}));hub.rotation.x=Math.PI/2;hub.position.z=.25;hub.castShadow=true;this.wheel.add(hub);const cap=new THREE.Mesh(new THREE.SphereGeometry(.4,32,20),new THREE.MeshStandardMaterial({color:0xfff4ba,metalness:.45,roughness:.18}));cap.position.z=.58;this.wheel.add(cap);this.wheel.rotation.z=this.currentRotation}
+  pointerIndex(rot=this.wheel.rotation.z){const n=this.items.length;if(!n)return-1;const step=Math.PI*2/n;let a=(Math.PI/2-rot)%(Math.PI*2);if(a<0)a+=Math.PI*2;return Math.min(n-1,Math.floor(a/step))}
+  async spinTo(targetIndex,items){if(this.spinning)throw new Error('Vòng quay đang chạy.');if(items)this.setStudents(items);if(!this.items.length)throw new Error('Không có học sinh trên vòng quay.');this.spinning=true;const n=this.items.length,step=Math.PI*2/n,center=targetIndex*step+step/2,start=this.wheel.rotation.z;let delta=(Math.PI/2-center-start)%(Math.PI*2);if(delta<0)delta+=Math.PI*2;const turns=5+Math.floor(Math.random()*3);const total=turns*Math.PI*2+delta;const duration=5200+Math.random()*900;const t0=performance.now();this.lastPointerIndex=this.pointerIndex(start);wheelAudio.startWhirr();return await new Promise(resolve=>{const frame=now=>{const p=Math.min(1,(now-t0)/duration);const ease=1-Math.pow(1-p,4.2);const wobble=p>.84?Math.sin((p-.84)*65)*(1-p)*.018:0;this.wheel.rotation.z=start+total*ease+wobble;const speed=(total/duration)*(1-p)*1000;wheelAudio.updateWhirr(speed);const idx=this.pointerIndex();if(idx!==this.lastPointerIndex&&idx>=0){this.lastPointerIndex=idx;wheelAudio.tick(Math.max(.25,Math.min(1,speed/18)));if(this.items[idx]){$('#studentName').textContent=this.items[idx].name;$('#wheelSub').textContent=`Đang lướt qua • ${this.items[idx].stt||''}`}}if(p<1)requestAnimationFrame(frame);else{this.wheel.rotation.z=start+total;this.currentRotation=this.wheel.rotation.z;wheelAudio.stopWhirr();this.spinning=false;resolve(this.items[targetIndex])}};requestAnimationFrame(frame)})}
+  animate(){if(this.disposed)return;requestAnimationFrame(()=>this.animate());const t=performance.now()/1000;if(!this.spinning)this.root.rotation.y=Math.sin(t*.65)*.025;this.renderer.render(this.scene,this.camera)}
+  resize(){const r=this.canvas.getBoundingClientRect();const w=Math.max(320,r.width),h=Math.max(420,r.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
+  dispose(){this.disposed=true;window.removeEventListener('resize',this._resize);this.clearWheel();this.scene.traverse(o=>{o.geometry?.dispose?.();if(o.material)(Array.isArray(o.material)?o.material:[o.material]).forEach(m=>{m.map?.dispose?.();m.dispose?.()})});this.renderer.dispose()}
+}
+
+class Game3D{
+  constructor(canvas,type){this.canvas=canvas;this.type=type;this.disposed=false;this.clock=new THREE.Clock();this.targetA=0;this.targetB=0;this.shake=0;this.confetti=[];this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x071321);this.scene.fog=new THREE.Fog(0x071321,24,60);this.camera=new THREE.PerspectiveCamera(48,1,.1,120);this.scene.add(new THREE.HemisphereLight(0x9fd9ff,0x172214,1.55));const sun=new THREE.DirectionalLight(0xffffff,2.0);sun.position.set(-8,18,12);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-28;sun.shadow.camera.right=28;sun.shadow.camera.top=28;sun.shadow.camera.bottom=-28;this.scene.add(sun);this.addStadium();type==='tug'?this.buildTug():this.buildRace();this.resize();this._resize=()=>this.resize();window.addEventListener('resize',this._resize);this.animate()}
+  mat(c,rough=.55,metal=.15){return new THREE.MeshStandardMaterial({color:c,roughness:rough,metalness:metal})}
+  mesh(g,m,cast=true,recv=true){const x=new THREE.Mesh(g,m);x.castShadow=cast;x.receiveShadow=recv;return x}
+  glowMat(c,intensity=.4){return new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:intensity,roughness:.35,metalness:.25})}
+  textSprite(text,color='#ffffff',accent='#48dcff'){const c=document.createElement('canvas');c.width=768;c.height=192;const x=c.getContext('2d');x.fillStyle='rgba(5,12,24,.78)';x.roundRect?.(8,8,752,176,36);x.fill?.();x.strokeStyle=accent;x.lineWidth=6;x.strokeRect(14,14,740,164);x.font='900 62px Arial';x.textAlign='center';x.textBaseline='middle';x.fillStyle=color;x.fillText(text,384,96);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true}));sp.scale.set(5.8,1.45,1);return sp}
+  addArenaLights(){const a=new THREE.PointLight(0x48dcff,32,36,2);a.position.set(-11,10,8);const b=new THREE.PointLight(0xff6682,28,34,2);b.position.set(11,8,-6);const c=new THREE.PointLight(0xffd45f,18,28,2);c.position.set(0,12,10);this.scene.add(a,b,c);const stars=180,pos=new Float32Array(stars*3);for(let i=0;i<stars;i++){const ang=Math.random()*Math.PI*2,r=18+Math.random()*22;pos[i*3]=Math.cos(ang)*r;pos[i*3+1]=4+Math.random()*15;pos[i*3+2]=Math.sin(ang)*r}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));this.scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xbfe9ff,size:.09,transparent:true,opacity:.65})))}
+  addStadium(){this.addArenaLights();const floor=this.mesh(new THREE.CircleGeometry(31,72),this.mat(0x102d25,.96,0),false,true);floor.rotation.x=-Math.PI/2;floor.position.y=-.02;this.scene.add(floor);const inner=this.mesh(new THREE.RingGeometry(15.5,22,72),this.mat(0x153d32,.93,.02),false,true);inner.rotation.x=-Math.PI/2;inner.position.y=.01;this.scene.add(inner);const ring=this.mesh(new THREE.RingGeometry(22,31,72),this.mat(0x202c3d,.88,.15),false,true);ring.rotation.x=-Math.PI/2;ring.position.y=.02;this.scene.add(ring);for(let i=0;i<110;i++){const a=(i/110)*Math.PI*2,r=24.5+Math.random()*4.8;const color=i%3===0?0x63d8ff:(i%3===1?0xff6e89:0xffd45f);const p=this.mesh(new THREE.SphereGeometry(.1+Math.random()*.05,7,7),this.glowMat(color,.65),false,false);p.position.set(Math.cos(a)*r,1.25+Math.random()*3.2,Math.sin(a)*r);this.scene.add(p)}const rail=this.mesh(new THREE.TorusGeometry(23,0.13,10,128),this.mat(0xd7edf7,.28,.78),false,true);rail.rotation.x=Math.PI/2;rail.position.y=.5;this.scene.add(rail);const halo=this.mesh(new THREE.TorusGeometry(18,.055,8,120),this.glowMat(0x48dcff,.9),false,false);halo.rotation.x=Math.PI/2;halo.position.y=.08;this.scene.add(halo)}
+  person(color,x,z,flip=1){const g=new THREE.Group();const body=this.mesh(new THREE.CylinderGeometry(.42,.54,1.45,16),this.mat(color,.42,.22));body.position.y=1.55;g.add(body);const head=this.mesh(new THREE.SphereGeometry(.4,20,16),this.mat(0xf0c7a3,.8,.02));head.position.y=2.63;g.add(head);const hair=this.mesh(new THREE.SphereGeometry(.41,20,12,0,Math.PI*2,0,Math.PI*.48),this.mat(0x17202a,.7,.05));hair.position.y=2.73;g.add(hair);const armMat=this.mat(color,.45,.15);[-1,1].forEach(side=>{const arm=this.mesh(new THREE.CylinderGeometry(.12,.14,1.15,10),armMat);arm.position.set(side*.56,1.65,0);arm.rotation.z=side*.82;g.add(arm);const leg=this.mesh(new THREE.CylinderGeometry(.15,.17,1.12,10),this.mat(0x17253d,.75,.05));leg.position.set(side*.24,.48,0);g.add(leg)});g.position.set(x,0,z);g.scale.x=flip;return g}
+  buildTug(){this.camera.position.set(0,8.8,17.8);this.camera.lookAt(0,1.35,0);const matA=this.glowMat(0x1caee8,.22),matB=this.glowMat(0xe63d63,.22);const padA=this.mesh(new THREE.BoxGeometry(9.2,.16,5.8),matA,false,true);padA.position.set(-6.3,.07,0);const padB=this.mesh(new THREE.BoxGeometry(9.2,.16,5.8),matB,false,true);padB.position.set(6.3,.07,0);this.scene.add(padA,padB);const line=this.mesh(new THREE.BoxGeometry(.16,.045,13.2),this.glowMat(0xfff3b0,.55),false,true);line.position.y=.18;this.scene.add(line);this.rope=this.mesh(new THREE.CylinderGeometry(.105,.105,18,22),this.mat(0xc38a4c,.82,.03));this.rope.rotation.z=Math.PI/2;this.rope.position.y=1.42;this.scene.add(this.rope);const knot=this.mesh(new THREE.TorusGeometry(.31,.11,10,24),this.glowMat(0xffd45f,.45));knot.rotation.y=Math.PI/2;knot.position.set(0,1.42,0);this.scene.add(knot);this.flagGroup=new THREE.Group();const pole=this.mesh(new THREE.CylinderGeometry(.045,.045,1.85,12),this.mat(0xe9f3ff,.22,.82));pole.position.y=2.02;const flag=this.mesh(new THREE.PlaneGeometry(1.2,.72),new THREE.MeshStandardMaterial({color:0xffd45f,emissive:0x8f5b00,emissiveIntensity:.3,side:THREE.DoubleSide,roughness:.5}));flag.position.set(.62,2.62,0);this.flagGroup.add(pole,flag);this.scene.add(this.flagGroup);this.teamA=[];this.teamB=[];for(let i=0;i<4;i++){const a=this.person(0x2caee9,-4.9-i*1.45,-1.15+(i%2)*2.3,1);const b=this.person(0xe84067,4.9+i*1.45,-1.15+(i%2)*2.3,-1);this.scene.add(a,b);this.teamA.push(a);this.teamB.push(b)}const labelA=this.textSprite('ĐỘI A','#c9f5ff','#48dcff');labelA.position.set(-8.3,5.3,-2.5);const labelB=this.textSprite('ĐỘI B','#ffd7df','#ff6682');labelB.position.set(8.3,5.3,-2.5);this.scene.add(labelA,labelB);this.tugFlagX=0}
+  car(color,z){const g=new THREE.Group();const body=this.mesh(new THREE.BoxGeometry(3.2,.62,1.45),this.mat(color,.28,.62));body.position.y=.65;g.add(body);const hood=this.mesh(new THREE.BoxGeometry(1.1,.38,1.38),this.mat(color,.28,.62));hood.position.set(1.45,.92,0);g.add(hood);const cabin=this.mesh(new THREE.BoxGeometry(1.45,.58,1.2),this.mat(0x89cce8,.16,.35));cabin.position.set(-.15,1.15,0);g.add(cabin);g.userData.wheels=[];[-1.05,1.05].forEach(x=>[-.78,.78].forEach(zz=>{const w=this.mesh(new THREE.CylinderGeometry(.38,.38,.28,18),this.mat(0x111217,.9,.1));w.rotation.x=Math.PI/2;w.position.set(x,.38,zz);g.add(w);g.userData.wheels.push(w)}));g.position.set(-13,0,z);return g}
+  buildRace(){this.camera.position.set(-5.5,11.8,19.5);this.camera.lookAt(1.5,.35,0);const road=this.mesh(new THREE.BoxGeometry(35,.2,9.4),this.mat(0x171d28,.9,.08),false,true);road.position.set(0,.08,0);this.scene.add(road);[-4.7,0,4.7].forEach(z=>{const l=this.mesh(new THREE.BoxGeometry(35,.035,.09),this.glowMat(z===0?0xffd45f:0xdcecff,z===0?.5:.2),false,true);l.position.set(0,.205,z);this.scene.add(l)});for(let x=-15.5;x<15.5;x+=2.25){[-2.35,2.35].forEach(z=>{const d=this.mesh(new THREE.BoxGeometry(1.15,.035,.09),this.glowMat(0xffffff,.16),false,true);d.position.set(x,.215,z);this.scene.add(d)})}[-5.1,5.1].forEach(z=>{const rail=this.mesh(new THREE.BoxGeometry(35,.45,.16),this.mat(0x859ab0,.35,.72),false,true);rail.position.set(0,.45,z);this.scene.add(rail)});const finish=this.mesh(new THREE.BoxGeometry(.42,.055,9.2),this.glowMat(0xffffff,.28),false,true);finish.position.set(13.2,.235,0);this.scene.add(finish);for(let z=-4.2;z<=4.2;z+=1.05){const tile=this.mesh(new THREE.BoxGeometry(.48,.065,.55),this.mat((Math.round((z+4.2)/1.05)%2)?0x101010:0xffffff,.7,.05),false,true);tile.position.set(13.2,.27,z);this.scene.add(tile)}const archL=this.mesh(new THREE.BoxGeometry(.35,4.3,.35),this.glowMat(0xffd45f,.45));archL.position.set(13.2,2.15,-4.45);const archR=archL.clone();archR.position.z=4.45;const archTop=this.mesh(new THREE.BoxGeometry(.35,.35,9.2),this.glowMat(0xffd45f,.45));archTop.position.set(13.2,4.15,0);this.scene.add(archL,archR,archTop);const finishLabel=this.textSprite('FINISH','#fff6cc','#ffd45f');finishLabel.position.set(13.05,5.25,0);finishLabel.scale.set(4.4,1.1,1);this.scene.add(finishLabel);this.carA=this.car(0x1caee8,-2.15);this.carB=this.car(0xe63d63,2.15);this.scene.add(this.carA,this.carB);this.carAX=-13;this.carBX=-13}
+  setProgress(a,b,win){this.targetA=a/Math.max(win,1);this.targetB=b/Math.max(win,1);if(this.type==='tug')this.tugFlagX=(this.targetA-this.targetB)*6.6}
+  score(team,a,b,win){this.setProgress(a,b,win);this.shake=.5;if(this.type==='tug'){const arr=team==='A'?this.teamA:this.teamB;arr.forEach((p,i)=>{p.userData.pulse=1+i*.08})}else{const car=team==='A'?this.carA:this.carB;car.userData.boost=1}this.spark(team==='A'?0x48dcff:0xff6682)}
+  wrong(){this.shake=.16;this.spark(0xffa94d)}
+  spark(color){const n=60,pos=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){pos[i*3]=(Math.random()-.5)*2;pos[i*3+1]=1.5+Math.random()*2;pos[i*3+2]=(Math.random()-.5)*2;vel.push(new THREE.Vector3((Math.random()-.5)*.15,.05+Math.random()*.15,(Math.random()-.5)*.15))}const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(pos,3));const pts=new THREE.Points(geo,new THREE.PointsMaterial({color,size:.12,transparent:true,opacity:1}));this.scene.add(pts);this.confetti.push({pts,vel,life:1.2})}
+  celebrate(team){for(let i=0;i<8;i++)setTimeout(()=>this.spark(team==='A'?0x48dcff:0xff6682),i*120)}
+  animate(){if(this.disposed)return;requestAnimationFrame(()=>this.animate());const dt=Math.min(.035,this.clock.getDelta()),t=this.clock.elapsedTime;if(this.type==='tug'){this.flagGroup.position.x+=(this.tugFlagX-this.flagGroup.position.x)*.08;this.rope.position.y=1.35+Math.sin(t*7)*.018;this.teamA.forEach((p,i)=>{const target=-4.9-i*1.45+this.targetA*1.5-this.targetB*.58;p.position.x+=(target-p.position.x)*.07;p.rotation.z=-.08-Math.sin(t*5+i)*.02-(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)});this.teamB.forEach((p,i)=>{const target=4.9+i*1.45-this.targetB*1.5+this.targetA*.58;p.position.x+=(target-p.position.x)*.07;p.rotation.z=.08+Math.sin(t*5+i)*.02+(p.userData.pulse||0)*.08;p.userData.pulse=Math.max(0,(p.userData.pulse||0)-dt*1.8)})}else{const ta=-13+this.targetA*26,tb=-13+this.targetB*26;const oldA=this.carA.position.x,oldB=this.carB.position.x;this.carA.position.x+=(ta-this.carA.position.x)*.055;this.carB.position.x+=(tb-this.carB.position.x)*.055;const da=this.carA.position.x-oldA,db=this.carB.position.x-oldB;this.carA.userData.wheels.forEach(w=>w.rotation.z-=da*2.2);this.carB.userData.wheels.forEach(w=>w.rotation.z-=db*2.2);this.carA.position.y=Math.sin(t*12)*.025+(this.carA.userData.boost||0)*.05;this.carB.position.y=Math.sin(t*12+1)*.025+(this.carB.userData.boost||0)*.05;this.carA.userData.boost=Math.max(0,(this.carA.userData.boost||0)-dt*1.6);this.carB.userData.boost=Math.max(0,(this.carB.userData.boost||0)-dt*1.6)}
+    for(let c=this.confetti.length-1;c>=0;c--){const x=this.confetti[c],p=x.pts.geometry.attributes.position;for(let i=0;i<x.vel.length;i++){p.array[i*3]+=x.vel[i].x;p.array[i*3+1]+=x.vel[i].y;p.array[i*3+2]+=x.vel[i].z;x.vel[i].y-=.006}p.needsUpdate=true;x.life-=dt;x.pts.material.opacity=Math.max(0,x.life);if(x.life<=0){this.scene.remove(x.pts);x.pts.geometry.dispose();x.pts.material.dispose();this.confetti.splice(c,1)}}
+    if(this.shake>0){this.shake=Math.max(0,this.shake-dt*1.7);this.camera.position.x+=(Math.random()-.5)*this.shake*.08;this.camera.position.y+=(Math.random()-.5)*this.shake*.05}this.renderer.render(this.scene,this.camera)}
+  resize(){const r=this.canvas.getBoundingClientRect();const w=Math.max(320,r.width),h=Math.max(420,r.height);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix()}
+  dispose(){this.disposed=true;window.removeEventListener('resize',this._resize);this.scene.traverse(o=>{if(o.geometry)o.geometry.dispose?.();if(o.material){const a=Array.isArray(o.material)?o.material:[o.material];a.forEach(m=>m.dispose?.())}});this.renderer.dispose()}
+}
+
+function requestAppFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch?.(()=>{})}
+function toggleWheelPresentation(){
+  const on=!document.body.classList.contains('wheel-presentation');document.body.classList.toggle('wheel-presentation',on);document.body.classList.remove('game-presentation');
+  $('#callPanel')?.classList.remove('open');if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>wheel3d?.resize(),180)
+}
+function toggleCallPanel(){const p=$('#callPanel');if(!p)return;p.classList.toggle('open');setTimeout(()=>wheel3d?.resize(),180)}
+function toggleGamePresentation(){
+  const on=!document.body.classList.contains('game-presentation');document.body.classList.toggle('game-presentation',on);document.body.classList.remove('wheel-presentation');
+  if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>game3d?.resize(),180)
+}
+function toggleFullscreen(){if(!document.fullscreenElement)requestAppFullscreen();else document.exitFullscreen?.()}
+document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){document.body.classList.remove('wheel-presentation','game-presentation');$('#callPanel')?.classList.remove('open')}setTimeout(()=>{wheel3d?.resize();game3d?.resize()},120)});
+document.addEventListener('keydown',e=>{const tag=(document.activeElement?.tagName||'').toLowerCase();if(['input','textarea','select'].includes(tag))return;if(e.code==='Space'&&$('#random').classList.contains('active')){e.preventDefault();callRandomStudent()}if((e.key==='f'||e.key==='F')&&$('#random').classList.contains('active'))toggleWheelPresentation();if((e.key==='f'||e.key==='F')&&$('#games').classList.contains('active')&&!$('#gamePlay').classList.contains('hide'))toggleGamePresentation()});
+
+async function bootstrap(){
+  $('#apiUrl').value=APPS_SCRIPT_URL||'';
+  populateClasses();refreshQuestionFilters();renderAll();
+  try{
+    const alive=await apiGet('alive');
+    const ping=await apiGet('ping');
+    setApiStatus(true,`Proxy và Apps Script hoạt động. Đang nạp dữ liệu...`,`Frontend V${APP_VERSION}\nApps Script alive V${alive.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nStudents rows: ${ping.studentRows}`);
+    await loadStudentsFromSheet(true);
+    await loadScoresFromSheet(true);
+    if(!questionBank.length)await loadQuestionBankFromSheet(true);
+    setApiStatus(true,`Kết nối sẵn sàng: ${students.length} học sinh.`,`Frontend V${APP_VERSION}\nProxy: OK\nBackend V${ping.version||'?'}\nSheet: ${ping.spreadsheetName||''}\nSpreadsheet ID: ${ping.spreadsheetId||''}\nStudents rows: ${ping.studentRows}\nQuestionBank rows: ${ping.questionRows}`);
+  }catch(err){
+    setApiStatus(false,'Chưa kết nối được: '+err.message,`Lỗi: ${err.message}\n\n1) Nếu /api/sheet 404: thiếu file api/sheet.js trên GitHub.\n2) Nếu Apps Script trả về HTML/login: deployment chưa public.\n3) Nếu alive OK nhưng ping lỗi: chạy setup() hoặc điền SPREADSHEET_ID.`);
+  }
+  renderAll();rebuildWheel();
+}
+bootstrap();
+</script>
 </body>
 </html>

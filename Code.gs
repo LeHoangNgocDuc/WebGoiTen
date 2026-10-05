@@ -1,5 +1,5 @@
 /**
- * LOP HOC TUONG TAC - BACKEND V7.0
+ * LOP HOC TUONG TAC - BACKEND V12.0
  * Google Apps Script bound to the Google Sheet.
  *
  * FIRST USE:
@@ -10,7 +10,7 @@
  */
 
 const APP = {
-  VERSION: '7.0.0',
+  VERSION: '12.0.0',
   DB_KEY: 'CLASSROOM_DB_ID',
   SHEETS: {
     STUDENTS: 'Students',
@@ -146,10 +146,7 @@ function ensureSheets_(ss) {
   ensureSheet_(ss, APP.SHEETS.STUDENTS, ['id', 'stt', 'name', 'className', 'totalPoint', 'callCount', 'lastCalled', 'active']);
   ensureSheet_(ss, APP.SHEETS.HISTORY, ['timestamp', 'className', 'studentId', 'studentName', 'action', 'value', 'note']);
   ensureScoresSheet_(ss);
-  ensureSheet_(ss, APP.SHEETS.QUESTIONS, [
-    'id', 'type', 'level', 'grade', 'subject', 'chapter', 'topic', 'question',
-    'optionsJson', 'correctAnswer', 'explain', 'sourceFile', 'updatedAt'
-  ]);
+  ensureQuestionSheet_(ss);
 }
 
 function ensureSheet_(ss, name, headers) {
@@ -189,6 +186,38 @@ function ensureScoresSheet_(ss) {
     const scoreAtE = h[4] === 'score' || h[4] === 'diem';
     if (!hasCallNo && scoreAtE) {
       sh.insertColumnAfter(4);
+    }
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  }
+  sh.setFrozenRows(1);
+  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  return sh;
+}
+
+
+/**
+ * V12: QuestionBank hỗ trợ ảnh minh họa riêng cho từng câu hỏi.
+ * Cấu trúc: id | type | level | grade | subject | chapter | topic | question | image |
+ * optionsJson | correctAnswer | explain | sourceFile | updatedAt
+ * Nếu sheet V7/V9 cũ chưa có cột image, tự chèn sau cột question mà không mất dữ liệu.
+ */
+function ensureQuestionSheet_(ss) {
+  const headers = [
+    'id', 'type', 'level', 'grade', 'subject', 'chapter', 'topic', 'question', 'image',
+    'optionsJson', 'correctAnswer', 'explain', 'sourceFile', 'updatedAt'
+  ];
+  let sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
+  if (!sh) sh = ss.insertSheet(APP.SHEETS.QUESTIONS);
+
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+  } else {
+    const width = Math.max(headers.length, sh.getLastColumn());
+    const current = sh.getRange(1, 1, 1, width).getDisplayValues()[0].map(normalizeHeader_);
+    const hasImage = current.indexOf('image') >= 0 || current.indexOf('hinh') >= 0 || current.indexOf('hinhanh') >= 0;
+    const optionsAtI = current[8] === 'optionsjson' || current[8] === 'options';
+    if (!hasImage && optionsAtI) {
+      sh.insertColumnAfter(8);
     }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
@@ -450,18 +479,18 @@ function updateStudentStats_(ss, entry) {
 }
 
 function getQuestions_(ss) {
-  const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
+  const sh = ensureQuestionSheet_(ss);
   const last = sh.getLastRow();
   if (last <= 1) return { ok: true, questions: [], version: APP.VERSION };
 
-  const raw = sh.getRange(2, 1, last - 1, 13).getValues();
-  const disp = sh.getRange(2, 1, last - 1, 13).getDisplayValues();
+  const raw = sh.getRange(2, 1, last - 1, 14).getValues();
+  const disp = sh.getRange(2, 1, last - 1, 14).getDisplayValues();
   const out = [];
 
   for (let i = 0; i < raw.length; i++) {
     if (!raw[i][0] && !raw[i][7]) continue;
     let options = [];
-    try { options = JSON.parse(String(raw[i][8] || '[]')); } catch (_) { options = []; }
+    try { options = JSON.parse(String(raw[i][9] || '[]')); } catch (_) { options = []; }
     out.push({
       id: String(disp[i][0] || raw[i][0] || ''),
       type: String(disp[i][1] || raw[i][1] || ''),
@@ -471,11 +500,12 @@ function getQuestions_(ss) {
       chapter: String(disp[i][5] || raw[i][5] || ''),
       topic: String(disp[i][6] || raw[i][6] || ''),
       question: String(raw[i][7] || ''),
+      image: String(raw[i][8] || ''),
       options: options,
-      answer: String(disp[i][9] || raw[i][9] || ''),
-      explanation: String(raw[i][10] || ''),
-      sourceFile: String(disp[i][11] || raw[i][11] || ''),
-      updatedAt: toIso_(raw[i][12])
+      answer: String(disp[i][10] || raw[i][10] || ''),
+      explanation: String(raw[i][11] || ''),
+      sourceFile: String(disp[i][12] || raw[i][12] || ''),
+      updatedAt: toIso_(raw[i][13])
     });
   }
   return { ok: true, questions: out, version: APP.VERSION };
@@ -486,8 +516,8 @@ function saveQuestions_(ss, questions) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
-    const existing = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 13).getValues() : [];
+    const sh = ensureQuestionSheet_(ss);
+    const existing = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 14).getValues() : [];
     const order = [];
     const byId = {};
 
@@ -510,6 +540,7 @@ function saveQuestions_(ss, questions) {
         String(q.chapter || ''),
         String(q.topic || ''),
         String(q.question || ''),
+        String(q.image || q.Image || ''),
         JSON.stringify(q.options || []),
         String(q.answer !== undefined ? q.answer : (q.correctAnswer || '')),
         String(q.explanation || q.explain || ''),
@@ -521,8 +552,8 @@ function saveQuestions_(ss, questions) {
     });
 
     const rows = order.map(id => byId[id]);
-    if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 13).clearContent();
-    if (rows.length) sh.getRange(2, 1, rows.length, 13).setValues(rows);
+    if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 14).clearContent();
+    if (rows.length) sh.getRange(2, 1, rows.length, 14).setValues(rows);
     SpreadsheetApp.flush();
     return { ok: true, inserted: inserted, updated: updated, total: rows.length };
   } finally {
@@ -531,8 +562,8 @@ function saveQuestions_(ss, questions) {
 }
 
 function clearQuestionBank_(ss) {
-  const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 13).clearContent();
+  const sh = ensureQuestionSheet_(ss);
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 14).clearContent();
   return { ok: true };
 }
 

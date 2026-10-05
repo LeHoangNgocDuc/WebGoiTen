@@ -1,0 +1,12 @@
+V12
+====
+- Khôi phục đầy đủ Gọi tên / Học sinh / Lịch sử / Ghi điểm nhiều lần.
+- Giao diện mở rộng toàn chiều ngang, phù hợp màn hình TV.
+- Vòng quay lớn hơn, tên học sinh lớn hơn.
+- Trò chơi chỉ còn 1 mục trên menu.
+- Chọn Kéo co / Đua xe bằng dropdown.
+- Câu hỏi chỉ xuất hiện 1 lần ở giữa và có cỡ chữ rất lớn.
+- Thêm lọc theo Môn trước Khối / Chương / Bài.
+- Thêm bộ đếm thời gian mỗi lượt và chuyển quyền khi hết giờ.
+- Đúng cộng điểm; sai chuyển đội.
+- QuestionBank backend thêm cột image và tự nâng cấp dữ liệu cũ.

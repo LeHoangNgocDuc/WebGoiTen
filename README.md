@@ -1,88 +1,60 @@
-# Đấu trường Toán & Tin V2
+# LỚP HỌC TƯƠNG TÁC TOÁN & TIN V12
 
-Bản tách file hoàn chỉnh để up lên GitHub/Vercel. Chỉ tập trung **Toán** và **Tin học**.
+Bản V12 khôi phục đầy đủ phần gọi tên / ghi điểm học sinh và hợp nhất trò chơi vào đúng một mục trên thanh điều hướng.
 
-## Tính năng chính
-- 2 game: **Kéo co kiến thức** và **Đua xe kiến thức**.
-- Câu hỏi chỉ hiển thị **1 lần ở giữa**.
-- Hai đội có **bảng đáp án riêng**, mỗi bên 2 cột.
-- Đội mở lượt trả lời sai → tự chuyển quyền cho đội còn lại.
-- Đúng → cộng điểm + hiệu ứng + âm thanh thật `.wav`.
-- Đồng hồ đếm ngược 10/15/20/30 giây.
-- Công thức Toán hiển thị bằng MathJax.
-- Có thể nạp ngân hàng JSON riêng.
-- 4 chủ đề màu:
-  1. Toán • Neon
-  2. Toán • Bảng xanh
-  3. Tin • Cyber
-  4. Tin • Terminal
+## 1. Gọi tên + ghi điểm
+- Vòng quay WebGL 3D chiếm phần lớn màn hình.
+- Có chế độ trình chiếu toàn màn hình.
+- Nạp danh sách học sinh từ Google Sheet hoặc Excel.
+- Cho phép gọi lại học sinh nhiều lần.
+- Mỗi lần gọi có `callNo` riêng và có thể ghi điểm 0-10 + ghi chú.
+- Sổ điểm cả lớp luôn hiển thị bên cạnh vòng quay.
+- Có thể bấm `Gọi & ghi điểm` ngay từ sổ điểm.
+- Có điểm cộng / trừ và lịch sử đầy đủ.
 
-## Cấu trúc thư mục
-```text
-math_it_game_v2/
-├── index.html
-├── questions-math.json
-├── questions-it.json
-├── README.md
-├── css/
-│   ├── base.css
-│   ├── themes.css
-│   └── games.css
-├── js/
-│   ├── app.js
-│   ├── tug.js
-│   └── race.js
-└── assets/
-    ├── images/
-    │   ├── bg-math-neon.svg
-    │   ├── bg-math-board.svg
-    │   ├── bg-it-cyber.svg
-    │   ├── bg-it-terminal.svg
-    │   ├── tug-poster.svg
-    │   ├── race-poster.svg
-    │   ├── math-grid.svg
-    │   └── it-flowchart.svg
-    └── sounds/
-        ├── correct.wav
-        ├── wrong.wav
-        ├── tick.wav
-        ├── start.wav
-        ├── win.wav
-        └── engine.wav
-```
+## 2. Trò chơi là MỘT mục duy nhất
+Trong tab `🎮 Trò chơi`, giáo viên chọn:
+- Môn: Toán / Tin (theo dữ liệu ngân hàng)
+- Khối
+- Chương
+- Bài / chủ đề
+- Loại game: Kéo co 3D hoặc Đua xe 3D
+- Tên hai đội
+- Điểm thắng
+- Thời gian trả lời mỗi lượt
 
-## Cách upload GitHub / Vercel
-1. Giữ nguyên toàn bộ cấu trúc thư mục.
-2. Upload tất cả file vào repository.
-3. Vercel có thể deploy trực tiếp như web tĩnh.
-4. Mở `index.html` làm trang chính.
-5. Sau khi deploy, nhấn Ctrl+F5 để tải bản mới.
+Không tạo thêm tab riêng cho Kéo co hay Đua xe.
 
-## Định dạng JSON câu hỏi riêng
-```json
-[
-  {
-    "id": "M1",
-    "subject": "Toán",
-    "grade": "7",
-    "topic": "Số hữu tỉ",
-    "question": "Tính $\\frac{3}{4}+\\frac{5}{8}$.",
-    "image": "./assets/images/ten-anh.svg",
-    "options": ["A", "B", "C", "D"],
-    "correct": 1,
-    "explain": "Giải thích ngắn"
-  }
-]
-```
+## 3. Bố cục game dành cho TV
+- Câu hỏi chỉ hiển thị MỘT lần ở chính giữa phía trên.
+- Nếu có hình ảnh / bảng số liệu, ảnh nằm bên trái nội dung câu hỏi.
+- Nội dung câu hỏi dùng cỡ chữ lớn, tự co giãn theo độ dài.
+- Công thức Toán dùng MathJax.
+- Bên trái: bảng đáp án Đội A.
+- Chính giữa: sân 3D.
+- Bên phải: bảng đáp án Đội B.
+- Đội trả lời sai -> tự chuyển quyền sang đội còn lại.
+- Đội đúng -> cộng 1 điểm + sân 3D chuyển động.
+- Có đồng hồ 10 / 15 / 20 / 30 giây hoặc không giới hạn.
+- Nếu hết giờ -> tự chuyển lượt.
 
-`correct` dùng số thứ tự bắt đầu từ 0:
-- 0 = A
-- 1 = B
-- 2 = C
-- 3 = D
+## 4. QuestionBank V12 hỗ trợ ảnh
+Code.gs V12 tự nâng cấp sheet `QuestionBank` từ cấu trúc cũ sang cấu trúc có thêm cột `image`:
 
-## Gợi ý tích hợp với web lớp học hiện tại
-Có thể giữ trang gọi tên / sổ điểm hiện tại, sau đó:
-- copy thư mục `css/`, `js/`, `assets/` vào project chính;
-- chuyển phần game từ `index.html` này vào tab Trò chơi;
-- dùng lại ngân hàng câu hỏi Google Sheet của web hiện tại thay cho JSON cục bộ.
+`id | type | level | grade | subject | chapter | topic | question | image | optionsJson | correctAnswer | explain | sourceFile | updatedAt`
+
+Dữ liệu cũ được giữ nguyên; hệ thống chèn cột `image` sau `question`.
+
+## 5. Cập nhật lên GitHub / Vercel
+1. Thay file `index.html` cũ bằng file `index.html` trong thư mục này.
+2. Giữ nguyên `api/sheet.js` hiện tại trên GitHub/Vercel.
+3. Trong Google Sheet -> Extensions -> Apps Script: thay `Code.gs` bằng file mới.
+4. Chọn hàm `setup` -> Run một lần để tự kiểm tra / nâng cấp cấu trúc sheet.
+5. Deploy -> Manage deployments -> Edit -> New version -> Deploy.
+6. Chờ Vercel deploy xong.
+7. Mở web và nhấn `Ctrl + F5`.
+
+## 6. Lưu ý
+- URL Apps Script trong `index.html` đang giữ theo file mà giáo viên gửi.
+- Nếu Apps Script được deploy ra URL `/exec` mới, cần cập nhật URL theo hệ thống hiện tại của website / proxy.
+- `api/sheet.js` không có trong gói này vì nên giữ đúng file proxy đang chạy trên Vercel hiện tại.

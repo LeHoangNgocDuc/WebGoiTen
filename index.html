@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác Toán & Tin V16</title>
+  <title>Lớp học tương tác Toán & Tin V17</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={loader:{load:['[tex]/ams']},tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true,packages:{'[+]':['ams']}},svg:{fontCache:'global'}};</script>
@@ -425,6 +425,229 @@
     @media(max-width:1550px){.random-stage{grid-template-columns:minmax(0,1fr) 480px}.game-config-grid{grid-template-columns:repeat(5,1fr)}.cfg-count{grid-column:span 1}.central-q-text{font-size:clamp(44px,3.1vw,70px)}.team-answer-grid .answer{font-size:clamp(24px,1.55vw,34px);min-height:118px}}
     @media(max-width:1100px){.random-stage{grid-template-columns:1fr}.game-config-grid{grid-template-columns:repeat(2,1fr)}.game-config-grid>div{grid-column:span 1!important}.round-call-list{max-height:220px}.central-q-text{font-size:clamp(34px,5vw,54px)}}
 
+
+    /* ===================== V17 FULLSCREEN / FULL-BLEED FINAL ===================== */
+    html,body{width:100%;max-width:none;min-height:100%;margin:0}
+    body{min-height:100dvh}
+    .wrap{width:100%!important;max-width:none!important;margin:0!important;padding:8px 10px 14px!important}
+    .topbar{width:100%!important;max-width:none!important}
+    .screen,.screen.active,#random,#games{width:100%!important;max-width:none!important}
+
+    /* Giao diện gọi tên bình thường: tận dụng toàn bộ chiều ngang trình duyệt */
+    .random-stage{
+      width:100%!important;
+      grid-template-columns:minmax(0,1fr) clamp(430px,28vw,560px)!important;
+      gap:10px!important;
+      min-height:calc(100dvh - 92px)!important
+    }
+    .wheel-card-full{
+      min-width:0!important;
+      min-height:calc(100dvh - 92px)!important;
+      height:calc(100dvh - 92px)!important
+    }
+    .wheel-card-full .wheel-wrap{inset:52px 8px 118px!important}
+    .wheel-card-full #wheelCanvas{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+    .call-panel{
+      min-width:0!important;
+      min-height:calc(100dvh - 92px)!important;
+      height:calc(100dvh - 92px)!important
+    }
+    .call-panel-scroll{height:calc(100dvh - 146px)!important}
+
+    /* Vòng quay trình chiếu: toàn màn hình nhưng vẫn giữ bảng điểm ở TV/màn hình rộng */
+    body.wheel-presentation{width:100dvw!important;height:100dvh!important;overflow:hidden!important}
+    .wheel-presentation .wrap{width:100dvw!important;height:100dvh!important;max-width:none!important;padding:0!important}
+    .wheel-presentation .topbar{display:none!important}
+    .wheel-presentation #random{width:100dvw!important;height:100dvh!important;padding:0!important;overflow:hidden!important}
+    .wheel-presentation #random .random-stage{
+      display:grid!important;
+      width:100dvw!important;
+      height:100dvh!important;
+      min-height:100dvh!important;
+      grid-template-columns:minmax(0,1fr) clamp(430px,28vw,530px)!important;
+      gap:8px!important;
+      padding:8px!important
+    }
+    .wheel-presentation .wheel-card-full{
+      width:100%!important;
+      height:calc(100dvh - 16px)!important;
+      min-height:calc(100dvh - 16px)!important;
+      border-radius:20px!important;
+      padding:0!important
+    }
+    .wheel-presentation .wheel-card-full .wheel-wrap{inset:44px 8px 140px!important}
+    .wheel-presentation .wheel-card-full #wheelCanvas{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important}
+    .wheel-presentation .wheel-head{top:12px!important;left:14px!important;right:14px!important}
+    .wheel-presentation .wheel-pointer{top:26px!important}
+    .wheel-presentation .wheel-result{bottom:96px!important;width:min(88%,1050px)!important;padding:8px 16px!important}
+    .wheel-presentation .wheel-result .student-name{font-size:clamp(48px,5.4vw,94px)!important;line-height:1!important}
+    .wheel-presentation .wheel-actions{bottom:16px!important}
+    .wheel-presentation .spin-btn{font-size:clamp(19px,1.25vw,24px)!important;padding:13px 30px!important}
+    .wheel-presentation .call-panel{
+      position:relative!important;right:auto!important;top:auto!important;bottom:auto!important;
+      width:auto!important;min-width:0!important;
+      height:calc(100dvh - 16px)!important;min-height:calc(100dvh - 16px)!important;
+      transform:none!important;border-radius:20px!important
+    }
+    .wheel-presentation .call-panel-scroll{height:calc(100dvh - 78px)!important}
+    .wheel-presentation #floatingPanelBtn{display:none!important}
+
+    /* Game trình chiếu: toàn màn hình 16:9, không còn dồn nội dung xuống dưới */
+    body.game-presentation{width:100dvw!important;height:100dvh!important;overflow:hidden!important}
+    .game-presentation .wrap{width:100dvw!important;height:100dvh!important;max-width:none!important;padding:0!important}
+    .game-presentation .topbar{display:none!important}
+    .game-presentation #games{width:100dvw!important;height:100dvh!important;padding:6px!important;overflow:hidden!important}
+    .game-presentation #gameHub{display:none!important}
+    .game-presentation #gamePlay{
+      display:grid!important;
+      width:100%!important;height:calc(100dvh - 12px)!important;
+      min-height:0!important;overflow:hidden!important;
+      grid-template-rows:auto auto auto minmax(0,1fr) auto auto!important;
+      gap:5px!important;padding:0!important
+    }
+    .game-presentation .game-tv-head{margin:0!important;padding:6px 10px!important;border-radius:14px!important}
+    .game-presentation .tv-score{padding:5px 9px!important;border-radius:12px!important;gap:7px!important}
+    .game-presentation .tv-score-name{font-size:clamp(13px,1.05vw,18px)!important}
+    .game-presentation .tv-score-number{font-size:clamp(23px,2vw,34px)!important}
+    .game-presentation .tv-timer{min-width:86px!important;padding:5px 12px!important;border-radius:13px!important}
+    .game-presentation .tv-timer b{font-size:clamp(25px,2.1vw,35px)!important}
+
+    .game-presentation .central-question{
+      margin:0!important;padding:6px 10px!important;border-radius:16px!important;
+      min-height:0!important;max-height:none!important;overflow:hidden!important
+    }
+    .game-presentation .central-question-head{margin:0 0 4px!important;min-height:30px!important}
+    .game-presentation .central-question-head h2{font-size:clamp(17px,1.35vw,23px)!important}
+    .game-presentation .central-meta{gap:4px!important}
+    .game-presentation .central-meta .pill{padding:4px 7px!important;font-size:10px!important}
+    .game-presentation .central-meta .btn{padding:5px 8px!important;font-size:10px!important;border-radius:9px!important}
+    .game-presentation .central-question-body{
+      grid-template-columns:minmax(210px,.72fr) minmax(0,1.68fr)!important;
+      gap:10px!important;align-items:center!important;min-height:0!important
+    }
+    .game-presentation .central-question-body.no-image{grid-template-columns:1fr!important}
+    .game-presentation .central-media{
+      min-height:0!important;height:clamp(120px,18dvh,190px)!important;max-height:190px!important;
+      padding:5px!important;border-radius:12px!important
+    }
+    .game-presentation .central-media img{width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+    .game-presentation .central-q-copy{min-height:0!important;height:auto!important;justify-content:center!important}
+    .game-presentation .central-q-label{display:none!important}
+    .game-presentation .central-q-text{
+      font-size:clamp(29px,2.55vw,54px)!important;line-height:1.08!important;
+      max-height:20dvh!important;overflow:auto!important;padding:2px 4px!important
+    }
+    .game-presentation .central-q-foot{display:none!important}
+
+    .game-presentation .dual-ready-strip{
+      margin:0!important;padding:5px 9px!important;border-radius:11px!important;
+      font-size:clamp(11px,.88vw,14px)!important;gap:6px!important
+    }
+    .game-presentation .dual-ready-strip b{font-size:inherit!important}
+    .game-presentation .dual-ready-strip small{font-size:10px!important}
+
+    .game-presentation .tv-game-grid{
+      min-width:0!important;min-height:0!important;height:auto!important;
+      grid-template-columns:minmax(250px,1fr) minmax(270px,.72fr) minmax(250px,1fr)!important;
+      gap:6px!important;align-items:stretch!important
+    }
+    .game-presentation .team-answer-panel{
+      min-width:0!important;min-height:0!important;height:100%!important;max-height:none!important;
+      padding:7px!important;border-radius:14px!important;overflow:hidden!important
+    }
+    .game-presentation .team-answer-head{margin-bottom:4px!important}
+    .game-presentation .team-answer-name{font-size:clamp(16px,1.3vw,23px)!important}
+    .game-presentation .team-status{font-size:10px!important;padding:4px 7px!important}
+    .game-presentation .team-answer-help{font-size:10px!important;margin:0 0 5px!important;line-height:1.2!important}
+    .game-presentation .team-answer-grid{
+      flex:1!important;min-height:0!important;height:100%!important;
+      grid-template-columns:1fr 1fr!important;grid-template-rows:repeat(2,minmax(0,1fr))!important;
+      gap:6px!important;margin-top:0!important
+    }
+    .game-presentation .team-answer-grid .answer{
+      min-height:0!important;height:100%!important;padding:5px 6px!important;border-radius:12px!important;
+      font-size:clamp(17px,1.24vw,27px)!important;line-height:1.05!important;gap:3px!important;
+      box-shadow:0 4px 0 rgba(0,0,0,.18)!important
+    }
+    .game-presentation .team-answer-grid .answer .opt-key{
+      min-width:30px!important;height:28px!important;padding:0 7px!important;
+      border-radius:8px!important;font-size:13px!important
+    }
+    .game-presentation .team-answer-grid .answer .opt-text{min-height:0!important;padding:0 2px!important}
+
+    .game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{
+      min-width:0!important;min-height:0!important;height:100%!important;max-height:none!important;border-radius:14px!important
+    }
+    .game-presentation .tv-arena .hud{top:6px!important;left:6px!important;right:6px!important}
+    .game-presentation .tv-arena .scorebox{padding:4px 6px!important;gap:5px!important;border-radius:9px!important}
+    .game-presentation .tv-arena .team-badge{min-width:70px!important}
+    .game-presentation .tv-arena .team-badge b{font-size:11px!important}
+    .game-presentation .tv-arena .team-badge span{font-size:8px!important}
+    .game-presentation .tv-arena .score-num{font-size:20px!important}
+    .game-presentation .tv-arena-caption{top:48px!important;padding:4px 7px!important;font-size:9px!important}
+    .game-presentation .tv-arena .game-title{bottom:6px!important;padding:4px 7px!important;font-size:9px!important}
+
+    .game-presentation .game-feedback{
+      position:static!important;left:auto!important;right:auto!important;bottom:auto!important;
+      margin:0!important;padding:6px 10px!important;min-height:0!important;max-height:48px!important;
+      overflow:auto!important;border-radius:11px!important;font-size:clamp(12px,.94vw,16px)!important;line-height:1.25!important
+    }
+    .game-presentation .game-bottom-actions{
+      position:static!important;left:auto!important;right:auto!important;bottom:auto!important;
+      margin:0!important;display:flex!important;gap:5px!important;flex-wrap:nowrap!important
+    }
+    .game-presentation .game-bottom-actions .btn{
+      min-height:34px!important;padding:6px 10px!important;font-size:clamp(11px,.85vw,14px)!important
+    }
+    .game-presentation .game-bottom-actions .next-question-btn{
+      font-size:clamp(12px,1vw,16px)!important;padding:7px 12px!important
+    }
+
+    /* Nút thoát trình chiếu luôn sẵn có */
+    .presentation-exit{
+      position:fixed;right:10px;bottom:10px;z-index:9999;display:none;
+      border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;
+      background:rgba(5,16,30,.78);color:#fff;font-size:12px;font-weight:950;cursor:pointer;
+      backdrop-filter:blur(10px);box-shadow:0 10px 32px rgba(0,0,0,.35);opacity:.72
+    }
+    .presentation-exit:hover{opacity:1}
+    body.wheel-presentation .presentation-exit,body.game-presentation .presentation-exit{display:block}
+
+    /* Màn hình ngang: giữ bố cục 3 cột dù trình duyệt đang zoom 110%/125% */
+    @media (min-width:820px) and (orientation:landscape){
+      .game-presentation .tv-game-grid{
+        grid-template-columns:minmax(220px,1fr) minmax(230px,.70fr) minmax(220px,1fr)!important
+      }
+    }
+
+    /* Màn hình nhỏ: vòng quay ưu tiên diện tích, bảng điểm thành drawer */
+    @media (max-width:1199px){
+      .random-stage{grid-template-columns:minmax(0,1fr) minmax(360px,42vw)!important}
+      .wheel-presentation #random .random-stage{grid-template-columns:1fr!important}
+      .wheel-presentation .call-panel{
+        position:fixed!important;z-index:500!important;right:8px!important;top:8px!important;bottom:8px!important;
+        width:min(430px,92vw)!important;height:auto!important;min-height:0!important;
+        transform:translateX(calc(100% + 24px))!important;transition:transform .25s ease!important
+      }
+      .wheel-presentation .call-panel.open{transform:none!important}
+      .wheel-presentation #floatingPanelBtn{display:block!important;right:12px!important;bottom:12px!important}
+    }
+
+    @media (max-width:819px),(orientation:portrait){
+      .wrap{padding:6px!important}
+      .random-stage{grid-template-columns:1fr!important;min-height:auto!important}
+      .wheel-card-full{height:min(74dvh,720px)!important;min-height:560px!important}
+      .call-panel{height:auto!important;min-height:0!important}
+      .call-panel-scroll{height:auto!important;max-height:none!important}
+      body.game-presentation{overflow:auto!important}
+      .game-presentation #games,.game-presentation #gamePlay{height:auto!important;min-height:100dvh!important;overflow:visible!important}
+      .game-presentation #gamePlay{display:block!important}
+      .game-presentation .tv-game-grid{grid-template-columns:1fr!important;height:auto!important}
+      .game-presentation .team-answer-panel,.game-presentation .tv-arena,.game-presentation .tv-arena #gameCanvas{height:auto!important;min-height:420px!important}
+      .game-presentation .central-question-body{grid-template-columns:1fr!important}
+      .presentation-exit{top:8px;bottom:auto}
+    }
+
 </style>
 </head>
 <body>
@@ -624,7 +847,7 @@
     <div class="grid">
       <div class="card span7">
         <h2>Kết nối Google Apps Script</h2>
-        <p class="muted"><b>V12 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
+        <p class="muted"><b>V17 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
         <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
           <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
           <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJGI14qSGHWHJWVi75tMzKcir_uU8OoxajKt2VDbPLtz4krl-uJWbgSjABX81r6yOE/exec';
@@ -649,6 +872,7 @@ const API_PROXY_URL = '/api/sheet';</code>
   </section>
 </div>
 <div id="toast" class="toast"></div>
+<button id="presentationExitBtn" class="presentation-exit" type="button" onclick="exitPresentation()">✕ THOÁT TRÌNH CHIẾU</button>
 
 <script>
 'use strict';
@@ -658,7 +882,7 @@ const API_PROXY_URL = '/api/sheet';</code>
 // Nếu Deploy lại và Google cấp URL mới, chỉ thay đúng chuỗi nằm trong dấu nháy.
 // KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
 // ============================================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuo8HxCrO1yWcUwXtdqRxMlfkHb_XNh6LWi5JjlUb9EkUKEOtBnZrnmhJKsRJDaGTC/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwieURl1So9Tx9Mbpwe3rE-R3Zkk6LW5N3aMgFszxbuQh2QwxTP7igQRYSlGrwwDtrq/exec';
 
 // V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
 const API_PROXY_URL = '/api/sheet';
@@ -668,7 +892,7 @@ const API_PROXY_URL = '/api/sheet';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
-const APP_VERSION='16.0.0';
+const APP_VERSION='17.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let scoresData=safeLoad(LS.scores,[]);
@@ -727,6 +951,7 @@ function eligiblePool(){let pool=classStudents(true);if($('#noRepeat').checked)p
 function rebuildWheel(){const list=eligiblePool().length?eligiblePool():classStudents(true);if(typeof THREE==='undefined'||!$('#wheelCanvas'))return;wheel3d?.dispose();wheel3d=new Wheel3D($('#wheelCanvas'));wheel3d.setStudents(list);wheel3d.resize();if(!list.length)$('#wheelSub').textContent='Chưa có học sinh để tạo vòng quay';else $('#wheelSub').textContent=`${list.length} học sinh đang ở trên vòng quay`}
 
 async function callRandomStudent(){
+  enterWheelPresentation();
   const btn=$('#callBtn');if(btn.disabled)return;if(!wheelAudio)wheelAudio=new WheelAudio();wheelAudio.ensure();btn.disabled=true;btn.classList.add('spinning');
   try{
     if(!students.length&&getApi())await loadStudentsFromSheet(true);
@@ -1003,7 +1228,11 @@ function renderRich(text){const imgs=extractImages(text);let body=esc(normalizeB
 function correctIndex(q){const a=String(q.answer||'').trim().toUpperCase();const byKey=q.options.findIndex(o=>String(o.key).toUpperCase()===a);if(byKey>=0)return byKey;const byText=q.options.findIndex(o=>String(o.text).trim().toUpperCase()===a);if(byText>=0)return byText;const n=Number(a);if(Number.isInteger(n)&&n>=1&&n<=q.options.length)return n-1;return-1}
 
 
-function startSelectedGame(){startGame($('#gameTypeSelect')?.value||'tug')}
+function startSelectedGame(){
+  if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
+  enterGamePresentation();
+  startGame($('#gameTypeSelect')?.value||'tug')
+}
 function startGame(type){
   if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
   if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');
@@ -1017,7 +1246,13 @@ function startGame(type){
   updateHud(false);setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());
   setTimeout(()=>{game3d.resize();updateNextQuestionButton();nextQuestion()},220)
 }
-function exitGame(){stopGameTimer();game3d?.dispose();game3d=null;$('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');document.body.classList.remove('game-presentation')}
+function exitGame(){
+  stopGameTimer();game3d?.dispose();game3d=null;
+  $('#gamePlay').classList.add('hide');$('#gameHub').classList.remove('hide');$('#winner').classList.remove('show');
+  document.body.classList.remove('game-presentation');
+  if(document.fullscreenElement)document.exitFullscreen?.().catch?.(()=>{});
+  setTimeout(()=>window.dispatchEvent(new Event('resize')),120)
+}
 function winScore(){return Math.max(1,Math.min(20,Number($('#winScore').value||5)))}
 function names(){return{A:$('#teamAName').value.trim()||'ĐỘI XANH',B:$('#teamBName').value.trim()||'ĐỘI ĐỎ'}}
 function setTurn(t){game.turn=t;updateResponderBadges()}
@@ -1219,19 +1454,80 @@ buildTug(){
   dispose(){this.disposed=true;window.removeEventListener('resize',this._resize);this.scene.traverse(o=>{if(o.geometry)o.geometry.dispose?.();if(o.material){const a=Array.isArray(o.material)?o.material:[o.material];a.forEach(m=>m.dispose?.())}});this.renderer.dispose()}
 }
 
-function requestAppFullscreen(){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch?.(()=>{})}
+function requestAppFullscreen(){
+  try{
+    if(!document.fullscreenElement){
+      const p=document.documentElement.requestFullscreen?.();
+      if(p?.catch)p.catch(()=>{});
+    }
+  }catch(_){}
+}
+function resizeActive3D(delay=120){
+  setTimeout(()=>{try{wheel3d?.resize()}catch(_){}try{game3d?.resize()}catch(_){}window.dispatchEvent(new Event('resize'))},delay)
+}
+function enterWheelPresentation(){
+  document.body.classList.add('wheel-presentation');
+  document.body.classList.remove('game-presentation');
+  $('#callPanel')?.classList.remove('open');
+  requestAppFullscreen();
+  resizeActive3D(180)
+}
+function enterGamePresentation(){
+  document.body.classList.add('game-presentation');
+  document.body.classList.remove('wheel-presentation');
+  $('#callPanel')?.classList.remove('open');
+  requestAppFullscreen();
+  resizeActive3D(220)
+}
+function exitPresentation(){
+  document.body.classList.remove('wheel-presentation','game-presentation');
+  $('#callPanel')?.classList.remove('open');
+  try{
+    if(document.fullscreenElement){
+      const p=document.exitFullscreen?.();
+      if(p?.catch)p.catch(()=>{});
+    }
+  }catch(_){}
+  resizeActive3D(160)
+}
 function toggleWheelPresentation(){
-  const on=!document.body.classList.contains('wheel-presentation');document.body.classList.toggle('wheel-presentation',on);document.body.classList.remove('game-presentation');
-  $('#callPanel')?.classList.remove('open');if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>wheel3d?.resize(),180)
+  if(document.body.classList.contains('wheel-presentation'))exitPresentation();
+  else enterWheelPresentation()
 }
 function toggleCallPanel(){const p=$('#callPanel');if(!p)return;p.classList.toggle('open');setTimeout(()=>wheel3d?.resize(),180)}
 function toggleGamePresentation(){
-  const on=!document.body.classList.contains('game-presentation');document.body.classList.toggle('game-presentation',on);document.body.classList.remove('wheel-presentation');
-  if(on)requestAppFullscreen();else if(document.fullscreenElement)document.exitFullscreen?.();setTimeout(()=>game3d?.resize(),180)
+  if(document.body.classList.contains('game-presentation'))exitPresentation();
+  else enterGamePresentation()
 }
-function toggleFullscreen(){if(!document.fullscreenElement)requestAppFullscreen();else document.exitFullscreen?.()}
-document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement){document.body.classList.remove('wheel-presentation','game-presentation');$('#callPanel')?.classList.remove('open')}setTimeout(()=>{wheel3d?.resize();game3d?.resize()},120)});
-document.addEventListener('keydown',e=>{const tag=(document.activeElement?.tagName||'').toLowerCase();if(['input','textarea','select'].includes(tag))return;if(e.code==='Space'&&$('#random').classList.contains('active')){e.preventDefault();callRandomStudent()}if((e.key==='f'||e.key==='F')&&$('#random').classList.contains('active'))toggleWheelPresentation();if((e.key==='f'||e.key==='F')&&$('#games').classList.contains('active')&&!$('#gamePlay').classList.contains('hide'))toggleGamePresentation()});
+function toggleFullscreen(){
+  const randomActive=$('#random')?.classList.contains('active');
+  const gameActive=$('#games')?.classList.contains('active')&&!$('#gamePlay')?.classList.contains('hide');
+  if(document.body.classList.contains('wheel-presentation')||document.body.classList.contains('game-presentation'))return exitPresentation();
+  if(gameActive)return enterGamePresentation();
+  if(randomActive)return enterWheelPresentation();
+  if(!document.fullscreenElement)requestAppFullscreen();else document.exitFullscreen?.()
+}
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement){
+    document.body.classList.remove('wheel-presentation','game-presentation');
+    $('#callPanel')?.classList.remove('open')
+  }
+  resizeActive3D(120)
+});
+document.addEventListener('keydown',e=>{
+  const tag=(document.activeElement?.tagName||'').toLowerCase();
+  if(e.key==='Escape'){
+    document.body.classList.remove('wheel-presentation','game-presentation');
+    $('#callPanel')?.classList.remove('open');
+    resizeActive3D(80);
+    return
+  }
+  if(['input','textarea','select'].includes(tag))return;
+  if(e.code==='Space'&&$('#random').classList.contains('active')){e.preventDefault();callRandomStudent()}
+  if((e.key==='f'||e.key==='F')&&$('#random').classList.contains('active'))toggleWheelPresentation();
+  if((e.key==='f'||e.key==='F')&&$('#games').classList.contains('active')&&!$('#gamePlay').classList.contains('hide'))toggleGamePresentation()
+});
+window.addEventListener('orientationchange',()=>resizeActive3D(180),{passive:true});
 
 async function bootstrap(){
   $('#apiUrl').value=APPS_SCRIPT_URL||'';
@@ -1251,5 +1547,5 @@ async function bootstrap(){
 }
 bootstrap();
 </script>
-</body>
+</body> <script src="/fullscreen-v17.js"></script>
 </html>

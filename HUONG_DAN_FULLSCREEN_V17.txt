@@ -1,0 +1,35 @@
+LỚP HỌC TƯƠNG TÁC TOÁN & TIN - FULLSCREEN V17
+
+MỤC ĐÍCH
+- Giao diện quản lý dùng hết chiều rộng trình duyệt, không còn khoảng trống lớn bên phải.
+- Bấm QUAY NÓN: tự chuyển sang trình chiếu/toàn màn hình để vòng quay chiếm tối đa màn hình.
+- Bắt đầu KÉO CO hoặc ĐUA XE: tự chuyển trò chơi sang toàn màn hình.
+- Game được bố trí lại để câu hỏi, đáp án, sân chơi và điểm số cùng nằm gọn trong một màn hình 16:9.
+- Có nút "THOÁT TOÀN MÀN HÌNH" ở góc phải dưới; cũng có thể nhấn Esc.
+- Ghi đè media query cũ để khi Chrome đang Zoom 110%/125% game không tự rơi thành 1 cột trên màn hình ngang.
+
+CÁCH CẬP NHẬT NHANH
+1. Upload file fullscreen-v17.js vào cùng thư mục với index.html trên GitHub.
+2. Mở index.html.
+3. Ngay trước thẻ </body>, thêm đúng 1 dòng:
+   <script src="/fullscreen-v17.js"></script>
+4. Commit/Push lên GitHub.
+5. Chờ Vercel báo Ready.
+6. Mở web và nhấn Ctrl + F5.
+
+KHÔNG CẦN SỬA
+- Code.gs
+- api/sheet.js
+- Google Sheet
+- dữ liệu học sinh/câu hỏi
+
+CÁCH HOẠT ĐỘNG
+- Giao diện thường: 100% chiều rộng viewport.
+- QUAY NÓN: tự bật wheel-presentation + Browser Fullscreen.
+- Chọn KÉO CO/ĐUA XE: tự bật game-presentation + Browser Fullscreen.
+- ESC: thoát trình chiếu và quay lại màn hình quản lý.
+- Nút Toàn màn hình trên menu được nâng cấp: tự chọn đúng chế độ theo màn hình đang dùng.
+
+LƯU Ý
+Trình duyệt chỉ cho phép tự bật Fullscreen khi thao tác xuất phát trực tiếp từ cú nhấp của người dùng.
+Vì vậy V17 kích hoạt Fullscreen ngay trong sự kiện bấm QUAY NÓN / chọn trò chơi.

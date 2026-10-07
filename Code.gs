@@ -1,5 +1,5 @@
 /**
- * LOP HOC TUONG TAC - BACKEND V16.0
+ * LOP HOC TUONG TAC - BACKEND V17.0
  * Google Apps Script bound to the Google Sheet.
  *
  * FIRST USE:
@@ -10,7 +10,7 @@
  */
 
 const APP = {
-  VERSION: '16.0.0',
+  VERSION: '17.0.0',
   DB_KEY: 'CLASSROOM_DB_ID',
   SHEETS: {
     STUDENTS: 'Students',

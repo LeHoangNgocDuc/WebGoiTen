@@ -1,0 +1,362 @@
+[
+  {
+    "Id": "D6C6B241",
+    "Type": "MC",
+    "Level": "Nhận biết",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Phân số nào sau đây nhỏ hơn $0$?",
+    "Options": {
+      "A": "$\\dfrac{1}{2}$",
+      "B": "$\\dfrac{-3}{-4}$",
+      "C": "$\\dfrac{-5}{6}$",
+      "D": "$\\dfrac{7}{8}$"
+    },
+    "CorrectAnswer": "C",
+    "Explain": "Phân số có tử và mẫu khác dấu thì nhỏ hơn $0$. Do đó $\\dfrac{-5}{6} < 0$."
+  },
+  {
+    "Id": "D6C6B242",
+    "Type": "MC",
+    "Level": "Nhận biết",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Trong hai phân số có cùng mẫu số dương, phân số nào có tử số lớn hơn thì:",
+    "Options": {
+      "A": "Lớn hơn.",
+      "B": "Nhỏ hơn.",
+      "C": "Bằng nhau.",
+      "D": "Không so sánh được."
+    },
+    "CorrectAnswer": "A",
+    "Explain": "Theo quy tắc so sánh hai phân số cùng mẫu dương: phân số nào có tử lớn hơn thì phân số đó lớn hơn."
+  },
+  {
+    "Id": "D6C6B243",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "So sánh hai phân số $\\dfrac{-3}{5}$ và $\\dfrac{-4}{5}$ ta có kết quả:",
+    "Options": {
+      "A": "$\\dfrac{-3}{5} < \\dfrac{-4}{5}$",
+      "B": "$\\dfrac{-3}{5} > \\dfrac{-4}{5}$",
+      "C": "$\\dfrac{-3}{5} = \\dfrac{-4}{5}$",
+      "D": "$\\dfrac{-3}{5} \\le \\dfrac{-4}{5}$"
+    },
+    "CorrectAnswer": "B",
+    "Explain": "Hai phân số có cùng mẫu dương là $5$, tử số $-3 > -4$ nên $\\dfrac{-3}{5} > \\dfrac{-4}{5}$."
+  },
+  {
+    "Id": "D6C6B244",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "Tính chất cơ bản của phân số",
+    "Question": "Phân số nào sau đây bằng phân số $\\dfrac{2}{3}$?",
+    "Options": {
+      "A": "$\\dfrac{4}{6}$",
+      "B": "$\\dfrac{4}{9}$",
+      "C": "$\\dfrac{6}{4}$",
+      "D": "$\\dfrac{-2}{3}$"
+    },
+    "CorrectAnswer": "A",
+    "Explain": "Ta có $\\dfrac{4}{6} = \\dfrac{4:2}{6:2} = \\dfrac{2}{3}$."
+  },
+  {
+    "Id": "D6C6B245",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Sắp xếp các phân số $\\dfrac{1}{2}; \\dfrac{1}{3}; \\dfrac{1}{4}$ theo thứ tự giảm dần là:",
+    "Options": {
+      "A": "$\\dfrac{1}{4}; \\dfrac{1}{3}; \\dfrac{1}{2}$",
+      "B": "$\\dfrac{1}{2}; \\dfrac{1}{3}; \\dfrac{1}{4}$",
+      "C": "$\\dfrac{1}{3}; \\dfrac{1}{2}; \\dfrac{1}{4}$",
+      "D": "$\\dfrac{1}{2}; \\dfrac{1}{4}; \\dfrac{1}{3}$"
+    },
+    "CorrectAnswer": "B",
+    "Explain": "Các phân số cùng tử dương, mẫu nào nhỏ hơn thì phân số đó lớn hơn. Vì $2 < 3 < 4$ nên $\\dfrac{1}{2} > \\dfrac{1}{3} > \\dfrac{1}{4}$."
+  },
+  {
+    "Id": "D6C6B246",
+    "Type": "MC",
+    "Level": "Nhận biết",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Khẳng định nào sau đây là sai?",
+    "Options": {
+      "A": "$\\dfrac{-1}{2} < 0$",
+      "B": "$0 < \\dfrac{1}{2}$",
+      "C": "$\\dfrac{-1}{2} < \\dfrac{1}{2}$",
+      "D": "$\\dfrac{-1}{2} > 0$"
+    },
+    "CorrectAnswer": "D",
+    "Explain": "Phân số âm luôn nhỏ hơn $0$. Do đó khẳng định $\\dfrac{-1}{2} > 0$ là sai."
+  },
+  {
+    "Id": "D6C6B247",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "Quy đồng mẫu nhiều phân số",
+    "Question": "Mẫu số chung nhỏ nhất của hai phân số $\\dfrac{1}{6}$ và $\\dfrac{5}{8}$ là:",
+    "Options": {
+      "A": "48",
+      "B": "24",
+      "C": "12",
+      "D": "16"
+    },
+    "CorrectAnswer": "B",
+    "Explain": "Mẫu số chung nhỏ nhất là $BCNN(6, 8) = 24$."
+  },
+  {
+    "Id": "D6C6B248",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Kết quả so sánh $\\dfrac{3}{4}$ và $\\dfrac{5}{6}$ là:",
+    "Options": {
+      "A": "$\\dfrac{3}{4} > \\dfrac{5}{6}$",
+      "B": "$\\dfrac{3}{4} < \\dfrac{5}{6}$",
+      "C": "$\\dfrac{3}{4} = \\dfrac{5}{6}$",
+      "D": "Không so sánh được."
+    },
+    "CorrectAnswer": "B",
+    "Explain": "Quy đồng mẫu số: $\\dfrac{3}{4} = \\dfrac{9}{12}$ và $\\dfrac{5}{6} = \\dfrac{10}{12}$. Vì $9 < 10$ nên $\\dfrac{9}{12} < \\dfrac{10}{12}$, suy ra $\\dfrac{3}{4} < \\dfrac{5}{6}$."
+  },
+  {
+    "Id": "D6C6B249",
+    "Type": "MC",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Phân số nào lớn nhất trong các phân số sau: $\\dfrac{-5}{7}, \\dfrac{-1}{7}, \\dfrac{-3}{7}, \\dfrac{-6}{7}$?",
+    "Options": {
+      "A": "$\\dfrac{-5}{7}$",
+      "B": "$\\dfrac{-6}{7}$",
+      "C": "$\\dfrac{-1}{7}$",
+      "D": "$\\dfrac{-3}{7}$"
+    },
+    "CorrectAnswer": "C",
+    "Explain": "Các phân số có cùng mẫu dương là $7$. So sánh các tử số: $-1 > -3 > -5 > -6$. Vậy phân số lớn nhất là $\\dfrac{-1}{7}$."
+  },
+  {
+    "Id": "D6C6B2410",
+    "Type": "MC",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Số nguyên $x$ thỏa mãn $\\dfrac{1}{2} < \\dfrac{x}{4} < 1$ là:",
+    "Options": {
+      "A": "$x=1$",
+      "B": "$x=2$",
+      "C": "$x=3$",
+      "D": "$x=4$"
+    },
+    "CorrectAnswer": "C",
+    "Explain": "Quy đồng mẫu số: $\\dfrac{2}{4} < \\dfrac{x}{4} < \\dfrac{4}{4}$. Suy ra $2 < x < 4$. Vì $x$ là số nguyên nên $x = 3$."
+  },
+  {
+    "Id": "D6C6B2411",
+    "Type": "MC",
+    "Level": "Nhận biết",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "Mở rộng khái niệm phân số",
+    "Question": "Phân số $\\dfrac{a}{b}$ là phân số dương nếu:",
+    "Options": {
+      "A": "$a, b$ cùng dấu.",
+      "B": "$a, b$ khác dấu.",
+      "C": "$a > 0$.",
+      "D": "$b > 0$."
+    },
+    "CorrectAnswer": "A",
+    "Explain": "Một phân số là số dương khi tử và mẫu cùng dấu."
+  },
+  {
+    "Id": "D6C6B2412",
+    "Type": "MC",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Cho $A = \\dfrac{11}{12}$ và $B = \\dfrac{12}{13}$. Khẳng định đúng là:",
+    "Options": {
+      "A": "$A > B$",
+      "B": "$A = B$",
+      "C": "$A < B$",
+      "D": "$A \\ge B$"
+    },
+    "CorrectAnswer": "C",
+    "Explain": "Sử dụng phần bù: $1 - A = \\dfrac{1}{12}$ và $1 - B = \\dfrac{1}{13}$. Vì $\\dfrac{1}{12} > \\dfrac{1}{13}$ nên $A < B$."
+  },
+  {
+    "Id": "D6C6B2413",
+    "Type": "TF",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Cho hai phân số $M = \\dfrac{-5}{9}$ và $N = \\dfrac{-2}{3}$. Xét tính đúng/sai của các phát biểu sau:",
+    "Options": {
+      "a": "Mẫu số chung đơn giản nhất để quy đồng $M$ và $N$ là $9$.",
+      "b": "Sau khi quy đồng, ta có $N = \\dfrac{-6}{9}$.",
+      "c": "Vì $-5 > -6$ nên $M < N$.",
+      "d": "Cả $M$ và $N$ đều nhỏ hơn phân số $\\dfrac{1}{100}$."
+    },
+    "CorrectAnswer": "DDSD",
+    "Explain": "a) Đúng vì $9$ chia hết cho $3$. \nb) Đúng vì $\\dfrac{-2}{3} = \\dfrac{-6}{9}$. \nc) Sai vì $-5 > -6$ nên $\\dfrac{-5}{9} > \\dfrac{-6}{9}$, tức là $M > N$. \nd) Đúng vì $M, N$ âm, còn $\\dfrac{1}{100}$ dương."
+  },
+  {
+    "Id": "D6C6B2414",
+    "Type": "TF",
+    "Level": "Thông hiểu",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Xét các khẳng định về so sánh phân số sau:",
+    "Options": {
+      "a": "Phân số có tử lớn hơn mẫu thì luôn lớn hơn $1$.",
+      "b": "Để so sánh $\\dfrac{-3}{4}$ và $\\dfrac{5}{-7}$ ta nên đưa $\\dfrac{5}{-7}$ về phân số có mẫu dương là $\\dfrac{-5}{7}$.",
+      "c": "$\\dfrac{2023}{2024} > \\dfrac{2024}{2025}$.",
+      "d": "Nếu $\\dfrac{a}{b} < \\dfrac{c}{d}$ và $\\dfrac{c}{d} < \\dfrac{e}{f}$ thì $\\dfrac{a}{b} < \\dfrac{e}{f}$."
+    },
+    "CorrectAnswer": "SDSD",
+    "Explain": "a) Sai, ví dụ $\\dfrac{-2}{-3}$ hoặc chỉ xét số âm $\\dfrac{1}{-2}$ tử lớn hơn mẫu nhưng nhỏ hơn 1 (quy tắc này chỉ đúng cho phân số dương). \nb) Đúng, nên đưa về mẫu dương để so sánh tử. \nc) Sai, dùng phần bù: $1 - \\dfrac{2023}{2024} = \\dfrac{1}{2024} > 1 - \\dfrac{2024}{2025} = \\dfrac{1}{2025}$ nên $\\dfrac{2023}{2024} < \\dfrac{2024}{2025}$. \nd) Đúng, tính chất bắc cầu."
+  },
+  {
+    "Id": "D6C6B2415",
+    "Type": "TF",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Một cửa hàng bán trái cây, ngày thứ nhất bán được $\\dfrac{2}{5}$ tấn cam, ngày thứ hai bán được $\\dfrac{3}{7}$ tấn cam. Xét các phát biểu sau:",
+    "Options": {
+      "a": "Ngày thứ nhất bán được ít hơn ngày thứ hai.",
+      "b": "Tổng số cam bán được trong hai ngày là $\\dfrac{5}{12}$ tấn.",
+      "c": "Nếu ngày thứ ba bán được $\\dfrac{4}{9}$ tấn cam thì ngày thứ ba bán được nhiều cam nhất.",
+      "d": "Phân số $\\dfrac{2}{5}$ lớn hơn phân số $\\dfrac{1}{3}$."
+    },
+    "CorrectAnswer": "DSDD",
+    "Explain": "a) Đúng: $\\dfrac{2}{5} = \\dfrac{14}{35} < \\dfrac{15}{35} = \\dfrac{3}{7}$. \nb) Sai: Tổng là $\\dfrac{2}{5} + \\dfrac{3}{7} = \\dfrac{29}{35}$. \nc) Đúng: So sánh $\\dfrac{4}{9}$ và $\\dfrac{3}{7}$, ta có $\\dfrac{28}{63} > \\dfrac{27}{63}$ nên ngày 3 nhiều nhất. \nd) Đúng: $\\dfrac{2}{5} = \\dfrac{6}{15} > \\dfrac{5}{15} = \\dfrac{1}{3}$."
+  },
+  {
+    "Id": "D6C6B2416",
+    "Type": "TF",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "Mở rộng khái niệm phân số",
+    "Question": "Cho biểu thức $A = \\dfrac{n-1}{n+2}$ với $n$ là số nguyên. Xét các khẳng định sau:",
+    "Options": {
+      "a": "Để $A$ là phân số thì $n \\ne -2$.",
+      "b": "Với $n = 0$ thì $A = \\dfrac{-1}{2}$.",
+      "c": "Với mọi $n > -2$, phân số $A$ luôn nhỏ hơn $1$.",
+      "d": "Khi $n = -3$ thì $A$ là một số dương."
+    },
+    "CorrectAnswer": "DDDD",
+    "Explain": "a) Đúng: \nmẫu số khác 0. \nb) Đúng: \nthay $n=0$. \nc) Đúng: \n$n-1 < n+2$ và mẫu $n+2 > 0$ nên $A < 1$. \nd) Đúng: \n$n=-3 \\Rightarrow A = \\dfrac{-4}{-1} = 4 > 0$."
+  },
+  {
+    "Id": "D6C6B2417",
+    "Type": "SA",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Tìm số nguyên dương $x$ nhỏ nhất thỏa mãn $\\dfrac{x}{9} > \\dfrac{4}{7}$.",
+    "CorrectAnswer": "6",
+    "Explain": "Ta có $\\dfrac{x}{9} > \\dfrac{4}{7} \\Rightarrow 7x > 36 \\Rightarrow x > \\dfrac{36}{7} \\approx 5,14$. Vì $x$ nguyên dương nhỏ nhất nên $x = 6$."
+  },
+  {
+    "Id": "D6C6B2418",
+    "Type": "SA",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Có bao nhiêu giá trị nguyên của $x$ thỏa mãn $\\dfrac{-1}{2} < \\dfrac{x}{6} \\le \\dfrac{1}{3}$?",
+    "CorrectAnswer": "5",
+    "Explain": "Quy đồng mẫu số: $\\dfrac{-3}{6} < \\dfrac{x}{6} \\le \\dfrac{2}{6} \\Rightarrow -3 < x \\le 2$. Các giá trị $x \\in \\{-2; -1; 0; 1; 2\\}$. Có 5 giá trị."
+  },
+  {
+    "Id": "D6C6B2419",
+    "Type": "SA",
+    "Level": "Vận dụng cao",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "So sánh $A = \\dfrac{10^{10}+1}{10^{11}+1}$ và $B = \\dfrac{10^{11}+1}{10^{12}+1}$. Kết quả so sánh là $A$ lớn hơn hay nhỏ hơn $B$? (Nếu $A > B$ ghi 1, nếu $A < B$ ghi 0).",
+    "CorrectAnswer": "1",
+    "Explain": "Sử dụng tính chất: Nếu $\\dfrac{a}{b} < 1$ thì $\\dfrac{a}{b} > \\dfrac{a+n}{b+n}$ với $n > 0$. Ta có $A < 1$. Biến đổi $A = \\dfrac{10^{11}+10}{10^{12}+10}$. So sánh với $B = \\dfrac{10^{11}+1}{10^{12}+1}$ thấy $A > B$."
+  },
+  {
+    "Id": "D6C6B2420",
+    "Type": "SA",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Trong một cuộc bầu cử lớp trưởng, bạn An được $\\dfrac{2}{5}$ số phiếu, bạn Bình được $\\dfrac{1}{3}$ số phiếu, bạn Chi được số phiếu còn lại. Hỏi bạn nào trúng cử (có số phiếu cao nhất)? (Nếu An: 0001, Bình: 0002, Chi: 0003).",
+    "CorrectAnswer": "1",
+    "Explain": "Số phiếu của Chi: $1 - (\\dfrac{2}{5} + \\dfrac{1}{3}) = \\dfrac{4}{15}$. Quy đồng mẫu 15: An: $\\dfrac{6}{15}$, Bình: $\\dfrac{5}{15}$, Chi: $\\dfrac{4}{15}$. Vậy An cao nhất."
+  },
+  {
+    "Id": "D6C6B2421",
+    "Type": "SA",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "So sánh phân số",
+    "Question": "Hai cửa hàng giảm giá. Cửa hàng A giảm $\\dfrac{1}{4}$ giá niêm yết, cửa hàng B giảm $\\dfrac{2}{9}$ giá niêm yết. Hỏi cửa hàng nào có giá bán sau khi giảm rẻ hơn? (Nếu A: 0001, B: 0002).",
+    "CorrectAnswer": "1",
+    "Explain": "So sánh mức giảm: $\\dfrac{1}{4} = \\dfrac{9}{36}$ và $\\dfrac{2}{9} = \\dfrac{8}{36}$. Vì $\\dfrac{9}{36} > \\dfrac{8}{36}$ nên cửa hàng A giảm nhiều hơn, dẫn đến giá rẻ hơn."
+  },
+  {
+    "Id": "D6C6B2422",
+    "Type": "SA",
+    "Level": "Vận dụng",
+    "Grade": "6",
+    "Subject": "Toán",
+    "Chapter": "Phân số",
+    "Topic": "Phép cộng phân số",
+    "Question": "Vòi I chảy đầy bể trong 5 giờ, vòi II chảy đầy bể trong 6 giờ. Sau 1 giờ mở cả hai vòi, lượng nước trong bể đạt mức $\\dfrac{a}{b}$ bể. Tính giá trị của $a+b$ (với $\\dfrac{a}{b}$ là phân số tối giản).",
+    "CorrectAnswer": "41",
+    "Explain": "Trong 1 giờ: vòi I chảy $\\dfrac{1}{5}$ bể, vòi II chảy $\\dfrac{1}{6}$ bể. Cả hai vòi chảy: $\\dfrac{1}{5} + \\dfrac{1}{6} = \\dfrac{11}{30}$ bể. Vậy $a=11, b=30 \\Rightarrow a+b=41$."
+  }
+]

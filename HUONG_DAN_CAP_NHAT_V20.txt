@@ -1,0 +1,33 @@
+HƯỚNG DẪN CẬP NHẬT V20 CLEAN
+
+1) Frontend
+- Dùng file index_v20_clean.html.
+- Khi đưa lên web, đổi tên thành index.html.
+
+2) Backend Apps Script
+- Dùng Code_v20.gs nếu muốn đồng bộ version 20.0.0.
+- Mở Google Sheet > Extensions > Apps Script > dán Code_v20.gs.
+- Chạy setup() một lần nếu chưa liên kết Sheet.
+- Deploy > Manage deployments > Edit > New version > Deploy.
+
+3) Vercel/GitHub
+- Giữ nguyên thư mục api/ đang chạy.
+- Upload index.html + sw.js + assets/.
+- Nếu có model GLB, đặt trong assets/models/ theo README.
+
+4) Sau khi deploy
+- Ctrl + F5.
+- Vào Cài đặt > Kiểm tra và nạp dữ liệu.
+- Vào Trò chơi > chọn bộ câu > KIỂM TRA & BẮT ĐẦU.
+
+5) Phím trình chiếu
+Space: hiện đáp án / câu tiếp
+Enter: pause/resume timer
+F: fullscreen
+Z: zoom ảnh
+M: mute
+B: màn đen
+R: reset timer
+A: + điểm đội A
+D: + điểm đội B
+Esc: thoát trình chiếu/zoom

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lớp học tương tác Toán & Tin V17</title>
+  <title>Lớp học tương tác Toán & Tin V20 CLEAN</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
   <script>window.MathJax={loader:{load:['[tex]/ams']},tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$'],['\\[','\\]']],processEscapes:true,packages:{'[+]':['ams']}},svg:{fontCache:'global'}};</script>
@@ -733,6 +733,32 @@
       .game-presentation .tf-wrap{grid-template-columns:1fr}
     }
 
+
+
+    /* ===================== V20 CLEAN CONTROLLER ===================== */
+    :root{--v20-safe:clamp(8px,.7vw,14px);--v20-q-short:clamp(64px,4.8vw,92px);--v20-q-mid:clamp(48px,3.7vw,74px);--v20-q-long:clamp(36px,2.8vw,58px);--v20-q-xlong:clamp(29px,2.2vw,46px)}
+    .v20-inline-check{display:flex!important;align-items:center;gap:7px;margin:0!important;padding:9px 12px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);white-space:nowrap;color:#eaf6ff!important;font-size:13px!important;font-weight:900}
+    .v20-inline-check input{width:18px;height:18px;accent-color:#42e8ff}
+    .v20-presenter-bar{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px;padding:6px;border-radius:14px;background:rgba(7,20,38,.72);border:1px solid rgba(255,255,255,.08)}
+    .v20-presenter-bar .btn{padding:7px 10px;font-size:12px}
+    .v20-black-screen{position:fixed;inset:0;z-index:20000;display:none;place-items:center;background:#000;color:#fff;text-align:center;cursor:pointer}
+    .v20-black-screen.show{display:grid}.v20-black-screen strong{display:block;font-size:clamp(42px,5vw,84px);letter-spacing:.04em}.v20-black-screen small{display:block;margin-top:18px;font-size:clamp(18px,1.6vw,28px);color:#aaa}
+    .v20-modal{position:fixed;inset:0;z-index:15000;display:none;place-items:center;padding:24px;background:rgba(1,8,18,.84);backdrop-filter:blur(14px)}.v20-modal.show{display:grid}
+    .v20-modal-card{width:min(920px,96vw);max-height:92vh;overflow:auto;padding:22px;border-radius:26px;background:linear-gradient(180deg,#14375d,#091d35);border:1px solid rgba(123,226,255,.25);box-shadow:0 30px 100px rgba(0,0,0,.55)}
+    .v20-modal-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start}.v20-modal-head h2{margin:0;font-size:30px}.v20-modal-head p{margin:6px 0 0;color:#c7d9ec}.v20-modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+    .v20-check-list{display:grid;gap:9px;margin-top:18px}.v20-check{display:grid;grid-template-columns:32px 1fr auto;gap:10px;align-items:center;padding:12px 14px;border-radius:15px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08)}.v20-check .icon{font-size:23px}.v20-check.ok{border-color:rgba(69,227,165,.35)}.v20-check.warn{border-color:rgba(255,211,79,.35)}.v20-check.bad{border-color:rgba(255,113,143,.35)}
+    .v20-summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.v20-summary-stat{padding:16px;border-radius:17px;background:rgba(255,255,255,.06);text-align:center}.v20-summary-stat b{display:block;font-size:32px;color:#ffe18a}.v20-summary-stat span{font-size:12px;color:#c1d3e6;font-weight:850}
+    .v20-wrong-review{margin-top:14px;display:none;gap:8px}.v20-wrong-review.show{display:grid}.v20-wrong-item{padding:11px 13px;border-radius:14px;background:rgba(255,119,149,.08);border:1px solid rgba(255,119,149,.2);line-height:1.35}
+    body.v20-hide-answers .team-answer-grid,body.v20-hide-answers .special-answer-panel{opacity:.08;filter:blur(5px);pointer-events:none;transform:scale(.985);transition:.25s}.team-answer-grid,.special-answer-panel{transition:.25s}
+    body.v20-focus-question .game-tv-head{opacity:.45;transform:scale(.98)}body.v20-focus-question .dual-ready-strip,body.v20-focus-question .game-feedback,body.v20-focus-question .game-bottom-actions,body.v20-focus-question .v20-presenter-bar{opacity:.22}body.v20-focus-question .tv-game-grid{opacity:.18;filter:blur(2px)}body.v20-focus-question .central-question{position:fixed!important;inset:2.5vh 2.5vw!important;z-index:8000!important;display:flex!important;flex-direction:column!important;justify-content:center!important;max-height:none!important;padding:3vh 4vw!important}body.v20-focus-question .central-q-text{font-size:clamp(54px,5.5vw,108px)!important;max-height:62vh!important}
+    body.v20-hide-arena .tv-game-grid{grid-template-columns:1fr 1fr!important}body.v20-hide-arena .tv-arena{display:none!important}body.v20-hide-arena .team-answer-panel{min-height:0!important}
+    .tv-timer.warning b{color:#ffd34f}.tv-timer.critical b{color:#ff9d54}.tv-timer.danger b{color:#ff6682}
+    .central-media{background:#fff!important}.central-media img{filter:none!important;object-fit:contain!important}
+    .game-presentation .v20-presenter-bar{position:fixed;right:8px;top:8px;z-index:3000;margin:0;max-width:55vw;opacity:.42}.game-presentation .v20-presenter-bar:hover{opacity:1}
+    .game-presentation .central-question-body.has-image{grid-template-columns:minmax(0,1.2fr) minmax(0,.9fr)!important}.game-presentation .central-question-body.has-image .central-media{min-height:min(43vh,430px)!important;max-height:min(48vh,470px)!important;background:#fff!important}.game-presentation .central-question-body.has-image .central-media img{max-height:46vh!important}
+    @media(max-aspect-ratio:4/3){.game-presentation #gamePlay{overflow:auto!important}.game-presentation .tv-game-grid{grid-template-columns:1fr!important;height:auto!important}.game-presentation .tv-arena{order:3;min-height:260px!important}.game-presentation .central-question-body.has-image{grid-template-columns:1fr!important}.game-presentation .v20-presenter-bar{position:static;max-width:none;opacity:1}}
+    @media(max-width:900px){.v20-summary-stats{grid-template-columns:1fr 1fr}.v20-presenter-bar{overflow-x:auto;flex-wrap:nowrap;justify-content:flex-start}.v20-presenter-bar .btn{white-space:nowrap}}
+
 </style>
 </head>
 <body>
@@ -875,8 +901,9 @@
         <div id="bankSummary" class="bank-summary" style="margin-top:10px">Chưa có câu hỏi.</div>
         <div id="questionPreview" class="question-preview hide"></div>
         <div class="game-start-row">
-          <div class="game-preview-strip"><span class="pill">⚡ Hai đội cùng được chọn lúc đầu</span><span class="pill">💡 Sai → khóa đội đó, chuyển quyền</span><span class="pill">✅ Đúng → +1 điểm</span><span class="pill">⛶ Có chế độ trình chiếu</span></div>
-          <button class="btn primary" onclick="startSelectedGame()">▶ BẮT ĐẦU TRÒ CHƠI</button>
+          <div class="game-preview-strip"><span class="pill">⚡ Hai đội cùng được chọn lúc đầu</span><span class="pill">💡 Sai → khóa đội đó, chuyển quyền</span><span class="pill">✅ Đúng → +1 điểm</span><span class="pill">📺 TV-first V20</span></div>
+          <label class="v20-inline-check"><input id="autoRevealAnswers" type="checkbox"> Tự động hiện đáp án + chạy đồng hồ</label>
+          <button class="btn primary" onclick="startSelectedGame()">▶ KIỂM TRA & BẮT ĐẦU</button>
         </div>
       </div>
     </div>
@@ -924,7 +951,16 @@
       </div>
 
       <div id="qExplain" class="game-feedback">Đội đang trả lời: <strong id="turnLabelInline">ĐỘI XANH</strong></div>
-      <div class="game-bottom-actions"><button id="nextQuestionBtn" class="btn primary next-question-btn" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button id="revealAnswerBtn" class="btn ghost reveal-answer-btn hide" onclick="revealTeacherAnswer()">👁 HIỆN ĐÁP ÁN</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻ Đặt lại</button></div>
+      <div class="game-bottom-actions"><button id="nextQuestionBtn" class="btn primary next-question-btn" onclick="nextQuestion()">❓ CÂU TIẾP THEO</button><button id="showChoicesBtn" class="btn gold" onclick="revealGameAnswers()">👁 HIỆN ĐÁP ÁN</button><button id="revealAnswerBtn" class="btn ghost reveal-answer-btn hide" onclick="revealTeacherAnswer()">✓ HIỆN ĐÁP ÁN ĐÚNG</button><button class="btn good" onclick="manualPoint('A')">+ A</button><button class="btn bad" onclick="manualPoint('B')">+ B</button><button class="btn ghost" onclick="resetGame()">↻ Đặt lại</button></div>
+      <div id="v20PresenterBar" class="v20-presenter-bar">
+        <button class="btn ghost" onclick="toggleQuestionFocus()">🔎 TẬP TRUNG</button>
+        <button class="btn ghost" onclick="toggleArenaVisibility()">🎮 ẨN/HIỆN 3D</button>
+        <button class="btn ghost" onclick="zoomCurrentQuestionImage()">🖼 HÌNH TOÀN MÀN HÌNH</button>
+        <button class="btn ghost" onclick="speakCurrentQuestion()">🔊 ĐỌC CÂU HỎI</button>
+        <button class="btn ghost" onclick="toggleBlackScreen()">⬛ MÀN ĐEN (B)</button>
+        <button class="btn ghost" onclick="toggleGameTimerPause()">⏯ TIMER</button>
+        <button class="btn ghost" onclick="resetGameTimer()">↻ TIMER</button>
+      </div>
     </div>
   </section>
 
@@ -932,7 +968,7 @@
     <div class="grid">
       <div class="card span7">
         <h2>Kết nối Google Apps Script</h2>
-        <p class="muted"><b>V17 dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
+        <p class="muted"><b>V20 CLEAN dùng proxy Vercel /api/sheet.</b> Vòng quay và điểm lần gọi dùng chung dữ liệu Google Sheet.</p>
         <div style="padding:12px 14px;border-radius:14px;background:rgba(255,212,95,.08);border:1px solid rgba(255,212,95,.35);margin:10px 0 14px">
           <b style="color:#ffe192">🔴 CHỖ DÁN LINK TRONG SOURCE</b><br>
           <code style="color:#d8e7ff;word-break:break-all">const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwJGI14qSGHWHJWVi75tMzKcir_uU8OoxajKt2VDbPLtz4krl-uJWbgSjABX81r6yOE/exec';
@@ -957,6 +993,9 @@ const API_PROXY_URL = '/api/sheet';</code>
   </section>
 </div>
 <div id="toast" class="toast"></div>
+<div id="v20BlackScreen" class="v20-black-screen" onclick="toggleBlackScreen()"><div><strong>MÀN HÌNH TẠM ẨN</strong><small>Bấm B hoặc click để trở lại</small></div></div>
+<div id="v20Preflight" class="v20-modal"><div class="v20-modal-card"><div class="v20-modal-head"><div><h2>KIỂM TRA TRƯỚC TRẬN</h2><p>V20 kiểm tra câu hỏi, ảnh, MathJax, WebGL, âm thanh và màn hình trước khi chiếu.</p></div><button class="btn ghost" onclick="closeV20Modal('v20Preflight')">✕</button></div><div id="v20PreflightList" class="v20-check-list"></div><div class="v20-modal-actions"><button class="btn ghost" onclick="closeV20Modal('v20Preflight')">HỦY</button><button id="v20PreflightStart" class="btn primary" disabled>▶ BẮT ĐẦU</button></div></div></div>
+<div id="v20Summary" class="v20-modal"><div class="v20-modal-card v20-summary-card"><div class="v20-modal-head"><div><h2 id="v20SummaryTitle">🏆 TỔNG KẾT TRẬN</h2><p id="v20SummaryScore"></p></div><button class="btn ghost" onclick="closeV20Modal('v20Summary')">✕</button></div><div id="v20SummaryStats" class="v20-summary-stats"></div><div id="v20WrongReview" class="v20-wrong-review"></div><div class="v20-modal-actions"><button class="btn ghost" onclick="reviewWrongQuestions()">📚 CÂU CẦN ÔN</button><button class="btn gold" onclick="resetGame();closeV20Modal('v20Summary')">↻ CHƠI LẠI</button><button class="btn primary" onclick="exitGame();closeV20Modal('v20Summary')">TRẬN MỚI</button></div></div></div>
 <button id="presentationExitBtn" class="presentation-exit" type="button" onclick="exitPresentation()">✕ THOÁT TRÌNH CHIẾU</button>
 
 <script>
@@ -967,7 +1006,7 @@ const API_PROXY_URL = '/api/sheet';</code>
 // Nếu Deploy lại và Google cấp URL mới, chỉ thay đúng chuỗi nằm trong dấu nháy.
 // KHÔNG cần dán URL ở bất kỳ chỗ nào khác trong file index.html.
 // ============================================================================
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpytO6Gp1b9BafoRYGhOhsR4-o7JFp1DY_JVLAU5T5dKl0J3BuCtfTRRywu4iS5cbN/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8f269fLULs56gAWfg8YdRCC5UlfFUld7D1MrwS-k6RT-_MAg2XkVXKl7TJprBlLMH/exec';
 
 // V6: trình duyệt chỉ gọi API cùng domain Vercel. File api/sheet.js sẽ gọi Apps Script.
 const API_PROXY_URL = '/api/sheet';
@@ -977,7 +1016,7 @@ const API_PROXY_URL = '/api/sheet';
 
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const LS={students:'class3d_v70_students',history:'class3d_v70_history',scores:'class3d_v70_scores',bank:'class3d_v70_bank',className:'class3d_v70_class',selection:'class3d_v70_selection'};
-const APP_VERSION='19.0.0';
+const APP_VERSION='20.0.0';
 let students=safeLoad(LS.students,[]).map(normalizeStudent).filter(s=>s.name);
 let historyData=safeLoad(LS.history,[]);
 let scoresData=safeLoad(LS.scores,[]);
@@ -1394,7 +1433,7 @@ function evaluateSpecialAnswer(team,isCorrect,submitted,expected){
   game.attempted[team]=true;
   game.lastChoice={team,i:-1,correct:isCorrect,submitted};
   if(isCorrect){
-    game.locked=true;
+    game.locked=true;recordV20QuestionResult(team,true);
     award(team,true);
     syncTeamPanels();
     if(String(q.type).toUpperCase()==='TF')paintTFReveal();
@@ -1433,22 +1472,21 @@ function paintTFReveal(){
 }
 
 
-function startSelectedGame(){
+async function startSelectedGame(){
   if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
-  enterGamePresentation();
-  startGame($('#gameTypeSelect')?.value||'tug')
+  await openPreflightCheck();
 }
 function startGame(type){
   if(!selectedQuestions.length)return toast('Chưa có câu hỏi phù hợp Môn / Khối / Chương / Bài.');
   if(typeof THREE==='undefined')return toast('Không tải được thư viện 3D. Kiểm tra Internet rồi tải lại trang.');
   stopGameTimer();
-  game={type,a:0,b:0,turn:'A',starter:null,responder:null,attempted:{A:false,B:false},used:[],current:null,locked:false,timeLeft:0,timer:null,lastChoice:null,revealedCorrect:null,maxQuestions:gameQuestionLimit(),finished:false};
+  game={type,a:0,b:0,turn:'A',starter:null,responder:null,attempted:{A:false,B:false},used:[],current:null,locked:false,timeLeft:0,timer:null,lastChoice:null,revealedCorrect:null,maxQuestions:gameQuestionLimit(),finished:false,stats:{A:0,B:0,bothWrong:0,timeTotal:0,answered:0,wrongQuestions:[]},qStartedAt:0,answersVisible:true};
   $('#gameHub').classList.add('hide');$('#gamePlay').classList.remove('hide');$('#winner').classList.remove('show');
   const tug=type==='tug';
   $('#gameTitle').textContent=tug?'KÉO CO 3D':'ĐUA XE 3D';
   $('#gameTitleHead').textContent=tug?'🪢 KÉO CO KIẾN THỨC':'🏎️ ĐUA XE KIẾN THỨC';
   $('#arenaCaption').textContent=tug?'Đúng → cờ dịch chuyển về phía đội ghi điểm':'Đúng → xe tăng tốc về phía đích';
-  updateHud(false);setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());
+  updateHud(false);setTurn('A');game3d?.dispose();game3d=new Game3D($('#gameCanvas'),type);game3d.setProgress(0,0,winScore());loadV20GameAssets(game3d,type);
   setTimeout(()=>{game3d.resize();updateNextQuestionButton();nextQuestion()},220)
 }
 function exitGame(){
@@ -1552,7 +1590,7 @@ function renderDuelQuestion(){
   $('#revealAnswerBtn')?.classList.toggle('hide',!isSpecialAnswerType(q));
   updateHud(false);syncTeamPanels();
   $('#qExplain').innerHTML=type==='TF'?`☑️ <strong>Cả hai đội cùng chọn Đúng/Sai.</strong> Đội gửi sai sẽ mất lượt, đội còn lại tiếp tục.`:type==='SA'?`✍️ <strong>Cả hai đội cùng nhập đáp án.</strong> Đội gửi sai sẽ mất lượt, đội còn lại tiếp tục.`:`⚡ <strong>Cả hai đội cùng được quyền trả lời.</strong> Đội nào chọn sai sẽ bị khóa, đội còn lại tiếp tục trả lời.`;
-  typeset($('#qCentralText'));typeset($('#qCentralFoot'));typeset($('#answersA'));typeset($('#answersB'));typeset($('#qExplain'));startGameTimer()
+  typeset($('#qCentralText'));typeset($('#qCentralFoot'));typeset($('#answersA'));typeset($('#answersB'));typeset($('#qExplain'));prepareQuestionStage()
 }
 function setRespondingTeam(team,reason=''){game.responder=team;syncTeamPanels();if(reason)$('#qExplain').innerHTML=reason;typeset($('#gamePlay'));startGameTimer()}
 function revealCorrect(correct){['A','B'].forEach(team=>{$$('#answers'+team+' .answer').forEach(btn=>{btn.disabled=true;const idx=Number(btn.dataset.i);if(idx===correct)btn.classList.add('correct','revealed')})})}
@@ -1591,7 +1629,7 @@ function finishQuestionSet(){
   if(game.a>game.b){text=`${n.A} CHIẾN THẮNG ${game.a} - ${game.b}!`;game3d?.celebrate('A')}
   else if(game.b>game.a){text=`${n.B} CHIẾN THẮNG ${game.b} - ${game.a}!`;game3d?.celebrate('B')}
   else{text=`HÒA ${game.a} - ${game.b} • HOÀN THÀNH ${game.used.length} CÂU`}
-  $('#winnerText').textContent=text;$('#winner').classList.add('show');showAnswerBanner('good',`<span class="emoji">🏁</span> Hoàn thành ${game.used.length}/${game.maxQuestions} câu`);beep(1040,.28)
+  $('#winnerText').textContent=text;$('#winner').classList.add('show');showAnswerBanner('good',`<span class="emoji">🏁</span> Hoàn thành ${game.used.length}/${game.maxQuestions} câu`);beep(1040,.28);setTimeout(showV20Summary,700)
 }
 function nextQuestion(){
   if(!selectedQuestions.length)return toast('Chưa có câu hỏi đang chọn.');
@@ -1600,7 +1638,7 @@ function nextQuestion(){
   stopGameTimer();game.locked=false;game.finished=false;
   const available=selectedQuestions.map((_,i)=>i).filter(i=>!game.used.includes(i));
   if(!available.length)return finishQuestionSet();
-  const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;game.tfDraft={A:{},B:{}};game.saDraft={A:'',B:''};renderDuelQuestion();updateNextQuestionButton()
+  const idx=available[Math.floor(Math.random()*available.length)];game.used.push(idx);game.current=selectedQuestions[idx];game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;game.tfDraft={A:{},B:{}};game.saDraft={A:'',B:''};game.qStartedAt=performance.now();renderDuelQuestion();updateNextQuestionButton()
 }
 function answerQuestion(team,i){
   if(game.locked||!game.current||!teamCanAnswer(team))return;
@@ -1612,21 +1650,21 @@ function answerQuestion(team,i){
   game.attempted[team]=true;
   const isCorrect=i===correct;game.lastChoice={team,i,correct:isCorrect};
   if(isCorrect){
-    game.locked=true;game.revealedCorrect=correct;markChoice(team,i,'correct');award(team,true);revealCorrect(correct);syncTeamPanels();showAnswerBanner('good',`<span class="emoji">✅</span> ${esc(names()[team])} trả lời đúng! +1 điểm`);$('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác — <strong>+1 điểm</strong>. Tỉ số: <strong>${game.a} - ${game.b}</strong>. ${renderRich(q.explanation||'')}`;beep(880,.18);typeset($('#gamePlay'));updateNextQuestionButton()
+    game.locked=true;game.revealedCorrect=correct;markChoice(team,i,'correct');recordV20QuestionResult(team,true);award(team,true);revealCorrect(correct);syncTeamPanels();showAnswerBanner('good',`<span class="emoji">✅</span> ${esc(names()[team])} trả lời đúng! +1 điểm`);$('#qExplain').innerHTML=`✅ <strong>${esc(names()[team])}</strong> trả lời chính xác — <strong>+1 điểm</strong>. Tỉ số: <strong>${game.a} - ${game.b}</strong>. ${renderRich(q.explanation||'')}`;beep(880,.18);typeset($('#gamePlay'));updateNextQuestionButton()
   }else{
     markChoice(team,i,'wrong');game3d?.wrong();beep(210,.18);const other=team==='A'?'B':'A';
     if(!game.attempted[other]){game.responder=other;syncTeamPanels();showAnswerBanner('bad',`<span class="emoji">❌</span> ${esc(names()[team])} trả lời sai`);$('#qExplain').innerHTML=`❌ <strong>${esc(names()[team])}</strong> trả lời sai và đã mất lượt. Chỉ còn <strong>${esc(names()[other])}</strong> được quyền trả lời.`;startGameTimer()}
-    else{game.locked=true;game.revealedCorrect=correct;revealCorrect(correct);syncTeamPanels();showAnswerBanner('bad',`<span class="emoji">❌</span> Cả hai đội đều sai`);$('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;typeset($('#gamePlay'));updateNextQuestionButton()}
+    else{game.locked=true;game.revealedCorrect=correct;recordV20QuestionResult('',false);revealCorrect(correct);syncTeamPanels();showAnswerBanner('bad',`<span class="emoji">❌</span> Cả hai đội đều sai`);$('#qExplain').innerHTML=`❌ Cả hai đội đều chưa đúng. <strong>Đáp án: ${esc(q.options[correct]?.key||'')}</strong>. ${renderRich(q.explanation||'')}`;typeset($('#gamePlay'));updateNextQuestionButton()}
   }
 }
 function award(team,fromAnswer=false){
   if(game.a>=winScore()||game.b>=winScore())return;
   if(team==='A')game.a=Number(game.a||0)+1;else game.b=Number(game.b||0)+1;
   updateHud(true,team);game3d?.score(team,game.a,game.b,winScore());
-  if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game.locked=true;game.finished=true;stopGameTimer();game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>$('#winner').classList.add('show'),650);beep(1040,.35)}
+  if(game.a>=winScore()||game.b>=winScore()){const winner=game.a>=winScore()?'A':'B';game.locked=true;game.finished=true;stopGameTimer();game3d?.celebrate(winner);$('#winnerText').textContent=names()[winner]+' CHIẾN THẮNG!';setTimeout(()=>{$('#winner').classList.add('show');showV20Summary()},650);beep(1040,.35)}
 }
 function manualPoint(t){award(t,false);syncTeamPanels();$('#qExplain').innerHTML=`➕ Giáo viên cộng thủ công <strong>1 điểm</strong> cho <strong>${esc(names()[t])}</strong>. Tỉ số: <strong>${game.a} - ${game.b}</strong>.`;typeset($('#gamePlay'))}
-function resetGame(){stopGameTimer();game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.finished=false;game.maxQuestions=gameQuestionLimit();game.turn='A';game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;$('#winner').classList.remove('show');$('#answerBanner')?.classList.remove('show');updateHud(false);setTurn('A');game3d?.setProgress(0,0,winScore());updateNextQuestionButton();nextQuestion()}
+function resetGame(){stopGameTimer();game.a=0;game.b=0;game.used=[];game.current=null;game.locked=false;game.finished=false;game.stats={A:0,B:0,bothWrong:0,timeTotal:0,answered:0,wrongQuestions:[]};game.maxQuestions=gameQuestionLimit();game.turn='A';game.starter=null;game.responder=null;game.attempted={A:false,B:false};game.lastChoice=null;game.revealedCorrect=null;$('#winner').classList.remove('show');$('#answerBanner')?.classList.remove('show');updateHud(false);setTurn('A');game3d?.setProgress(0,0,winScore());updateNextQuestionButton();nextQuestion()}
 
 
 class WheelAudio{
@@ -1800,6 +1838,65 @@ async function bootstrap(){
   renderAll();rebuildWheel();
 }
 bootstrap();
+
+
+// ===================== V20 CLEAN CONTROLLER =====================
+const V20={timerPaused:false,timerResumeValue:0,assetsLoaded:false,preflightImages:[],reviewMode:false};
+function closeV20Modal(id){$('#'+id)?.classList.remove('show')}
+function webglAvailable(){try{const c=document.createElement('canvas');return !!(window.WebGLRenderingContext&&(c.getContext('webgl2')||c.getContext('webgl')))}catch{return false}}
+function preloadImage(url,timeout=5500){return new Promise(resolve=>{const img=new Image(),done=ok=>resolve({url,ok});let settled=false;const finish=ok=>{if(settled)return;settled=true;clearTimeout(t);done(ok)};img.onload=()=>finish(true);img.onerror=()=>finish(false);const t=setTimeout(()=>finish(false),timeout);img.src=url})}
+async function preloadSelectedQuestionAssets(){const urls=[...new Set(selectedQuestions.slice(0,gameQuestionLimit()||selectedQuestions.length).flatMap(questionImageUrls))];const rows=await Promise.all(urls.map(u=>preloadImage(u)));V20.preflightImages=rows;return rows}
+function checkRow(icon,title,detail,state='ok'){return `<div class="v20-check ${state}"><span class="icon">${icon}</span><div><b>${esc(title)}</b><div class="muted" style="margin-top:3px">${esc(detail)}</div></div><strong>${state==='ok'?'SẴN SÀNG':state==='warn'?'LƯU Ý':'LỖI'}</strong></div>`}
+async function openPreflightCheck(){
+  const modal=$('#v20Preflight'),list=$('#v20PreflightList'),start=$('#v20PreflightStart');modal.classList.add('show');start.disabled=true;list.innerHTML=checkRow('⏳','Đang kiểm tra','Đang preload ảnh và kiểm tra thiết bị...','warn');
+  const imgs=await preloadSelectedQuestionAssets(),bad=imgs.filter(x=>!x.ok),mathOk=!!window.MathJax,glOk=webglAvailable(),audioOk=!!(window.AudioContext||window.webkitAudioContext),count=gameQuestionLimit();
+  const rows=[];rows.push(checkRow('✓',`${count} câu hỏi`,`Đã chọn ${count}/${selectedQuestions.length} câu phù hợp bộ lọc.`,'ok'));
+  rows.push(checkRow(bad.length?'⚠':'✓','Ảnh / biểu đồ',imgs.length?`${imgs.length-bad.length}/${imgs.length} ảnh tải được${bad.length?` • ${bad.length} ảnh lỗi`:''}`:'Bộ câu hiện tại không có ảnh.',bad.length?'warn':'ok'));
+  rows.push(checkRow(mathOk?'✓':'✕','MathJax',mathOk?'Đã nạp trình hiển thị công thức.':'Chưa sẵn sàng.',''+(mathOk?'ok':'bad')));
+  rows.push(checkRow(glOk?'✓':'✕','WebGL 3D',glOk?'Trình duyệt hỗ trợ WebGL.':'Không có WebGL, game 3D không thể chạy.',glOk?'ok':'bad'));
+  rows.push(checkRow(audioOk?'✓':'⚠','Âm thanh',audioOk?'Web Audio sẵn sàng.':'Trình duyệt không hỗ trợ Web Audio.',''+(audioOk?'ok':'warn')));
+  rows.push(checkRow('📺','Màn hình',`${screen.width}×${screen.height} • tỉ lệ ${(innerWidth/Math.max(innerHeight,1)).toFixed(2)} • ${innerWidth>=1280?'phù hợp trình chiếu':'nên dùng màn hình lớn hơn'}`,innerWidth>=1280?'ok':'warn'));
+  list.innerHTML=rows.join('');start.disabled=!glOk;start.onclick=()=>{closeV20Modal('v20Preflight');enterGamePresentation();startGame($('#gameTypeSelect')?.value||'tug')};
+}
+function prepareQuestionStage(){game.answersVisible=!!$('#autoRevealAnswers')?.checked;document.body.classList.toggle('v20-hide-answers',!game.answersVisible);const b=$('#showChoicesBtn');if(b){b.textContent=game.answersVisible?'⏱ ĐÁP ÁN ĐÃ HIỆN':'👁 HIỆN ĐÁP ÁN';b.disabled=game.answersVisible}if(game.answersVisible)startGameTimer();else{stopGameTimer();game.timeLeft=gameTimeLimit();paintGameTimer()}}
+function revealGameAnswers(){if(!game.current)return;game.answersVisible=true;document.body.classList.remove('v20-hide-answers');const b=$('#showChoicesBtn');if(b){b.textContent='⏱ ĐÁP ÁN ĐÃ HIỆN';b.disabled=true}startGameTimer();beep(640,.08)}
+function toggleQuestionFocus(){document.body.classList.toggle('v20-focus-question');resizeActive3D(180)}
+function toggleArenaVisibility(){document.body.classList.toggle('v20-hide-arena');resizeActive3D(180)}
+function toggleBlackScreen(){const z=$('#v20BlackScreen');z?.classList.toggle('show')}
+function zoomCurrentQuestionImage(){const img=$('#qCentralMedia img');if(img?.src)openQuestionImage(img.src);else toast('Câu hiện tại không có hình / biểu đồ.')}
+function plainQuestionForSpeech(){return stripUrls(game.current?.question||'').replace(/\$\$[\s\S]*?\$\$|\$[^$]*\$|\\\([\s\S]*?\\\)|\\\[[\s\S]*?\\\]/g,' biểu thức toán ').replace(/\\[a-zA-Z]+/g,' ')}
+function speakCurrentQuestion(){if(!('speechSynthesis'in window)||!game.current)return toast('Trình duyệt không hỗ trợ đọc câu hỏi.');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(plainQuestionForSpeech());u.lang='vi-VN';u.rate=.92;speechSynthesis.speak(u)}
+function toggleGameTimerPause(){if(!game.current||!game.answersVisible)return toast('Hãy hiện đáp án trước khi chạy đồng hồ.');if(game.timer){V20.timerPaused=true;V20.timerResumeValue=game.timeLeft;stopGameTimer();toast('Đã tạm dừng đồng hồ.')}else{V20.timerPaused=false;const keep=game.timeLeft;if(keep>0){stopGameTimer();game.timer=setInterval(()=>{game.timeLeft--;paintGameTimer();if(game.timeLeft<=5&&game.timeLeft>0)beep(510,.045);if(game.timeLeft<=0){stopGameTimer();timeOutCurrentTeam()}},1000);toast('Đồng hồ tiếp tục.')}}}
+function resetGameTimer(){if(!game.current)return;stopGameTimer();game.timeLeft=gameTimeLimit();paintGameTimer();if(game.answersVisible)startGameTimer()}
+const _v20PaintTimer=paintGameTimer;paintGameTimer=function(){_v20PaintTimer();const box=$('#gameTimerBox');if(!box)return;box.classList.toggle('warning',game.timeLeft<=5&&game.timeLeft>=4);box.classList.toggle('critical',game.timeLeft===3||game.timeLeft===2);box.classList.toggle('danger',game.timeLeft<=1&&gameTimeLimit()>0)};
+function recordV20QuestionResult(team,correct){if(!game.stats)return;const secs=game.qStartedAt?Math.max(0,(performance.now()-game.qStartedAt)/1000):0;game.stats.timeTotal+=secs;game.stats.answered++;if(correct&&team)game.stats[team]=(game.stats[team]||0)+1;else{game.stats.bothWrong++;if(game.current&&!game.stats.wrongQuestions.some(q=>q.id===game.current.id))game.stats.wrongQuestions.push(game.current)}}
+function showV20Summary(){if(!game?.stats)return;const n=names(),winner=game.a===game.b?'HÒA':game.a>game.b?n.A:n.B;$('#v20SummaryTitle').textContent=game.a===game.b?'🤝 TRẬN ĐẤU HÒA':`🏆 ${winner} CHIẾN THẮNG`;$('#v20SummaryScore').textContent=`${n.A} ${game.a} - ${game.b} ${n.B}`;const avg=game.stats.answered?game.stats.timeTotal/game.stats.answered:0;$('#v20SummaryStats').innerHTML=`<div class="v20-summary-stat"><b>${game.used.length}</b><span>CÂU ĐÃ CHƠI</span></div><div class="v20-summary-stat"><b>${game.stats.A}</b><span>${esc(n.A)} ĐÚNG</span></div><div class="v20-summary-stat"><b>${game.stats.B}</b><span>${esc(n.B)} ĐÚNG</span></div><div class="v20-summary-stat"><b>${avg.toFixed(1)}s</b><span>THỜI GIAN TB</span></div>`;renderWrongReview();$('#v20Summary').classList.add('show')}
+function renderWrongReview(){const box=$('#v20WrongReview'),arr=game.stats?.wrongQuestions||[];box.innerHTML=arr.length?arr.map((q,i)=>`<div class="v20-wrong-item"><b>${i+1}. ${esc(stripUrls(q.question).slice(0,220))}</b><div class="muted" style="margin-top:5px">Đáp án: ${answerSummaryHtml(q)}</div></div>`).join(''):'<div class="v20-wrong-item">Không có câu nào được ghi nhận là cả hai đội đều sai.</div>'}
+function reviewWrongQuestions(){const box=$('#v20WrongReview');renderWrongReview();box.classList.toggle('show')}
+async function loadV20GameAssets(instance,type){
+  // V20 ưu tiên GLB/PBR nếu các model tồn tại; nếu không, giữ nguyên đồ họa fallback hiện tại.
+  try{
+    const mod=await import('https://cdn.jsdelivr.net/npm/three@0.152.2/examples/jsm/loaders/GLTFLoader.js/+esm');const loader=new mod.GLTFLoader();
+    const load=url=>new Promise((res,rej)=>loader.load(url,res,undefined,rej));
+    if(type==='race'){
+      const [a,b]=await Promise.all([load('./assets/models/kart_blue.glb'),load('./assets/models/kart_red.glb')]);
+      if(instance.disposed)return;instance.carA.visible=false;instance.carB.visible=false;a.scene.scale.setScalar(1.25);b.scene.scale.setScalar(1.25);a.scene.position.copy(instance.carA.position);b.scene.position.copy(instance.carB.position);a.scene.rotation.y=Math.PI/2;b.scene.rotation.y=Math.PI/2;instance.scene.add(a.scene,b.scene);instance.v20CarModels={A:a.scene,B:b.scene};V20.assetsLoaded=true;
+    }else{
+      const [a,b]=await Promise.all([load('./assets/models/tug_team_blue.glb'),load('./assets/models/tug_team_red.glb')]);
+      if(instance.disposed)return;instance.teamAGroup.visible=false;instance.teamBGroup.visible=false;a.scene.position.set(-4.2,0,0);b.scene.position.set(4.2,0,0);b.scene.rotation.y=Math.PI;instance.scene.add(a.scene,b.scene);instance.v20TugModels={A:a.scene,B:b.scene};V20.assetsLoaded=true;
+    }
+  }catch(_){/* model tùy chọn: fallback luôn hoạt động */}
+}
+// Camera Director nhẹ: chỉ push-in lúc ghi điểm, không quay liên tục.
+const _v20Score=Game3D.prototype.score;Game3D.prototype.score=function(team,a,b,win){_v20Score.call(this,team,a,b,win);if(!this.v20BaseCamera)this.v20BaseCamera=this.camera.position.clone();const base=this.v20BaseCamera.clone();this.camera.position.z=base.z*.92;this.camera.position.y=base.y*.96;setTimeout(()=>{if(this.disposed)return;this.camera.position.lerp(base,.75)},520)};
+const _v20Animate=Game3D.prototype.animate; // model GLB theo tiến độ fallback
+// Đồng bộ model race GLB với xe fallback mỗi frame bằng vòng lặp nhẹ.
+setInterval(()=>{if(!game3d||game3d.disposed)return;if(game3d.v20CarModels){game3d.v20CarModels.A.position.copy(game3d.carA.position);game3d.v20CarModels.B.position.copy(game3d.carB.position)}if(game3d.v20TugModels){game3d.v20TugModels.A.position.x=-4.2+(game3d.teamAGroup?.position.x||0);game3d.v20TugModels.B.position.x=4.2+(game3d.teamBGroup?.position.x||0)}},50);
+// Presenter keyboard
+window.addEventListener('keydown',e=>{const tag=(document.activeElement?.tagName||'').toLowerCase();if(['input','textarea','select'].includes(tag))return;if(e.key==='b'||e.key==='B'){e.preventDefault();toggleBlackScreen()}if(!$('#games')?.classList.contains('active')||$('#gamePlay')?.classList.contains('hide'))return;if(e.key==='z'||e.key==='Z'){e.preventDefault();zoomCurrentQuestionImage()}if(e.key==='m'||e.key==='M'){const s=$('#soundMode');if(s){s.checked=!s.checked;toast(s.checked?'Đã bật hiệu ứng âm thanh.':'Đã tắt hiệu ứng âm thanh.')}}if(e.key==='r'||e.key==='R'){e.preventDefault();resetGameTimer()}if(e.key==='a'||e.key==='A'){e.preventDefault();manualPoint('A')}if(e.key==='d'||e.key==='D'){e.preventDefault();manualPoint('B')}if(e.key==='Enter'){e.preventDefault();toggleGameTimerPause()}if(e.code==='Space'){e.preventDefault();if(!game.answersVisible)revealGameAnswers();else nextQuestion()}});
+// Service worker offline app shell (không chặn nếu chạy local/file://)
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+
 </script>
 </body>
 </html>

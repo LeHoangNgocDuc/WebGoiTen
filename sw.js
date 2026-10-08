@@ -1,4 +1,4 @@
-const CACHE='classroom-v20-clean-1';
+const CACHE='classroom-v20-1-tv-audio-1';
 const APP_SHELL=['./','./index.html'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).catch(()=>{})));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));

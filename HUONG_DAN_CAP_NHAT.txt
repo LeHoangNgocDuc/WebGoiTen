@@ -1,0 +1,9 @@
+CẬP NHẬT V20.1 TV + AUDIO
+
+1. Upload index.html mới.
+2. Upload sw.js mới để xóa cache V20 cũ.
+3. Giữ nguyên api/ và assets/.
+4. Code.gs V20.1 là tùy chọn vì dữ liệu Sheet không đổi.
+5. Deploy/push và nhấn Ctrl+F5.
+
+Điểm mới: fullscreen câu hỏi lớn hơn; đáp án nhỏ hơn; game 3D nhỏ hơn; âm thanh đúng/sai/timer/chiến thắng; lời giải chỉ hiện khi giáo viên bấm HIỆN GIẢI THÍCH.

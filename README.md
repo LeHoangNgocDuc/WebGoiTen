@@ -1,39 +1,58 @@
-# LỚP HỌC TƯƠNG TÁC TOÁN & TIN – V20 CLEAN
+# LỚP HỌC TƯƠNG TÁC TOÁN & TIN – V20.1 TV + AUDIO
 
-## Mục tiêu V20
-V20 chuyển giao diện sang TV-first: câu hỏi, hình/biểu đồ và đáp án là nội dung chính; sân 3D chỉ đóng vai trò tạo cảm xúc. Frontend vẫn tương thích ngân hàng câu hỏi MC / TF / SA và cấu trúc Google Sheet của V19.
+## Thay đổi trọng tâm
+V20.1 giữ nguyên dữ liệu và cách đọc ngân hàng câu hỏi MC / TF / SA của V20, nhưng thiết kế lại chế độ trình chiếu toàn màn hình theo nguyên tắc **câu hỏi là nội dung chính**.
 
-## Chức năng mới chính
-- Smart Font theo độ dài câu hỏi; đáp án vẫn tự co theo vùng riêng.
-- Smart Image Fit: nền trắng, không crop, click ảnh hoặc phím `Z` để phóng toàn màn hình.
-- Quy trình: hiện câu hỏi → hiện đáp án → chạy timer → chấm / giải thích. Có tùy chọn tự động hiện đáp án.
-- Presenter controls: Tập trung câu hỏi, Ẩn/Hiện 3D, Hình toàn màn hình, Đọc câu hỏi, Màn đen, Pause/Resume timer, Reset timer.
-- Phím tắt: `Space` hiện đáp án/câu tiếp, `Enter` pause/resume timer, `F` fullscreen, `Z` zoom ảnh, `M` mute, `B` black screen, `R` reset timer, `A/D` cộng điểm đội A/B, `Esc` thoát trình chiếu/zoom.
-- Preflight trước trận: kiểm tra số câu, preload ảnh, MathJax, WebGL, âm thanh và kích thước màn hình.
-- Dashboard cuối trận: tỉ số, số câu, số câu đúng từng đội, thời gian trả lời trung bình, danh sách câu cần ôn.
-- Offline app-shell bằng `sw.js`; dữ liệu câu hỏi/học sinh/điểm vẫn dùng localStorage khi đã tải.
-- GLB/PBR tùy chọn: nếu có model trong `assets/models/`, V20 tự tải; nếu thiếu model thì game fallback hiện tại vẫn chạy.
+### Fullscreen mới
+- HUD điểm + timer gọn ở trên cùng.
+- Câu hỏi tự chiếm phần lớn chiều cao còn lại; câu ngắn có thể đạt khoảng 72–96 px trên TV Full HD.
+- Khi có hình/biểu đồ: hình và câu hỏi chia khoảng 56/44 trong vùng câu hỏi; ảnh luôn `object-fit: contain`, không crop.
+- Khu vực trả lời hai đội thu nhỏ xuống phía dưới; đáp án MC tự giảm font riêng theo độ dài từng đáp án.
+- Sân 3D nằm giữa hai bảng trả lời và nhỏ hơn trước; HUD trùng lặp trong sân được ẩn khi fullscreen.
+- Dòng hướng dẫn dài của hai đội được ẩn trong fullscreen để nhường diện tích.
+- Màn chiến thắng chuyển thành overlay toàn màn hình.
 
-## Model GLB tùy chọn
-Đặt các file sau nếu muốn thay fallback bằng model 3D PBR:
+### Quy trình phản hồi
+1. Học sinh trả lời.
+2. Web báo **ĐÚNG / SAI** và chạy animation/âm thanh.
+3. Đúng: cộng điểm + animation kéo co/boost xe.
+4. Sai: chuyển quyền cho đội còn lại nếu còn lượt.
+5. **Không tự bung lời giải.** Giáo viên bấm `💡 HIỆN GIẢI THÍCH` khi muốn chữa bài.
 
+### Hệ thống âm thanh mới
+Âm thanh được tổng hợp trực tiếp bằng Web Audio, không bắt buộc tải file MP3:
+- Hiện câu hỏi: whoosh nhẹ.
+- Đúng: chime + impact; Kéo co thêm rope/impact, Đua xe thêm engine/boost.
+- Sai: low bump nhẹ.
+- Chuyển quyền: swoosh ngắn.
+- 5 giây cuối: tick; 3 giây cuối tick mạnh hơn.
+- Hết giờ: buzzer.
+- Chiến thắng: fanfare + crowd/noise layer + hiệu ứng riêng theo game.
+
+Trong `Cài đặt > Âm thanh trò chơi V20.1` có:
+- âm lượng tổng;
+- hiệu ứng;
+- nhạc/chiến thắng;
+- bật/tắt riêng âm thanh đúng, sai, timer, game 3D và chiến thắng;
+- nút nghe thử.
+
+### Chế độ TẬP TRUNG
+Khi bật `🔎 TẬP TRUNG`, sân game mờ, animation 3D tạm dừng và âm thanh game bị duck xuống rất thấp; câu hỏi phóng lớn.
+
+## Cập nhật web
+1. Sao lưu `index.html` đang chạy.
+2. Thay bằng `index.html` trong gói này.
+3. Thay `sw.js` để cache cũ V20 bị loại bỏ.
+4. `Code.gs` chỉ đổi version thành 20.1.0; cấu trúc Sheet không đổi. Nếu backend hiện tại V20 đang ổn, có thể giữ nguyên Code.gs cũ.
+5. Giữ nguyên thư mục `api/` và `assets/` hiện có.
+6. Push GitHub/Vercel, chờ deploy hoàn tất rồi nhấn `Ctrl + F5`.
+
+## Model 3D tùy chọn
+Vẫn hỗ trợ:
 ```text
 assets/models/kart_blue.glb
 assets/models/kart_red.glb
 assets/models/tug_team_blue.glb
 assets/models/tug_team_red.glb
 ```
-
-## Cập nhật
-1. Đổi tên `index_v20_clean.html` thành `index.html` khi upload lên GitHub/Vercel.
-2. Thay `Code.gs` bằng `Code_v20.gs` nếu muốn backend báo version 20.0.0; cấu trúc Sheet không đổi.
-3. Upload thêm `sw.js` ở cùng cấp với `index.html`.
-4. Giữ thư mục `api/` và `assets/` hiện có.
-5. Nếu dùng model GLB, thêm các file vào `assets/models/` theo tên ở trên.
-6. Apps Script: Deploy > Manage deployments > Edit > New version > Deploy.
-7. Vercel/GitHub: push code, chờ deploy, sau đó `Ctrl + F5`.
-
-## Lưu ý
-- `sw.js` không cache `/api/*`; API luôn ưu tiên dữ liệu mới từ mạng.
-- Text-to-Speech bỏ qua phần lớn biểu thức LaTeX để tránh đọc sai công thức.
-- Model GLB là tùy chọn. Không có model, V20 vẫn dùng đồ họa Three.js/ảnh kéo co hiện tại.
+Nếu không có GLB, đồ họa fallback hiện tại vẫn chạy.

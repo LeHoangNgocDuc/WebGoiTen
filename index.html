@@ -354,6 +354,7 @@
     .tv-timer small { display: block; font-size: 10px; color: #b5cae2; font-weight: 900; text-transform: uppercase; }
     .tv-timer b { font-size: 36px; color: #fff; }
 
+    /* THANH TIẾN ĐỘ KÉO CO / ĐUA XE TRỰC QUAN */
     .arena-progress-bar {
       position: relative; height: 22px; border-radius: 999px; overflow: hidden;
       background: linear-gradient(90deg, rgba(28, 174, 232, .35) 0%, rgba(15, 35, 60, .9) 50%, rgba(230, 61, 99, .35) 100%);
@@ -421,7 +422,7 @@
     .game-bottom-actions .next-question-btn { flex: 1; font-size: 20px; padding: 13px; }
     .v20-presenter-bar { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; padding: 6px; border-radius: 13px; background: rgba(7,20,38,.76); }
 
-    /* CHẾ ĐỘ TRÌNH CHIẾU TV TOÀN MÀN HÌNH */
+    /* CHẾ ĐỘ TRÌNH CHIẾU TV TOÀN MÀN HÌNH (ẨN CÔNG CỤ QUẢN TRỊ) */
     body.wheel-presentation, body.game-presentation { width: 100dvw; height: 100dvh; overflow: hidden !important; }
     body.wheel-presentation .topbar, body.game-presentation .topbar { display: none !important; }
     body.wheel-presentation .wrap, body.game-presentation .wrap { padding: 6px !important; height: 100dvh; }
@@ -443,6 +444,14 @@
     body.wheel-presentation .tv-floating-controls,
     body.game-presentation .tv-floating-controls,
     .oral-modal.show ~ .tv-floating-controls { display: flex; }
+
+    body.game-presentation #gamePlay {
+      height: calc(100dvh - 12px);
+      display: grid; grid-template-rows: 52px 20px minmax(0, 1fr) minmax(220px, 30dvh) 40px 44px; gap: 5px;
+    }
+    body.game-presentation .central-question { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+    body.game-presentation .central-question-body { flex: 1; min-height: 0; height: 100%; }
+    body.game-presentation .v20-presenter-bar, body.game-presentation .dual-ready-strip { display: none !important; }
 
     /* SPECIAL TF / SA PANELS */
     .special-answer-panel { display: flex; flex-direction: column; gap: 8px; height: 100%; }
@@ -544,6 +553,7 @@
         <div class="wheel-pointer"></div>
         <div class="wheel-wrap"><canvas id="wheelCanvas"></canvas></div>
 
+        <!-- OVERLAY KẾT QUẢ GỌI TÊN NỔI BẬT TRÊN TV (72-110PX) -->
         <div id="tvWinnerSpotlight" class="tv-winner-spotlight">
           <div id="tvWinnerClass" class="tv-winner-class">LỚP — • LẦN GỌI #1</div>
           <div id="tvWinnerName" class="tv-winner-name">HỌ VÀ TÊN HỌC SINH</div>
@@ -598,6 +608,7 @@
             <div id="studentStatus" class="data-status">Chưa nạp dữ liệu.</div>
           </div>
 
+          <!-- CHẤM ĐIỂM LẦN GỌI HIỆN TẠI -->
           <div id="scoreSession" class="score-session">
             <div class="row space">
               <h3 style="margin:0">📝 Chấm điểm học sinh</h3>
@@ -845,9 +856,9 @@
     <div class="grid">
       <div class="card span7">
         <h2>🔌 Kiểm tra Kết nối Google Sheets & Proxy Vercel</h2>
-        <p class="muted">Kiến trúc chuẩn V21: <b>Trình duyệt → /api/sheet (hoặc Link Code.gs trực tiếp) → Google Sheets</b>. Dữ liệu điểm số được bảo vệ qua hàng đợi IndexedDB, không mất khi rớt mạng.</p>
-        <label>Đường dẫn Proxy hoặc Link Web App (Code.gs .../exec)</label>
-        <input id="apiUrl" class="input" value="/api/sheet">
+        <p class="muted">Kiến trúc chuẩn V21: <b>Trình duyệt → /api/sheet (Vercel Proxy) → Google Apps Script → Google Sheets</b>. Dữ liệu điểm số được bảo vệ qua hàng đợi IndexedDB, không mất khi rớt mạng.</p>
+        <label>Đường dẫn Proxy đang sử dụng</label>
+        <input id="apiUrl" class="input" value="/api/sheet" readonly>
         <label>Mã xác thực giáo viên (Tùy chọn - nếu cấu hình TEACHER_PASSCODE trên Vercel)</label>
         <input id="teacherPasscodeInput" class="input" type="password" placeholder="Để trống nếu không đặt mật khẩu trên Vercel" onchange="saveTeacherPasscode(this.value)">
         <div class="row" style="margin-top:12px">
@@ -878,7 +889,7 @@
           • <b>Space</b>: Quay gọi tên / Hiện đáp án / Tạm dừng đồng hồ<br>
           • <b>N</b>: Câu hỏi tiếp theo • <b>R</b>: Gọi học sinh tiếp theo<br>
           • <b>A / B / C / D</b>: Chọn đáp án trắc nghiệm<br>
-          • <b>E</b>: Hiện/ẩn Đáp án & Giải thích • <b>F</b>: Toàn màn hình TV • <b>ESC</b>: Thoát
+          • <b>E</b>: Hiện/ẩn lời giải thích • <b>F</b>: Toàn màn hình TV • <b>ESC</b>: Thoát
         </div>
       </div>
     </div>
@@ -989,11 +1000,11 @@
 'use strict';
 
 // ============================================================================
-// CẤU HÌNH KẾT NỐI API PROXY V21 & GOOGLE SHEETS
+// CẤU HÌNH KẾT NỐI API PROXY V21
+// Trình duyệt chỉ gọi về /api/sheet trên cùng tên miền Vercel.
 // ============================================================================
 const API_PROXY_URL = '/api/sheet';
 const APP_VERSION = '21.0.0';
-const DEFAULT_GOOGLE_SHEET_ID = '1nPqpN1sWkGzT4_0UW31biD8SMJdTRQsn9p1-ZSY47Pc';
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -1008,8 +1019,7 @@ const LS = {
   tvScale: 'class3d_v21_tv_scale',
   quality: 'class3d_v21_quality',
   passcode: 'class3d_v21_passcode',
-  lastSync: 'class3d_v21_last_sync',
-  apiUrl: 'class3d_v21_api_url'
+  lastSync: 'class3d_v21_last_sync'
 };
 
 let GRAPHICS_QUALITY = localStorage.getItem(LS.quality) || 'balanced';
@@ -1136,7 +1146,7 @@ const ClassroomDB = {
 };
 
 // ============================================================================
-// MẠNG, TIMEOUT, RETRY EXPONENTIAL BACKOFF & HỖ TRỢ LINK CODE.GS TRỰC TIẾP
+// MẠNG, TIMEOUT, RETRY EXPONENTIAL BACKOFF & ĐỒNG BỘ HÀNG ĐỢI
 // ============================================================================
 function saveTeacherPasscode(v) { localStorage.setItem(LS.passcode, String(v || '').trim()); }
 function getHeaders() {
@@ -1144,77 +1154,6 @@ function getHeaders() {
   const pass = localStorage.getItem(LS.passcode) || '';
   if (pass) h['X-Classroom-Passcode'] = pass;
   return h;
-}
-
-function getConfiguredApiUrl() {
-  const saved = String(localStorage.getItem(LS.apiUrl) || '').trim();
-  const inputVal = String($('#apiUrl')?.value || '').trim();
-  return saved || inputVal || API_PROXY_URL;
-}
-
-function saveApiUrl(val, testNow = false) {
-  let clean = String(val || '').trim();
-  if (!clean) clean = API_PROXY_URL;
-  if (clean.includes('docs.google.com/spreadsheets')) {
-    toast('⚠️ Bạn vừa dán link Google Sheet. Để lưu điểm 2 chiều, hãy dán link Web App (.../exec) từ Code.gs!');
-  }
-  localStorage.setItem(LS.apiUrl, clean);
-  if ($('#apiUrl')) $('#apiUrl').value = clean;
-  if (testNow) testApi();
-  else toast('Đã lưu đường dẫn kết nối: ' + clean);
-}
-
-function unlockApiUrlInputUI() {
-  const inp = $('#apiUrl');
-  if (!inp) return;
-  inp.removeAttribute('readonly');
-  inp.placeholder = 'Dán link https://script.google.com/macros/s/.../exec hoặc để /api/sheet';
-  const saved = localStorage.getItem(LS.apiUrl);
-  if (saved) inp.value = saved;
-  inp.addEventListener('change', () => saveApiUrl(inp.value, false));
-
-  if (!$('#saveApiUrlBtn')) {
-    const wrap = document.createElement('div');
-    wrap.className = 'row';
-    wrap.style.marginTop = '8px';
-    wrap.innerHTML = `
-      <button id="saveApiUrlBtn" class="btn primary sm" onclick="saveApiUrl(document.getElementById('apiUrl').value, true)">💾 Lưu Link Web App & Kết nối ngay</button>
-      <button class="btn ghost sm" onclick="saveApiUrl('/api/sheet', false)">↺ Đặt về /api/sheet</button>
-    `;
-    inp.insertAdjacentElement('afterend', wrap);
-  }
-}
-
-function jsonpRequest(url, timeoutMs = 14000) {
-  return new Promise((resolve, reject) => {
-    const cbName = '__gasJsonp_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
-    const script = document.createElement('script');
-    const timer = setTimeout(() => {
-      cleanup();
-      reject(new Error('Quá thời gian chờ phản hồi từ Google Apps Script (JSONP).'));
-    }, timeoutMs);
-
-    function cleanup() {
-      clearTimeout(timer);
-      try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
-      if (script.parentNode) script.parentNode.removeChild(script);
-    }
-
-    window[cbName] = data => {
-      cleanup();
-      if (data && data.ok === false) reject(new Error(data.error || 'Lỗi từ Apps Script.'));
-      else resolve(data);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      reject(new Error('Không thể kết nối tới link Google Apps Script. Hãy kiểm tra quyền Anyone khi Deploy.'));
-    };
-
-    const sep = url.includes('?') ? '&' : '?';
-    script.src = `${url}${sep}callback=${cbName}`;
-    document.head.appendChild(script);
-  });
 }
 
 async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 14000) {
@@ -1247,43 +1186,15 @@ async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 14000)
 }
 
 async function apiGet(action, params = {}) {
-  const targetUrl = getConfiguredApiUrl();
-  const secret = localStorage.getItem(LS.passcode) || '';
-  const q = new URLSearchParams({ action, _: Date.now().toString(), ...(secret ? { secret } : {}), ...params });
-  const fullUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}${q.toString()}`;
-
-  if (targetUrl.includes('script.google.com')) {
-    try {
-      const res = await fetch(fullUrl, { method: 'GET', redirect: 'follow', cache: 'no-store' });
-      const txt = await res.text();
-      const data = JSON.parse(txt);
-      if (data?.ok === false) throw new Error(data.error || 'Lỗi Apps Script');
-      return data;
-    } catch (_) {
-      return await jsonpRequest(fullUrl);
-    }
-  }
-  return await fetchWithRetry(fullUrl, { method: 'GET', headers: getHeaders() }, 2, 14000);
+  const q = new URLSearchParams({ action, _: Date.now().toString(), ...params });
+  return await fetchWithRetry(`${API_PROXY_URL}?${q.toString()}`, { method: 'GET', headers: getHeaders() }, 2, 14000);
 }
 
 async function apiPostDirect(payload, retries = 2) {
-  const targetUrl = getConfiguredApiUrl();
-  const secret = localStorage.getItem(LS.passcode) || '';
-  const bodyObj = secret ? { ...payload, secret } : payload;
-
-  if (targetUrl.includes('script.google.com')) {
-    return await fetchWithRetry(targetUrl, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(bodyObj)
-    }, retries, 16000);
-  }
-
-  return await fetchWithRetry(targetUrl, {
+  return await fetchWithRetry(API_PROXY_URL, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify(bodyObj)
+    body: JSON.stringify(payload)
   }, retries, 16000);
 }
 
@@ -1560,6 +1471,7 @@ async function callRandomStudent() {
     if (!wheel3d) rebuildWheel();
     wheel3d.setStudents(pool);
 
+    // Thuật toán chọn học sinh độc lập hoàn toàn với hiệu ứng đồ họa
     const chosenIndex = chooseRandomStudentIndependent(pool);
     const chosenStudent = pool[chosenIndex];
 
@@ -1727,7 +1639,7 @@ function recordHistoryEntry(x) {
 }
 
 // ============================================================================
-// MÀN HÌNH KIỂM TRA BÀI CŨ 1-1 TRÊN TV
+// MÀN HÌNH KIỂM TRA BÀI CŨ 1-1 TRÊN TV (QUY TRÌNH DẠY HỌC LIỀN MẠCH)
 // ============================================================================
 function openOralCheckForCurrent() {
   hideWinnerSpotlight();
@@ -2177,6 +2089,172 @@ function mergeStudentsFromSheet(remoteList) {
   }).filter(s => s.name);
 }
 
+async function loadStudentsFromSheet(silent = false) {
+  if (loadingStudents) return false;
+  loadingStudents = true;
+  try {
+    let d = null;
+    try {
+      d = await apiGet('students', { nocache: '1' });
+    } catch (apiErr) {
+      // Dự phòng: đọc trực tiếp từ Google Sheet của lớp nếu chưa gắn link Web App
+      d = await fallbackReadStudentsFromPublicSheet();
+      if (!d || !Array.isArray(d.students)) throw apiErr;
+    }
+
+    if (Array.isArray(d.students) && d.students.length) {
+      mergeStudentsFromSheet(d.students);
+      localStorage.setItem(LS.lastSync, new Date().toISOString());
+      try {
+        const sc = await apiGet('scores');
+        if (Array.isArray(sc.scores)) scoresData = sc.scores;
+      } catch (_) {}
+      saveLocal();
+      populateClasses(currentClass());
+      renderAll();
+      rebuildWheel();
+      if (!silent) toast(`Đã đồng bộ ${students.length} học sinh từ Google Sheet!`);
+      return true;
+    } else {
+      if (!silent) toast('Sheet Students hiện đang trống. Hãy nhập danh sách học sinh.');
+      renderAll();
+      rebuildWheel();
+      return false;
+    }
+  } catch (err) {
+    if (!silent) toast('Lỗi tải dữ liệu: ' + (err.message || err));
+    const st = $('#studentStatus');
+    if (st) {
+      st.className = 'data-status err';
+      st.innerHTML = `Không lấy được dữ liệu (${esc(err.message || err)}). <button class="btn gold sm" style="margin-left:6px" onclick="go('settings');setTimeout(()=>$('#apiUrl')?.focus(),100)">⚙️ Dán link Code.gs</button>`;
+    }
+    return false;
+  } finally {
+    loadingStudents = false;
+  }
+}
+
+// ============================================================================
+// MỞ KHÓA Ô NHẬP LINK WEB APP (CODE.GS) & HỖ TRỢ KẾT NỐI TRỰC TIẾP + DỰ PHÒNG
+// ============================================================================
+const DEFAULT_GOOGLE_SHEET_ID = '1nPqpN1sWkGzT4_0UW31biD8SMJdTRQsn9p1-ZSY47Pc';
+LS.apiUrl = 'class3d_v21_api_url';
+
+function getConfiguredApiUrl() {
+  const saved = String(localStorage.getItem(LS.apiUrl) || '').trim();
+  const inputVal = String($('#apiUrl')?.value || '').trim();
+  return saved || inputVal || API_PROXY_URL;
+}
+
+function saveApiUrl(val, testNow = false) {
+  let clean = String(val || '').trim();
+  if (!clean) clean = API_PROXY_URL;
+  if (clean.includes('docs.google.com/spreadsheets')) {
+    toast('⚠️ Bạn vừa dán link Google Sheet. Để lưu điểm 2 chiều, hãy dán link Web App (.../exec) từ Code.gs!');
+  }
+  localStorage.setItem(LS.apiUrl, clean);
+  if ($('#apiUrl')) $('#apiUrl').value = clean;
+  if (testNow) testApi();
+  else toast('Đã lưu đường dẫn kết nối: ' + clean);
+}
+
+function unlockApiUrlInputUI() {
+  const inp = $('#apiUrl');
+  if (!inp) return;
+  inp.removeAttribute('readonly');
+  inp.placeholder = 'Dán link https://script.google.com/macros/s/.../exec hoặc để /api/sheet';
+  const saved = localStorage.getItem(LS.apiUrl);
+  if (saved) inp.value = saved;
+  inp.addEventListener('change', () => saveApiUrl(inp.value, false));
+
+  if (!$('#saveApiUrlBtn')) {
+    const wrap = document.createElement('div');
+    wrap.className = 'row';
+    wrap.style.marginTop = '8px';
+    wrap.innerHTML = `
+      <button id="saveApiUrlBtn" class="btn primary sm" onclick="saveApiUrl(document.getElementById('apiUrl').value, true)">💾 Lưu Link Web App & Kết nối ngay</button>
+      <button class="btn ghost sm" onclick="saveApiUrl('/api/sheet', false)">↺ Đặt về /api/sheet</button>
+    `;
+    inp.insertAdjacentElement('afterend', wrap);
+  }
+}
+
+function jsonpRequest(url, timeoutMs = 14000) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__gasJsonp_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Quá thời gian chờ phản hồi từ Google Apps Script (JSONP).'));
+    }, timeoutMs);
+
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = data => {
+      cleanup();
+      if (data && data.ok === false) reject(new Error(data.error || 'Lỗi từ Apps Script.'));
+      else resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Không thể kết nối tới link Google Apps Script. Hãy kiểm tra quyền Anyone khi Deploy.'));
+    };
+
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = `${url}${sep}callback=${cbName}`;
+    document.head.appendChild(script);
+  });
+}
+
+// Ghi đè hàm apiGet và apiPostDirect để hỗ trợ cả link trực tiếp script.google.com (.../exec) lẫn /api/sheet
+apiGet = async function(action, params = {}) {
+  const targetUrl = getConfiguredApiUrl();
+  const secret = localStorage.getItem(LS.passcode) || '';
+  const q = new URLSearchParams({ action, _: Date.now().toString(), ...(secret ? { secret } : {}), ...params });
+  const fullUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}${q.toString()}`;
+
+  if (targetUrl.includes('script.google.com')) {
+    try {
+      const res = await fetch(fullUrl, { method: 'GET', redirect: 'follow', cache: 'no-store' });
+      const txt = await res.text();
+      const data = JSON.parse(txt);
+      if (data?.ok === false) throw new Error(data.error || 'Lỗi Apps Script');
+      return data;
+    } catch (_) {
+      return await jsonpRequest(fullUrl);
+    }
+  }
+  return await fetchWithRetry(fullUrl, { method: 'GET', headers: getHeaders() }, 2, 14000);
+};
+
+apiPostDirect = async function(payload, retries = 2) {
+  const targetUrl = getConfiguredApiUrl();
+  const secret = localStorage.getItem(LS.passcode) || '';
+  const bodyObj = secret ? { ...payload, secret } : payload;
+
+  if (targetUrl.includes('script.google.com')) {
+    // Dùng text/plain để tránh CORS preflight OPTIONS trên Google Apps Script
+    return await fetchWithRetry(targetUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(bodyObj)
+    }, retries, 16000);
+  }
+
+  return await fetchWithRetry(targetUrl, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(bodyObj)
+  }, retries, 16000);
+};
+
+// Đọc trực tiếp từ Google Sheet (GViz JSONP) nếu người dùng chưa kịp gắn link Code.gs
 function fetchGoogleSheetGviz(sheetName = 'Students') {
   return new Promise((resolve, reject) => {
     const cbName = '__gvizCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
@@ -2255,50 +2333,9 @@ async function fallbackReadStudentsFromPublicSheet() {
   return { ok: true, students: list };
 }
 
-async function loadStudentsFromSheet(silent = false) {
-  if (loadingStudents) return false;
-  loadingStudents = true;
-  try {
-    let d = null;
-    try {
-      d = await apiGet('students', { nocache: '1' });
-    } catch (apiErr) {
-      d = await fallbackReadStudentsFromPublicSheet();
-      if (!d || !Array.isArray(d.students)) throw apiErr;
-    }
-
-    if (Array.isArray(d.students) && d.students.length) {
-      mergeStudentsFromSheet(d.students);
-      localStorage.setItem(LS.lastSync, new Date().toISOString());
-      try {
-        const sc = await apiGet('scores');
-        if (Array.isArray(sc.scores)) scoresData = sc.scores;
-      } catch (_) {}
-      saveLocal();
-      populateClasses(currentClass());
-      renderAll();
-      rebuildWheel();
-      if (!silent) toast(`Đã đồng bộ ${students.length} học sinh từ Google Sheet!`);
-      return true;
-    } else {
-      if (!silent) toast('Sheet Students hiện đang trống. Hãy nhập danh sách học sinh.');
-      renderAll();
-      rebuildWheel();
-      return false;
-    }
-  } catch (err) {
-    if (!silent) toast('Lỗi tải dữ liệu: ' + (err.message || err));
-    const st = $('#studentStatus');
-    if (st) {
-      st.className = 'data-status err';
-      st.innerHTML = `Không lấy được dữ liệu (${esc(err.message || err)}). <button class="btn gold sm" style="margin-left:6px" onclick="go('settings');setTimeout(()=>$('#apiUrl')?.focus(),100)">⚙️ Dán link Code.gs</button>`;
-    }
-    return false;
-  } finally {
-    loadingStudents = false;
-  }
-}
-
+// ============================================================================
+// ĐỒNG BỘ DANH SÁCH HỌC SINH, EXCEL & LỊCH SỬ
+// ============================================================================
 async function syncStudents() {
   if (!students.length) return toast('Danh sách học sinh đang trống.');
   try {
@@ -2601,8 +2638,12 @@ async function syncQuestionBank() {
     toast('Lỗi đồng bộ câu hỏi: ' + (err.message || err));
   }
 }
+
 // ============================================================================
-// CẤU HÌNH ĐỒ HỌA 3D TẬP TRUNG (GAME_3D_CONFIG)
+// TRÒ CHƠI 2 ĐỘI 3D (KÉO CO & ĐUA XE)
+// ============================================================================
+// ============================================================================
+// CẤU HÌNH ĐỒ HỌA 3D TẬP TRUNG (GAME_3D_CONFIG) - GIẢI PHÁP 3 (REAL 3D & GLB)
 // ============================================================================
 const GAME_3D_CONFIG = {
   common: {
@@ -2610,23 +2651,28 @@ const GAME_3D_CONFIG = {
     maxDeltaSec: 0.08,
     fov: 36,
     near: 0.1,
-    far: 150
+    far: 150,
+    gltfLoaderCdn: 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js'
   },
   quality: {
     low:      { pixelRatio: 1.0, antialias: false, shadows: false, maxParticles: 24, ropeSegments: 32, wheelSegments: 14 },
-    balanced: { pixelRatio: 1.45, antialias: true, shadows: true,  maxParticles: 55, ropeSegments: 48, wheelSegments: 20 },
-    high:     { pixelRatio: 1.9, antialias: true,  shadows: true,  maxParticles: 95, ropeSegments: 64, wheelSegments: 28 }
+    balanced: { pixelRatio: 1.4, antialias: true,  shadows: true,  maxParticles: 55, ropeSegments: 48, wheelSegments: 20 },
+    high:     { pixelRatio: 1.85, antialias: true, shadows: true,  maxParticles: 95, ropeSegments: 64, wheelSegments: 28 }
   },
   tug: {
-    cameraPos: [0, 1.35, 6.2],
-    cameraLookAt: [0, 1.35, 0],
+    cameraPos: [0, 3.55, 8.85],
+    cameraLookAt: [0, 0.95, 0],
     teamCount: 3,
     memberSpacing: 1.08,
     startXOffset: 1.38,
     ropeLength: 10.6,
-    ropeRadius: 0.055,
-    maxShiftX: 2.15,
-    pullPulseDuration: 0.72
+    ropeRadius: 0.068,
+    maxShiftX: 2.25,
+    pullPulseDuration: 0.72,
+    models: {
+      blue: 'assets/models/tug_team_blue.glb',
+      red: 'assets/models/tug_team_red.glb'
+    }
   },
   race: {
     cameraPos: [0, 5.1, 8.8],
@@ -2643,6 +2689,10 @@ const GAME_3D_CONFIG = {
       grass: 0x0d3b2e,
       blueKart: 0x18b8f5,
       redKart: 0xff4769
+    },
+    models: {
+      blue: 'assets/models/kart_blue.glb',
+      red: 'assets/models/kart_red.glb'
     }
   },
   animation: {
@@ -2653,127 +2703,31 @@ const GAME_3D_CONFIG = {
 };
 
 // ============================================================================
-// BỘ ĐỌC TRỰC TIẾP FILE .GLB NHỊ PHÂN & ẢNH TÁCH NỀN (KHÔNG PHỤ THUỘC CDN NGOÀI)
+// TRÌNH NẠP TỰ ĐỘNG THREE.GLTFLoader & QUẢN LÝ FILE MÔ HÌNH .GLB TÙY CHỌN
 // ============================================================================
-const TUG_STORAGE_KEY = 'class3d_v21_tug_exact_texture_v3';
-let savedTugTextureDataUrl = localStorage.getItem(TUG_STORAGE_KEY) || '';
-const customGlbUrls = { tugBlue: null, tugRed: null, tugCombined: null };
+let gltfLoaderPromise = null;
+const customGlbUrls = {
+  tugBlue: null,
+  tugRed: null,
+  kartBlue: null,
+  kartRed: null
+};
 
 function ensureGLTFLoader() {
-  return Promise.resolve(window.THREE?.GLTFLoader ? new THREE.GLTFLoader() : null);
-}
+  if (window.THREE && THREE.GLTFLoader) return Promise.resolve(new THREE.GLTFLoader());
+  if (gltfLoaderPromise) return gltfLoaderPromise;
 
-async function extractTextureFromGLBBuffer(arrayBuffer) {
-  const view = new DataView(arrayBuffer);
-  const magic = view.getUint32(0, true);
-  if (magic !== 0x46546C67) throw new Error('Không phải định dạng file .GLB hợp lệ.');
-
-  const jsonChunkLen = view.getUint32(12, true);
-  const jsonBytes = new Uint8Array(arrayBuffer, 20, jsonChunkLen);
-  const gltfJson = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
-
-  const binChunkOffset = 20 + jsonChunkLen + 8;
-  if (!gltfJson.images || !gltfJson.images.length) {
-    throw new Error('File .GLB không chứa hình ảnh texture.');
-  }
-
-  const imgDef = gltfJson.images[0];
-  if (imgDef.uri && imgDef.uri.startsWith('data:')) {
-    return imgDef.uri;
-  }
-  if (typeof imgDef.bufferView === 'number') {
-    const bv = gltfJson.bufferViews[imgDef.bufferView];
-    const byteOffset = binChunkOffset + (bv.byteOffset || 0);
-    const byteLength = bv.byteLength;
-    const imgBytes = new Uint8Array(arrayBuffer, byteOffset, byteLength);
-    const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/png' });
-    return await new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload = () => res(reader.result);
-      reader.onerror = rej;
-      reader.readAsDataURL(blob);
-    });
-  }
-  throw new Error('Không tìm thấy dữ liệu ảnh trong file .GLB.');
-}
-
-function autoCleanTugImageToDataUrl(img) {
-  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-
-  const imgData = ctx.getImageData(0, 0, w, h);
-  const d = imgData.data;
-
-  // Nếu ảnh đã trong suốt sẵn ở các góc thì giữ nguyên
-  if (d[3] === 0 && d[(w - 1) * 4 + 3] === 0) {
-    return c.toDataURL('image/png');
-  }
-
-  const mx = Math.round(w * 0.015), my = Math.round(h * 0.015);
-  // 1. Xóa vạch đứt nét màu xanh lá ở giữa sân
-  for (let y = 0; y < h; y++) {
-    for (let x = Math.floor(w * 0.46); x <= Math.ceil(w * 0.54); x++) {
-      const i = (y * w + x) * 4;
-      if (d[i + 1] > 115 && d[i + 1] > d[i] + 22 && d[i + 1] > d[i + 2] + 15) {
-        d[i + 3] = 0;
-      }
-    }
-  }
-
-  // 2. Flood-fill tách nền trắng từ biên ngoài vào
-  const visited = new Uint8Array(w * h);
-  const q = new Int32Array(w * h);
-  let head = 0, tail = 0;
-  const isBg = p => {
-    const i = p * 4;
-    if (d[i + 3] === 0) return true;
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    const sat = Math.max(r, g, b) - Math.min(r, g, b);
-    const lum = (r * 299 + g * 587 + b * 114) / 1000;
-    return lum > 226 && sat < 26;
-  };
-  const push = (x, y) => {
-    const p = y * w + x;
-    if (!visited[p] && isBg(p)) { visited[p] = 1; q[tail++] = p; }
-  };
-  for (let x = mx; x < w - mx; x++) { push(x, my); push(x, h - my - 1); }
-  for (let y = my; y < h - my; y++) { push(mx, y); push(w - mx - 1, y); }
-
-  while (head < tail) {
-    const p = q[head++];
-    d[p * 4 + 3] = 0;
-    const x = p % w, y = (p / w) | 0;
-    if (x > mx && !visited[p - 1] && isBg(p - 1)) { visited[p - 1] = 1; q[tail++] = p - 1; }
-    if (x + 1 < w - mx && !visited[p + 1] && isBg(p + 1)) { visited[p + 1] = 1; q[tail++] = p + 1; }
-    if (y > my && !visited[p - w] && isBg(p - w)) { visited[p - w] = 1; q[tail++] = p - w; }
-    if (y + 1 < h - my && !visited[p + w] && isBg(p + w)) { visited[p + w] = 1; q[tail++] = p + w; }
-  }
-
-  let minX = w, minY = h, maxX = 0, maxY = 0;
-  for (let y = my; y < h - my; y++) {
-    for (let x = mx; x < w - mx; x++) {
-      if (x > w * 0.88 && y > h * 0.88) { d[(y * w + x) * 4 + 3] = 0; continue; }
-      if (d[(y * w + x) * 4 + 3] > 25) {
-        if (x < minX) minX = x; if (x > maxX) maxX = x;
-        if (y < minY) minY = y; if (y > maxY) maxY = y;
-      }
-    }
-  }
-  ctx.putImageData(imgData, 0, 0);
-
-  if (maxX <= minX || maxY <= minY) return c.toDataURL('image/png');
-  const pad = 14;
-  const cx = Math.max(0, minX - pad), cy = Math.max(0, minY - pad);
-  const cw = Math.min(w - cx, (maxX - minX) + pad * 2);
-  const ch = Math.min(h - cy, (maxY - minY) + pad * 2);
-
-  const out = document.createElement('canvas');
-  out.width = cw; out.height = ch;
-  out.getContext('2d').drawImage(c, cx, cy, cw, ch, 0, 0, cw, ch);
-  return out.toDataURL('image/png');
+  gltfLoaderPromise = new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = GAME_3D_CONFIG.common.gltfLoaderCdn;
+    script.onload = () => {
+      if (window.THREE && THREE.GLTFLoader) resolve(new THREE.GLTFLoader());
+      else resolve(null);
+    };
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+  return gltfLoaderPromise;
 }
 
 function openCustomGLBPicker() {
@@ -2782,12 +2736,13 @@ function openCustomGLBPicker() {
     inp = document.createElement('input');
     inp.id = 'customGlbFileInput';
     inp.type = 'file';
-    inp.accept = '.glb,.gltf,image/*';
+    inp.accept = '.glb,.gltf';
     inp.multiple = true;
     inp.className = 'hide';
     inp.addEventListener('change', e => {
       const files = [...(e.target.files || [])];
-      if (files.length) handleCustomGLBFiles(files);
+      if (!files.length) return;
+      handleCustomGLBFiles(files);
       e.target.value = '';
     });
     document.body.appendChild(inp);
@@ -2795,84 +2750,25 @@ function openCustomGLBPicker() {
   inp.click();
 }
 
-async function handleCustomGLBFiles(files) {
-  try {
-    for (const file of files) {
-      const name = file.name.toLowerCase();
-      if (name.endsWith('.glb')) {
-        const buf = await file.arrayBuffer();
-        const dataUrl = await extractTextureFromGLBBuffer(buf);
-        if (name.includes('blue')) customGlbUrls.tugBlue = dataUrl;
-        else if (name.includes('red')) customGlbUrls.tugRed = dataUrl;
-        else {
-          savedTugTextureDataUrl = dataUrl;
-          try { localStorage.setItem(TUG_STORAGE_KEY, dataUrl); } catch (_) {}
-        }
-      } else if (file.type.startsWith('image/') || name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.jpeg')) {
-        const dataUrl = await new Promise((res, rej) => {
-          const r = new FileReader();
-          r.onload = () => {
-            const im = new Image();
-            im.onload = () => res(autoCleanTugImageToDataUrl(im));
-            im.onerror = rej;
-            im.src = r.result;
-          };
-          r.onerror = rej;
-          r.readAsDataURL(file);
-        });
-        savedTugTextureDataUrl = dataUrl;
-        try { localStorage.setItem(TUG_STORAGE_KEY, dataUrl); } catch (_) {}
-      }
+function handleCustomGLBFiles(files) {
+  files.forEach(file => {
+    const name = file.name.toLowerCase();
+    const blobUrl = URL.createObjectURL(file);
+    if (name.includes('kart')) {
+      if (name.includes('red')) customGlbUrls.kartRed = blobUrl;
+      else if (name.includes('blue')) customGlbUrls.kartBlue = blobUrl;
+      else { customGlbUrls.kartBlue = blobUrl; customGlbUrls.kartRed = blobUrl; }
+    } else {
+      if (name.includes('red')) customGlbUrls.tugRed = blobUrl;
+      else if (name.includes('blue')) customGlbUrls.tugBlue = blobUrl;
+      else { customGlbUrls.tugBlue = blobUrl; customGlbUrls.tugRed = blobUrl; }
     }
-
-    if (customGlbUrls.tugBlue || customGlbUrls.tugRed) {
-      const merged = await mergeBlueRedDataUrls(customGlbUrls.tugBlue, customGlbUrls.tugRed);
-      if (merged) {
-        savedTugTextureDataUrl = merged;
-        try { localStorage.setItem(TUG_STORAGE_KEY, merged); } catch (_) {}
-      }
-    }
-
-    if (game3d?.activeScene?.applyExact3DTexture && savedTugTextureDataUrl) {
-      game3d.activeScene.applyExact3DTexture(savedTugTextureDataUrl);
-      game3d.requestRender();
-    }
-    toast('✅ Đã nạp thành công mô hình 6 học sinh Kéo co vào sân đấu!');
-  } catch (err) {
-    toast('❌ Lỗi nạp file: ' + (err.message || err));
-  }
-}
-
-async function mergeBlueRedDataUrls(blueUrl, redUrl) {
-  const loadImg = url => new Promise(res => {
-    if (!url) return res(null);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => res(img);
-    img.onerror = () => res(null);
-    img.src = url;
   });
-  const [bImg, rImg] = await Promise.all([loadImg(blueUrl), loadImg(redUrl)]);
-  if (!bImg && !rImg) return null;
-  if (bImg && !rImg) return blueUrl;
-  if (!bImg && rImg) return redUrl;
 
-  const h = Math.max(bImg.height, rImg.height);
-  const w = bImg.width + rImg.width + Math.round(h * 0.12);
-  const c = document.createElement('canvas');
-  c.width = w; c.height = h;
-  const ctx = c.getContext('2d');
-  const ropeY = Math.round(h * 0.50);
-  ctx.strokeStyle = '#3b2313';
-  ctx.lineWidth = Math.max(6, Math.round(h * 0.026));
-  ctx.beginPath();
-  ctx.moveTo(bImg.width - 20, ropeY);
-  ctx.lineTo(w - rImg.width + 20, ropeY);
-  ctx.stroke();
-
-  ctx.drawImage(bImg, 0, 0);
-  ctx.drawImage(rImg, w - rImg.width, 0);
-  return c.toDataURL('image/png');
+  if (game3d && !game3d.disposed) {
+    game3d.setMode(game3d.mode);
+  }
+  toast(`📦 Đã nạp ${files.length} mô hình 3D (.glb) vào đấu trường!`);
 }
 
 // ============================================================================
@@ -3136,7 +3032,7 @@ function upgradeGamePlayLayoutV21() {
       border-radius: 22px;
       position: relative;
       overflow: hidden;
-      background: #ffffff;
+      background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 68%, #e2ecf7 100%);
       border: 2px solid rgba(190, 225, 255, .65);
       box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
     }
@@ -3329,25 +3225,27 @@ function upgradeGamePlayLayoutV21() {
           <span style="width:12px;height:12px;border-radius:50%;background:#ff5c82;display:inline-block"></span>
         </div>
       </div>
-      <button id="hudLoadGlbBtn" class="btn gold sm" onclick="openCustomGLBPicker()" title="Chọn file .glb hoặc ảnh .png 6 học sinh từ máy tính">📦 Nạp Model .GLB / Ảnh</button>
+      <button id="hudLoadGlbBtn" class="btn gold sm" onclick="openCustomGLBPicker()" title="Chọn file mô hình 3D (.glb / .gltf) từ máy tính">📦 Nạp Model .GLB</button>
       <button id="hudSoundBtn" class="btn ghost sm" onclick="toggleGameSoundFromHud()">🔊 Âm thanh</button>
       <button class="btn ghost sm" onclick="toggleGamePresentation()">⛶ Toàn màn hình</button>
     `;
   }
 
+  // Thanh chọn file .GLB trong màn hình cấu hình #gameHub
   const hubCard = $('#gameHub .card');
   if (hubCard && !$('#hubGlbModelBar')) {
+    $('#hubTugSpriteBar')?.remove();
     const bar = document.createElement('div');
     bar.id = 'hubGlbModelBar';
     bar.className = 'row space';
     bar.style.cssText = 'margin-top:10px;padding:10px 14px;border-radius:14px;background:rgba(72,229,255,.07);border:1px dashed rgba(72,229,255,.35)';
     bar.innerHTML = `
       <div>
-        <b>📦 Mô hình 3D (.GLB) & Hình Kéo co (Tự động đọc từ thư mục <code>assets/</code> hoặc nạp trực tiếp):</b>
-        <div class="muted" style="font-size:12px">Hệ thống tự động quét <code>assets/tug_teams.glb</code>, <code>assets/tug_teams.png</code>, <code>assets/models/tug_team_blue.glb</code>... hoặc bạn bấm nút bên phải để chọn file <code>.glb</code> / ảnh <code>.png</code> từ máy.</div>
+        <b>📦 Mô hình 3D (.GLB / .GLTF) & Nhân vật 3D Chibi có Khung Xương Khớp (Giải pháp 3):</b>
+        <div class="muted" style="font-size:12px">Hệ thống tự động đọc file trong <code>assets/models/tug_team_blue.glb</code>, <code>tug_team_red.glb</code>, <code>kart_blue.glb</code>, <code>kart_red.glb</code> hoặc bạn bấm <b>Nạp file .GLB</b> để chọn trực tiếp từ máy. Nếu chưa có file .GLB, hệ thống dựng sẵn 6 nhân vật Chibi 3D có khớp tay chân thực sự.</div>
       </div>
       <div class="row">
-        <button class="btn gold sm" onclick="openCustomGLBPicker()">📦 Chọn file .GLB / Ảnh từ máy</button>
+        <button class="btn gold sm" onclick="openCustomGLBPicker()">📦 Nạp file .GLB từ máy</button>
       </div>
     `;
     hubCard.appendChild(bar);
@@ -3483,7 +3381,7 @@ function toggleGameSoundFromHud() {
 }
 
 // ============================================================================
-// CLASS 1: TugOfWarScene – TỰ ĐỘNG QUÉT FILE TRONG ASSETS/ & HIỂN THỊ 100% ẢNH MẪU
+// CLASS 1: TugOfWarScene – ĐẤU TRƯỜNG 3D THỰC THỤ (GLTF/GLB + RIG 3D CHIBI PBR)
 // ============================================================================
 class TugOfWarScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3496,155 +3394,90 @@ class TugOfWarScene {
     this.currentShiftX = 0;
     this.pullPulseA = 0;
     this.pullPulseB = 0;
-    this.stateA = 'idle';
+    this.stateA = 'idle'; // idle | pull | resist | loseBalance | victory | defeat
     this.stateB = 'idle';
     this.blueTeam = [];
     this.redTeam = [];
+    this.mixers = [];
     this.particles = [];
-    this.usingExactMesh = false;
 
     this.buildBrightArena3D();
     this.buildRopeAndRedBow3D();
     this.buildArticulated3DTeams();
-    this.autoDiscoverAndLoadAssets();
-  }
-
-  async autoDiscoverAndLoadAssets() {
-    if (savedTugTextureDataUrl) {
-      this.applyExact3DTexture(savedTugTextureDataUrl);
-      return;
-    }
-
-    const bust = '?v=' + Date.now();
-    // 1. Tự động tìm các file ảnh trong assets/
-    const imageCandidates = [
-      'assets/tug_teams.png',
-      'assets/models/tug_teams.png',
-      'assets/keoco.png',
-      'assets/tug.png'
-    ];
-    for (const url of imageCandidates) {
-      const ok = await new Promise(res => {
-        const im = new Image();
-        im.crossOrigin = 'anonymous';
-        im.onload = () => res(im);
-        im.onerror = () => res(null);
-        im.src = url + bust;
-      });
-      if (ok) {
-        const clean = autoCleanTugImageToDataUrl(ok);
-        savedTugTextureDataUrl = clean;
-        this.applyExact3DTexture(clean);
-        return;
-      }
-    }
-
-    // 2. Tự động tìm file .glb chung trong assets/ hoặc assets/models/
-    const glbCombinedCandidates = [
-      'assets/tug_teams.glb',
-      'assets/models/tug_teams.glb'
-    ];
-    for (const url of glbCombinedCandidates) {
-      try {
-        const r = await fetch(url + bust);
-        if (r.ok) {
-          const buf = await r.arrayBuffer();
-          const dataUrl = await extractTextureFromGLBBuffer(buf);
-          savedTugTextureDataUrl = dataUrl;
-          this.applyExact3DTexture(dataUrl);
-          return;
-        }
-      } catch (_) {}
-    }
-
-    // 3. Tự động tìm cặp file tug_team_blue.glb & tug_team_red.glb trong assets/ hoặc assets/models/
-    const pairPaths = [
-      ['assets/tug_team_blue.glb', 'assets/tug_team_red.glb'],
-      ['assets/models/tug_team_blue.glb', 'assets/models/tug_team_red.glb']
-    ];
-    for (const [bPath, rPath] of pairPaths) {
-      try {
-        const [resB, resR] = await Promise.all([fetch(bPath + bust), fetch(rPath + bust)]);
-        if (resB.ok || resR.ok) {
-          const bUrl = resB.ok ? await extractTextureFromGLBBuffer(await resB.arrayBuffer()) : null;
-          const rUrl = resR.ok ? await extractTextureFromGLBBuffer(await resR.arrayBuffer()) : null;
-          const merged = await mergeBlueRedDataUrls(bUrl, rUrl);
-          if (merged) {
-            savedTugTextureDataUrl = merged;
-            this.applyExact3DTexture(merged);
-            return;
-          }
-        }
-      } catch (_) {}
-    }
-  }
-
-  applyExact3DTexture(dataUrl) {
-    if (!dataUrl) return;
-    const img = new Image();
-    img.onload = () => {
-      if (this.ropeMesh) this.ropeMesh.visible = false;
-      if (this.centerBow) this.centerBow.visible = false;
-      if (this.exactMeshGroup) {
-        this.movingAssembly.remove(this.exactMeshGroup);
-      }
-
-      const tex = new THREE.Texture(img);
-      tex.needsUpdate = true;
-      if ('colorSpace' in tex && THREE.SRGBColorSpace) {
-        tex.colorSpace = THREE.SRGBColorSpace;
-      }
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-
-      const aspect = (img.naturalWidth || img.width || 1200) / Math.max(1, img.naturalHeight || img.height || 400);
-      const height3D = 2.65;
-      const width3D = Math.min(8.6, height3D * aspect);
-
-      const group = new THREE.Group();
-      const geo = new THREE.PlaneGeometry(width3D, height3D);
-      const mat = new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: true,
-        alphaTest: 0.04,
-        side: THREE.DoubleSide
-      });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(0, 1.35, 0.25);
-      group.add(mesh);
-
-      const extRopeGeo = new THREE.CylinderGeometry(0.032, 0.032, 12.5, 12);
-      extRopeGeo.rotateZ(Math.PI / 2);
-      const extRopeMat = new THREE.MeshBasicMaterial({ color: 0x3b2313 });
-      const extRope = new THREE.Mesh(extRopeGeo, extRopeMat);
-      extRope.position.set(0, 1.32, 0.18);
-      group.add(extRope);
-
-      this.exactMeshGroup = group;
-      this.usingExactMesh = true;
-      this.movingAssembly.add(group);
-      game3d?.requestRender();
-    };
-    img.src = dataUrl;
+    this.tryLoadGLBModels();
   }
 
   buildBrightArena3D() {
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(24, 16),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
-    floor.position.set(0, 1.35, -0.2);
+    const cfg = GAME_3D_CONFIG.tug;
+
+    // Mặt sàn thể thao 3D sáng sạch (nhận bóng đổ mềm từ nhân vật)
+    const floorGeo = new THREE.PlaneGeometry(22, 12);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0xf4f8fc,
+      roughness: 0.85,
+      metalness: 0.02
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
     this.group.add(floor);
 
-    // Vạch đứt nét màu xanh lá cây (#2ecc71) thẳng đứng ở giữa sân như ảnh mẫu
-    const dashGroup = new THREE.Group();
+    // Đường chạy/thảm kéo co nổi nhẹ ở trung tâm
+    const trackMat = new THREE.MeshStandardMaterial({
+      color: 0xe6eef8,
+      roughness: 0.75,
+      metalness: 0.04
+    });
+    const track = new THREE.Mesh(new THREE.PlaneGeometry(14, 2.5), trackMat);
+    track.rotation.x = -Math.PI / 2;
+    track.position.y = 0.01;
+    track.receiveShadow = true;
+    this.group.add(track);
+
+    // Vạch đứt nét màu xanh lá cây (#2ecc71) ở chính giữa sân (giống bố cục ảnh mẫu nhưng trong không gian 3D)
+    const centerDashGroup = new THREE.Group();
     const dashMat = new THREE.MeshBasicMaterial({ color: 0x2ecc71 });
-    for (let y = -2.5; y <= 5.5; y += 0.34) {
-      const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.085, 0.19), dashMat);
-      dash.position.set(0, y, -0.05);
-      dashGroup.add(dash);
+    for (let z = -4.2; z <= 4.2; z += 0.42) {
+      const dash = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.025, 0.24), dashMat);
+      dash.position.set(0, 0.02, z);
+      centerDashGroup.add(dash);
     }
-    this.group.add(dashGroup);
+    this.group.add(centerDashGroup);
+
+    // Hai vạch giới hạn thắng cuộc Xanh & Đỏ hai bên
+    const makeSideDashes = (xPos, hexColor) => {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshBasicMaterial({ color: hexColor, transparent: true, opacity: 0.55 });
+      for (let z = -3.6; z <= 3.6; z += 0.45) {
+        const d = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.22), mat);
+        d.position.set(xPos, 0.018, z);
+        g.add(d);
+      }
+      this.group.add(g);
+    };
+    makeSideDashes(-cfg.maxShiftX, 0x3b82f6);
+    makeSideDashes(cfg.maxShiftX, 0xef4444);
+  }
+
+  createRopeTexture3D() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#c68642';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.strokeStyle = '#6e4214';
+    ctx.lineWidth = 7;
+    for (let x = -64; x < 320; x += 18) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 42, 64);
+      ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(22, 2);
+    return tex;
   }
 
   buildRopeAndRedBow3D() {
@@ -3652,65 +3485,444 @@ class TugOfWarScene {
     this.group.add(this.movingAssembly);
 
     const cfg = GAME_3D_CONFIG.tug;
-    const ropeGeo = new THREE.CylinderGeometry(cfg.ropeRadius, cfg.ropeRadius, cfg.ropeLength, 16);
-    ropeGeo.rotateZ(Math.PI / 2);
-    const ropeMat = new THREE.MeshStandardMaterial({ color: 0xb77938, roughness: 0.7 });
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+
+    // Dây thừng 3D TubeGeometry uốn nhẹ tự nhiên
+    const pts = [
+      new THREE.Vector3(-cfg.ropeLength / 2, 0.78, 0.16),
+      new THREE.Vector3(-cfg.ropeLength * 0.25, 0.80, 0.16),
+      new THREE.Vector3(0, 0.78, 0.16),
+      new THREE.Vector3(cfg.ropeLength * 0.25, 0.80, 0.16),
+      new THREE.Vector3(cfg.ropeLength / 2, 0.78, 0.16)
+    ];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const ropeGeo = new THREE.TubeGeometry(curve, qCfg.ropeSegments, cfg.ropeRadius, 14, false);
+    const ropeMat = new THREE.MeshStandardMaterial({
+      map: this.createRopeTexture3D(),
+      roughness: 0.72,
+      metalness: 0.05
+    });
     this.ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
-    this.ropeMesh.position.set(0, 1.32, 0.16);
+    this.ropeMesh.castShadow = true;
     this.movingAssembly.add(this.ropeMesh);
 
+    // Nơ đỏ 3D (3D Red Ribbon Bow) ở chính giữa sợi dây
     this.centerBow = new THREE.Group();
-    this.centerBow.position.set(0, 1.32, 0.22);
-    const bowMat = new THREE.MeshStandardMaterial({ color: 0xe53935, roughness: 0.35 });
-    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.11, 14, 14), bowMat);
-    this.centerBow.add(knot);
+    this.centerBow.position.set(0, 0.78, 0.22);
+    const bowMat = new THREE.MeshStandardMaterial({
+      color: 0xe53935,
+      roughness: 0.35,
+      metalness: 0.08
+    });
+
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), bowMat);
+    const leftLoop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 12, 24), bowMat);
+    leftLoop.scale.set(1.2, 0.85, 0.6);
+    leftLoop.position.set(-0.18, 0.03, 0);
+    leftLoop.rotation.z = 0.25;
+
+    const rightLoop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 12, 24), bowMat);
+    rightLoop.scale.set(1.2, 0.85, 0.6);
+    rightLoop.position.set(0.18, 0.03, 0);
+    rightLoop.rotation.z = -0.25;
+
+    const tailGeo = new THREE.BoxGeometry(0.11, 0.42, 0.04);
+    const leftTail = new THREE.Mesh(tailGeo, bowMat);
+    leftTail.position.set(-0.10, -0.22, 0);
+    leftTail.rotation.z = 0.32;
+
+    const rightTail = new THREE.Mesh(tailGeo, bowMat);
+    rightTail.position.set(0.10, -0.22, 0);
+    rightTail.rotation.z = -0.32;
+
+    this.centerBow.add(knot, leftLoop, rightLoop, leftTail, rightTail);
     this.movingAssembly.add(this.centerBow);
+  }
+
+  // Tạo nhân vật Chibi 3D có Khung Xương Khớp (Articulated 3D Toy/Pixar Style)
+  createArticulatedChibi3D(isBlue, index) {
+    const dir = isBlue ? 1 : -1;
+    const isFemale = index === 1;
+
+    const suitColor = isBlue ? 0x2b6cb0 : 0xc53030;
+    const suitDark  = isBlue ? 0x1e4e8c : 0x9b2c2c;
+    const stripeHex = 0xf0f7ff;
+
+    const skinMat   = new THREE.MeshStandardMaterial({ color: 0xffe0c8, roughness: 0.45, metalness: 0.02 });
+    const suitMat   = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.42, metalness: 0.06 });
+    const darkMat   = new THREE.MeshStandardMaterial({ color: suitDark, roughness: 0.48, metalness: 0.05 });
+    const stripeMat = new THREE.MeshStandardMaterial({ color: stripeHex, roughness: 0.35 });
+    const hairMat   = new THREE.MeshStandardMaterial({ color: 0x382214, roughness: 0.65 });
+    const scarfMat  = new THREE.MeshStandardMaterial({ color: 0xe53935, roughness: 0.4 });
+    const shoeMat   = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+
+    const root = new THREE.Group();
+
+    // Bóng tròn mềm dưới chân nhân vật
+    const contactShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.52, 24),
+      new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.22 })
+    );
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = 0.015;
+    root.add(contactShadow);
+
+    // Hông (Pelvis Pivot) - Tâm xoay của toàn bộ cơ thể
+    const pelvis = new THREE.Group();
+    pelvis.position.y = 0.56;
+    // Xoay nhẹ 22 độ hướng về phía khán giả (3/4 view) để nhìn rõ cả khuôn mặt, khăn quàng đỏ và 2 tay nắm dây
+    pelvis.rotation.y = isBlue ? 0.36 : -0.36;
+    root.add(pelvis);
+
+    const hipMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 18, 18), darkMat);
+    hipMesh.scale.set(1.05, 0.82, 0.95);
+    hipMesh.castShadow = true;
+    pelvis.add(hipMesh);
+
+    // HÀM DỰNG CHÂN 3D CÓ KHỚP ĐÙI - ĐẦU GỐI - CẲNG CHÂN - GIÀY THỂ THAO
+    const createLegRig = (zSide, isFrontLeg) => {
+      const hipJoint = new THREE.Group();
+      hipJoint.position.set(isFrontLeg ? dir * 0.08 : -dir * 0.08, -0.04, zSide * 0.14);
+
+      const thighGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.115, 0.22, 8, 16)
+        : new THREE.CylinderGeometry(0.115, 0.105, 0.34, 16);
+      const thigh = new THREE.Mesh(thighGeo, isFrontLeg ? suitMat : darkMat);
+      thigh.position.y = -0.15;
+      thigh.castShadow = true;
+      hipJoint.add(thigh);
+
+      // Sọc trắng dọc đùi
+      const thighStripe = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.26, 0.03), stripeMat);
+      thighStripe.position.set(dir * 0.04, -0.15, 0.11);
+      hipJoint.add(thighStripe);
+
+      const kneeJoint = new THREE.Group();
+      kneeJoint.position.set(0, -0.28, 0);
+      hipJoint.add(kneeJoint);
+
+      const shinGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.105, 0.20, 8, 16)
+        : new THREE.CylinderGeometry(0.105, 0.095, 0.32, 16);
+      const shin = new THREE.Mesh(shinGeo, isFrontLeg ? suitMat : darkMat);
+      shin.position.y = -0.14;
+      shin.castShadow = true;
+      kneeJoint.add(shin);
+
+      // Giày Sneaker 3D bo tròn
+      const shoeGroup = new THREE.Group();
+      shoeGroup.position.set(dir * 0.07, -0.28, 0);
+      const shoeBase = new THREE.Mesh(
+        new THREE.CapsuleGeometry
+          ? new THREE.CapsuleGeometry(0.11, 0.18, 8, 16)
+          : new THREE.BoxGeometry(0.34, 0.16, 0.20),
+        shoeMat
+      );
+      if (new THREE.CapsuleGeometry) shoeBase.rotation.z = Math.PI / 2;
+      shoeBase.scale.set(1, 0.78, 0.92);
+      shoeBase.castShadow = true;
+
+      const shoeAccent = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.22), suitMat);
+      shoeAccent.position.set(0, 0.01, 0);
+      shoeGroup.add(shoeBase, shoeAccent);
+      kneeJoint.add(shoeGroup);
+
+      return { hipJoint, kneeJoint, shoeGroup };
+    };
+
+    const backLeg = createLegRig(-1, false);
+    const frontLeg = createLegRig(1, true);
+    pelvis.add(backLeg.hipJoint, frontLeg.hipJoint);
+
+    // THÂN TRÊN (SPINE / TORSO) + KHĂN QUÀNG ĐỎ 3D
+    const spine = new THREE.Group();
+    spine.position.set(0, 0.04, 0);
+    pelvis.add(spine);
+
+    const torsoGeo = new THREE.CapsuleGeometry
+      ? new THREE.CapsuleGeometry(0.245, 0.30, 12, 20)
+      : new THREE.CylinderGeometry(0.24, 0.22, 0.52, 20);
+    const torso = new THREE.Mesh(torsoGeo, suitMat);
+    torso.position.y = 0.25;
+    torso.scale.set(1.0, 1.0, 0.88);
+    torso.castShadow = true;
+    spine.add(torso);
+
+    // Sọc thể thao ngang ngực
+    const chestBand = new THREE.Mesh(new THREE.CylinderGeometry(0.246, 0.246, 0.07, 20), stripeMat);
+    chestBand.position.y = 0.26;
+    chestBand.scale.set(1.01, 1, 0.89);
+    spine.add(chestBand);
+
+    // Khăn quàng đỏ học sinh Việt Nam quàng quanh cổ áo
+    const scarfRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.048, 10, 24), scarfMat);
+    scarfRing.rotation.x = Math.PI / 2;
+    scarfRing.position.y = 0.47;
+    const scarfTail1 = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.28, 12), scarfMat);
+    scarfTail1.position.set(dir * 0.14, 0.33, 0.18);
+    scarfTail1.rotation.x = Math.PI;
+    scarfTail1.rotation.z = -dir * 0.28;
+    const scarfTail2 = new THREE.Mesh(new THREE.ConeGeometry(0.068, 0.25, 12), scarfMat);
+    scarfTail2.position.set(dir * 0.05, 0.32, 0.20);
+    scarfTail2.rotation.x = Math.PI;
+    scarfTail2.rotation.z = dir * 0.18;
+    spine.add(scarfRing, scarfTail1, scarfTail2);
+
+    // ĐẦU CHIBI 3D TO TRÒN + TÓC 3D + MẮT LONG LANH + MÁ HỒNG
+    const headPivot = new THREE.Group();
+    headPivot.position.set(0, 0.56, 0);
+    spine.add(headPivot);
+
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.33, 24, 24), skinMat);
+    headMesh.position.y = 0.22;
+    headMesh.scale.set(1.04, 0.96, 0.98);
+    headMesh.castShadow = true;
+    headPivot.add(headMesh);
+
+    // Hai tai 3D
+    const earGeo = new THREE.SphereGeometry(0.075, 12, 12);
+    const earL = new THREE.Mesh(earGeo, skinMat);
+    earL.position.set(0, 0.20, 0.31);
+    const earR = new THREE.Mesh(earGeo, skinMat);
+    earR.position.set(0, 0.20, -0.31);
+    headPivot.add(earL, earR);
+
+    // Mái tóc 3D dày dặn ôm đầu + Lọn tóc mái phía trước
+    const hairHelmet = new THREE.Mesh(
+      new THREE.SphereGeometry(0.348, 24, 20, 0, Math.PI * 2, 0, Math.PI * 0.58),
+      hairMat
+    );
+    hairHelmet.position.y = 0.24;
+    hairHelmet.rotation.z = -dir * 0.15;
+    hairHelmet.castShadow = true;
+    headPivot.add(hairHelmet);
+
+    // Các lọn tóc mái 3D phía trước trán
+    [-0.12, 0, 0.12].forEach((zOff, bIdx) => {
+      const bang = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.22, 10), hairMat);
+      bang.position.set(dir * 0.29, 0.36, zOff);
+      bang.rotation.z = dir * (2.65 + bIdx * 0.08);
+      headPivot.add(bang);
+    });
+
+    // Đuôi tóc buộc dây đỏ 3D cho bạn nữ đứng giữa
+    if (isFemale) {
+      const ponyGroup = new THREE.Group();
+      ponyGroup.position.set(-dir * 0.32, 0.28, 0);
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.025, 8, 16), scarfMat);
+      tie.rotation.y = Math.PI / 2;
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.38, 14), hairMat);
+      tail.position.set(-dir * 0.16, -0.06, 0);
+      tail.rotation.z = dir * 1.15;
+      ponyGroup.add(tie, tail);
+      headPivot.add(ponyGroup);
+      this.femalePony = ponyGroup;
+    }
+
+    // Khuôn mặt hướng về phía trước-khán giả (nhờ góc xoay pelvis 3/4)
+    const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const pupilMat    = new THREE.MeshBasicMaterial({ color: 0x1a120b });
+    const blushMat    = new THREE.MeshBasicMaterial({ color: 0xff8da1, transparent: true, opacity: 0.65 });
+
+    const makeEye = (zPos) => {
+      const eGroup = new THREE.Group();
+      eGroup.position.set(dir * 0.29, 0.22, zPos);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), pupilMat);
+      pupil.scale.set(0.6, 1.15, 1.0);
+      const catchLight = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 8), eyeWhiteMat);
+      catchLight.position.set(dir * 0.022, 0.018, 0.012);
+      eGroup.add(pupil, catchLight);
+      return eGroup;
+    };
+    headPivot.add(makeEye(0.11), makeEye(-0.07));
+
+    // Má hồng 3D
+    const blushL = new THREE.Mesh(new THREE.SphereGeometry(0.048, 10, 10), blushMat);
+    blushL.scale.set(0.5, 0.65, 1.2);
+    blushL.position.set(dir * 0.28, 0.14, 0.17);
+    const blushR = blushL.clone();
+    blushR.position.set(dir * 0.29, 0.14, -0.13);
+    headPivot.add(blushL, blushR);
+
+    // Miệng cười 3D
+    const mouth = new THREE.Mesh(
+      new THREE.TorusGeometry(0.048, 0.016, 8, 16, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0xd9383a })
+    );
+    mouth.position.set(dir * 0.31, 0.13, 0.02);
+    mouth.rotation.y = dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+    mouth.rotation.x = Math.PI;
+    headPivot.add(mouth);
+
+    // HAI CÁNH TAY 3D CÓ KHỚP VAI - KHUỶU TAY - BÀN TAY NẮM TRỰC TIẾP VÀO DÂY THỪNG
+    const createArmRig = (isFrontArm) => {
+      const shoulder = new THREE.Group();
+      shoulder.position.set(0, 0.42, isFrontArm ? 0.23 : -0.21);
+
+      const upperGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.078, 0.18, 8, 14)
+        : new THREE.CylinderGeometry(0.078, 0.07, 0.28, 14);
+      const upper = new THREE.Mesh(upperGeo, isFrontArm ? suitMat : darkMat);
+      upper.position.set(dir * 0.12, -0.08, 0);
+      upper.rotation.z = dir * 1.15;
+      upper.castShadow = true;
+
+      const forearmGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.072, 0.18, 8, 14)
+        : new THREE.CylinderGeometry(0.072, 0.065, 0.26, 14);
+      const forearm = new THREE.Mesh(forearmGeo, isFrontArm ? suitMat : darkMat);
+      forearm.position.set(dir * 0.28, -0.14, isFrontArm ? 0.02 : 0.18);
+      forearm.rotation.z = dir * 1.38;
+      forearm.castShadow = true;
+
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.088, 14, 14), skinMat);
+      hand.position.set(dir * 0.42, -0.17, isFrontArm ? 0.04 : 0.28);
+      hand.castShadow = true;
+
+      shoulder.add(upper, forearm, hand);
+      return shoulder;
+    };
+
+    const frontArm = createArmRig(true);
+    const backArm  = createArmRig(false);
+    spine.add(frontArm, backArm);
+
+    return {
+      root,
+      pelvis,
+      spine,
+      headPivot,
+      frontArm,
+      backArm,
+      frontLeg,
+      backLeg,
+      isBlue,
+      index,
+      baseX: -dir * (GAME_3D_CONFIG.tug.startXOffset + index * GAME_3D_CONFIG.tug.memberSpacing),
+      phase: index * 1.15
+    };
   }
 
   buildArticulated3DTeams() {
     this.blueTeam = [];
     this.redTeam = [];
-  }
+    const count = GAME_3D_CONFIG.tug.teamCount;
 
-  spawnFootDust3D(isBlue) {
-    const dir = isBlue ? 1 : -1;
-    for (let i = 0; i < 8; i++) {
-      const p = new THREE.Mesh(
-        new THREE.SphereGeometry(0.065 + Math.random() * 0.045, 8, 8),
-        new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.75 })
-      );
-      p.position.set(
-        this.currentShiftX + (isBlue ? -2.0 : 2.0) + (Math.random() - 0.5) * 1.6,
-        0.35 + Math.random() * 0.15,
-        0.35
-      );
-      this.group.add(p);
-      this.particles.push({
-        mesh: p,
-        vx: dir * (0.6 + Math.random() * 0.8),
-        vy: 0.6 + Math.random() * 0.6,
-        vz: 0,
-        life: 0.5,
-        maxLife: 0.5
-      });
+    for (let i = 0; i < count; i++) {
+      const bChar = this.createArticulatedChibi3D(true, i);
+      bChar.root.position.set(bChar.baseX, 0, 0);
+      this.movingAssembly.add(bChar.root);
+      this.blueTeam.push(bChar);
+
+      const rChar = this.createArticulatedChibi3D(false, i);
+      rChar.root.position.set(rChar.baseX, 0, 0);
+      this.movingAssembly.add(rChar.root);
+      this.redTeam.push(rChar);
     }
   }
 
+  // Tự động nạp file mô hình .GLB thật nếu có trong assets/models/ hoặc do giáo viên chọn
+  async tryLoadGLBModels() {
+    const loader = await ensureGLTFLoader();
+    if (!loader) return;
+
+    const blueUrl = customGlbUrls.tugBlue || GAME_3D_CONFIG.tug.models.blue;
+    const redUrl  = customGlbUrls.tugRed  || GAME_3D_CONFIG.tug.models.red;
+
+    const loadTeamGLB = (url, isBlue, teamArray) => {
+      loader.load(
+        url,
+        gltf => {
+          if (!gltf || !gltf.scene) return;
+          // Ẩn nhân vật Chibi mặc định và gắn mô hình .GLB vừa tải vào đúng vị trí từng thành viên
+          teamArray.forEach((member, idx) => {
+            member.pelvis.visible = false;
+            const clone = gltf.scene.clone(true);
+
+            // Tự động chuẩn hóa chiều cao model .GLB về khoảng 1.55 đơn vị
+            const box = new THREE.Box3().setFromObject(clone);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const scale = 1.55 / Math.max(0.1, size.y);
+            clone.scale.setScalar(scale);
+
+            const newBox = new THREE.Box3().setFromObject(clone);
+            clone.position.y = -newBox.min.y;
+            clone.rotation.y = isBlue ? Math.PI / 2 : -Math.PI / 2;
+
+            clone.traverse(node => {
+              if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+              }
+            });
+
+            member.glbRoot = clone;
+            member.root.add(clone);
+
+            if (gltf.animations && gltf.animations.length) {
+              const mixer = new THREE.AnimationMixer(clone);
+              const action = mixer.clipAction(gltf.animations[0]);
+              action.time = idx * 0.35;
+              action.play();
+              this.mixers.push(mixer);
+            }
+          });
+        },
+        undefined,
+        () => {} // Giữ nguyên mô hình Chibi 3D nếu không tìm thấy file .glb
+      );
+    };
+
+    loadTeamGLB(blueUrl, true, this.blueTeam);
+    loadTeamGLB(redUrl, false, this.redTeam);
+  }
+
+  spawnFootDust3D(isBlue) {
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+    if (this.particles.length >= qCfg.maxParticles) return;
+    const team = isBlue ? this.blueTeam : this.redTeam;
+    const dir = isBlue ? 1 : -1;
+
+    team.forEach(member => {
+      for (let i = 0; i < 4; i++) {
+        const p = new THREE.Mesh(
+          new THREE.SphereGeometry(0.08 + Math.random() * 0.06, 10, 10),
+          new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.78 })
+        );
+        const worldX = this.movingAssembly.position.x + member.root.position.x;
+        p.position.set(worldX + (Math.random() - 0.5) * 0.35, 0.12, (Math.random() - 0.5) * 0.3);
+        this.group.add(p);
+        this.particles.push({
+          mesh: p,
+          vx: dir * (0.7 + Math.random() * 0.9),
+          vy: 0.75 + Math.random() * 0.75,
+          vz: (Math.random() - 0.5) * 0.5,
+          life: 0.55,
+          maxLife: 0.55
+        });
+      }
+    });
+  }
+
   spawnVictoryConfetti3D(winnerTeam) {
+    const count = GAME_3D_CONFIG.animation.victoryConfettiCount;
     const palette = [0xffd859, 0x2ecc71, 0x3b82f6, 0xef4444, 0xa855f7, 0xff9f43];
-    const centerX = winnerTeam === 'A' ? -1.4 : winnerTeam === 'B' ? 1.4 : 0;
-    for (let i = 0; i < 75; i++) {
+    const centerX = winnerTeam === 'A' ? -1.8 : winnerTeam === 'B' ? 1.8 : 0;
+
+    for (let i = 0; i < count; i++) {
       const m = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.14, 0.085),
+        new THREE.PlaneGeometry(0.15, 0.09),
         new THREE.MeshBasicMaterial({ color: palette[i % palette.length], side: THREE.DoubleSide })
       );
-      m.position.set(centerX + (Math.random() - 0.5) * 5.2, 3.2 + Math.random() * 1.8, 0.5);
+      m.position.set(centerX + (Math.random() - 0.5) * 5.2, 3.2 + Math.random() * 2.2, (Math.random() - 0.5) * 2.2);
+      m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
       this.group.add(m);
       this.particles.push({
         mesh: m,
-        vx: (Math.random() - 0.5) * 1.4,
+        vx: (Math.random() - 0.5) * 1.3,
         vy: -1.4 - Math.random() * 1.2,
-        vz: 0,
+        vz: (Math.random() - 0.5) * 1.2,
         rotSpeed: 5 + Math.random() * 5,
         life: 3.0,
         maxLife: 3.0
@@ -3722,9 +3934,17 @@ class TugOfWarScene {
     const maxS = Math.max(1, Number(winScore) || 5);
     const ratio = Math.max(-1, Math.min(1, (Number(b || 0) - Number(a || 0)) / maxS));
     this.targetShiftX = ratio * GAME_3D_CONFIG.tug.maxShiftX;
-    if (a > b) { this.stateA = 'pull'; this.stateB = 'resist'; }
-    else if (b > a) { this.stateB = 'pull'; this.stateA = 'resist'; }
-    else { this.stateA = 'idle'; this.stateB = 'idle'; }
+
+    if (a > b) {
+      this.stateA = 'pull';
+      this.stateB = (a - b >= 2) ? 'loseBalance' : 'resist';
+    } else if (b > a) {
+      this.stateB = 'pull';
+      this.stateA = (b - a >= 2) ? 'loseBalance' : 'resist';
+    } else {
+      this.stateA = 'idle';
+      this.stateB = 'idle';
+    }
   }
 
   onCorrect(team) {
@@ -3740,8 +3960,16 @@ class TugOfWarScene {
   onWrong() {}
 
   onVictory(team) {
-    this.stateA = team === 'A' ? 'victory' : 'defeat';
-    this.stateB = team === 'B' ? 'victory' : 'defeat';
+    if (team === 'A') {
+      this.stateA = 'victory';
+      this.stateB = 'defeat';
+    } else if (team === 'B') {
+      this.stateB = 'victory';
+      this.stateA = 'defeat';
+    } else {
+      this.stateA = 'victory';
+      this.stateB = 'victory';
+    }
     this.spawnVictoryConfetti3D(team);
   }
 
@@ -3765,24 +3993,81 @@ class TugOfWarScene {
     }
   }
 
+  animateRiggedMember(char, state, pulse, elapsed) {
+    const dir = char.isBlue ? 1 : -1;
+    const t = elapsed * 5.4 + char.phase;
+    const pulseBoost = pulse > 0 ? Math.sin((pulse / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
+
+    if (char.glbRoot) {
+      // Nếu đang dùng mô hình .GLB ngoài: áp dụng độ nghiêng kéo và nhảy mừng chiến thắng
+      if (state === 'victory') {
+        char.glbRoot.position.y = Math.abs(Math.sin(elapsed * 8.5 + char.phase)) * 0.35;
+        char.glbRoot.rotation.z = Math.sin(elapsed * 6 + char.phase) * 0.1;
+      } else {
+        char.glbRoot.position.y = Math.abs(Math.cos(t)) * 0.04;
+        char.glbRoot.rotation.z = dir * (0.18 + pulseBoost * 0.16);
+      }
+      return;
+    }
+
+    if (state === 'victory') {
+      char.pelvis.position.y = 0.56 + Math.abs(Math.sin(elapsed * 8.5 + char.phase)) * 0.36;
+      char.spine.rotation.z = Math.sin(elapsed * 6 + char.phase) * 0.12;
+      char.frontArm.rotation.z = dir * (0.95 + Math.sin(elapsed * 10 + char.phase) * 0.35);
+      char.backArm.rotation.z  = dir * (0.85 + Math.cos(elapsed * 10 + char.phase) * 0.35);
+      char.headPivot.rotation.y = Math.sin(elapsed * 5) * 0.25;
+      return;
+    }
+
+    if (state === 'defeat') {
+      char.pelvis.position.y = 0.52;
+      char.spine.rotation.z = -dir * 0.12;
+      char.headPivot.rotation.z = -dir * 0.22;
+      return;
+    }
+
+    // Tư thế ngả người ra sau, chân trước đạp trụ cong gối, 2 tay gồng kéo dây
+    let leanBack = dir * 0.32;
+    if (state === 'pull') leanBack = dir * (0.40 + pulseBoost * 0.22);
+    else if (state === 'resist') leanBack = dir * 0.25;
+    else if (state === 'loseBalance') leanBack = dir * (0.10 - Math.abs(Math.sin(t * 1.3)) * 0.16);
+
+    const heave = Math.sin(t) * 0.065 * dir;
+    char.spine.rotation.z = leanBack + heave;
+    char.pelvis.position.y = 0.56 + Math.abs(Math.cos(t)) * 0.04;
+
+    // Cử động khớp đùi và khớp gối tự nhiên
+    char.frontLeg.hipJoint.rotation.z = -dir * (0.36 + pulseBoost * 0.12);
+    char.frontLeg.kneeJoint.rotation.z = dir * (0.28 + Math.max(0, Math.sin(t)) * 0.12);
+    char.backLeg.hipJoint.rotation.z = dir * (0.30 + pulseBoost * 0.10);
+    char.backLeg.kneeJoint.rotation.z = dir * 0.14;
+
+    // Cử động khớp vai kéo dây về phía mình
+    const armPull = -dir * (pulseBoost * 0.18 + Math.max(0, Math.sin(t)) * 0.08);
+    char.frontArm.rotation.z = armPull;
+    char.backArm.rotation.z  = armPull;
+    char.headPivot.rotation.z = -heave * 0.5;
+  }
+
   update(dt, elapsed) {
+    this.mixers.forEach(m => m.update(dt));
+
     const k = Math.min(1, dt * GAME_3D_CONFIG.animation.lerpSpeed);
-    const pulseOffset = (this.pullPulseB > 0 ? 0.16 : 0) - (this.pullPulseA > 0 ? 0.16 : 0);
+    const pulseOffset = (this.pullPulseB > 0 ? 0.15 : 0) - (this.pullPulseA > 0 ? 0.15 : 0);
     this.currentShiftX += ((this.targetShiftX + pulseOffset) - this.currentShiftX) * k;
 
     if (this.movingAssembly) {
       this.movingAssembly.position.x = this.currentShiftX;
-      if (this.stateA === 'victory' || this.stateB === 'victory') {
-        this.movingAssembly.position.y = Math.abs(Math.sin(elapsed * 8.5)) * 0.20;
-      } else {
-        this.movingAssembly.position.y = Math.abs(Math.sin(elapsed * 5.2)) * 0.025;
-      }
-      const tilt = (this.pullPulseA > 0 ? 0.03 : 0) - (this.pullPulseB > 0 ? 0.03 : 0);
-      this.movingAssembly.rotation.z = tilt;
+    }
+    if (this.centerBow) {
+      this.centerBow.rotation.z = Math.sin(elapsed * 5) * 0.08;
     }
 
     if (this.pullPulseA > 0) this.pullPulseA = Math.max(0, this.pullPulseA - dt);
     if (this.pullPulseB > 0) this.pullPulseB = Math.max(0, this.pullPulseB - dt);
+
+    this.blueTeam.forEach(c => this.animateRiggedMember(c, this.stateA, this.pullPulseA, elapsed));
+    this.redTeam.forEach(c => this.animateRiggedMember(c, this.stateB, this.pullPulseB, elapsed));
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
@@ -3796,6 +4081,7 @@ class TugOfWarScene {
       }
       p.mesh.position.x += p.vx * dt;
       p.mesh.position.y += p.vy * dt;
+      p.mesh.position.z += p.vz * dt;
       if (p.rotSpeed) {
         p.mesh.rotation.x += p.rotSpeed * dt;
         p.mesh.rotation.y += p.rotSpeed * dt;
@@ -3807,6 +4093,7 @@ class TugOfWarScene {
   }
 
   dispose() {
+    this.mixers = [];
     this.clearParticles();
     this.group.traverse(obj => {
       obj.geometry?.dispose?.();
@@ -3818,7 +4105,7 @@ class TugOfWarScene {
 }
 
 // ============================================================================
-// CLASS 2: RaceScene – ĐƯỜNG ĐUA 2 LÀN & XE KART 3D
+// CLASS 2: RaceScene – ĐƯỜNG ĐUA 2 LÀN & XE KART 3D (HỖ TRỢ CẢ .GLB)
 // ============================================================================
 class RaceScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3843,6 +4130,35 @@ class RaceScene {
     this.kartA.root.position.set(this.curX_A, 0.03, GAME_3D_CONFIG.race.laneZ[0]);
     this.kartB.root.position.set(this.curX_B, 0.03, GAME_3D_CONFIG.race.laneZ[1]);
     this.group.add(this.kartA.root, this.kartB.root);
+    this.tryLoadKartGLB();
+  }
+
+  async tryLoadKartGLB() {
+    const loader = await ensureGLTFLoader();
+    if (!loader) return;
+
+    const loadOne = (url, kartObj) => {
+      loader.load(
+        url,
+        gltf => {
+          if (!gltf?.scene) return;
+          kartObj.chassis.visible = false;
+          kartObj.wheels.forEach(w => w.visible = false);
+          const model = gltf.scene.clone(true);
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const scale = 1.65 / Math.max(0.1, Math.max(size.x, size.z));
+          model.scale.setScalar(scale);
+          kartObj.root.add(model);
+        },
+        undefined,
+        () => {}
+      );
+    };
+
+    loadOne(customGlbUrls.kartBlue || GAME_3D_CONFIG.race.models.blue, this.kartA);
+    loadOne(customGlbUrls.kartRed  || GAME_3D_CONFIG.race.models.red,  this.kartB);
   }
 
   buildTrack() {
@@ -4254,6 +4570,10 @@ class Game3D {
       if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) {
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
       }
+      if (THREE.ACESFilmicToneMapping) {
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.06;
+      }
 
       this.setupLights();
       this.worldRoot = new THREE.Group();
@@ -4270,11 +4590,24 @@ class Game3D {
   }
 
   setupLights() {
+    // Ánh sáng Studio 3 điểm giúp nhân vật 3D Chibi và model .GLB nổi khối mềm mại
     const hemi = new THREE.HemisphereLight(0xffffff, 0xdbeafe, 1.05);
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
     keyLight.position.set(5, 11, 9);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    const d = 7.5;
+    keyLight.shadow.camera.left = -d;
+    keyLight.shadow.camera.right = d;
+    keyLight.shadow.camera.top = d;
+    keyLight.shadow.camera.bottom = -d;
+
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.45);
+    rimLight.position.set(-6, 6, -5);
+
     this.dirLight = keyLight;
-    this.scene.add(hemi, keyLight);
+    this.scene.add(hemi, keyLight, rimLight);
   }
 
   setupResizeObserver() {
@@ -4315,6 +4648,9 @@ class Game3D {
     const qCfg = GAME_3D_CONFIG.quality[this.quality];
     const pr = Math.min(window.devicePixelRatio || 1, qCfg.pixelRatio);
     this.renderer.setPixelRatio(pr);
+    this.renderer.shadowMap.enabled = Boolean(qCfg.shadows);
+    if (THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    if (this.dirLight) this.dirLight.castShadow = Boolean(qCfg.shadows);
     this.resize();
   }
 
@@ -4368,7 +4704,7 @@ class Game3D {
     const cfg = this.mode === 'race' ? GAME_3D_CONFIG.race : GAME_3D_CONFIG.tug;
     const narrowFactor = aspect < 1.55 ? (1.55 / Math.max(0.75, aspect)) : 1.0;
     const [cx, cy, cz] = cfg.cameraPos;
-    this.baseCamPos = new THREE.Vector3(cx, cy, cz * narrowFactor);
+    this.baseCamPos = new THREE.Vector3(cx, cy * (0.9 + narrowFactor * 0.1), cz * narrowFactor);
     this.baseLookAt = new THREE.Vector3(...cfg.cameraLookAt);
 
     this.camera.position.copy(this.baseCamPos);
@@ -5288,6 +5624,7 @@ window.addEventListener('resize', () => {
 async function init() {
   unlockApiUrlInputUI();
   upgradeGamePlayLayoutV21();
+  ensureGLTFLoader();
   if ($('#qualitySelect')) $('#qualitySelect').value = GRAPHICS_QUALITY;
   if ($('#teacherPasscodeInput')) $('#teacherPasscodeInput').value = localStorage.getItem(LS.passcode) || '';
 

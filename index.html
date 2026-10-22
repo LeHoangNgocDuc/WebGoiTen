@@ -2661,7 +2661,8 @@ const GAME_3D_CONFIG = {
   tug: {
     maxShiftRatio: 0.28,
     pullPulseDuration: 0.72,
-    customSpriteUrl: 'assets/tug_teams.png'
+    customSpriteUrl: 'assets/tug_teams.png',
+    storageKey: 'class3d_v21_custom_tug_sprite'
   },
   race: {
     cameraPos: [0, 5.2, 8.9],
@@ -2686,6 +2687,200 @@ const GAME_3D_CONFIG = {
     victoryConfettiCount: 75
   }
 };
+
+// ============================================================================
+// BỘ XỬ LÝ TÁCH NỀN & CẮT TỰ ĐỘNG 6 HỌC SINH TỪ ẢNH MẪU HOẶC ẢNH BẤT KỲ
+// ============================================================================
+let customTugSpriteDataUrl = localStorage.getItem(GAME_3D_CONFIG.tug.storageKey) || '';
+
+function processUploadedTugImage(img, forceCropSampleScreenshot = null) {
+  const w = img.naturalWidth || img.width;
+  const h = img.naturalHeight || img.height;
+
+  // Nhận diện tự động nếu người dùng chọn bức ảnh chụp màn hình mẫu (16:9 có khung trắng ở giữa)
+  const isLikelySampleScreenshot = forceCropSampleScreenshot !== null
+    ? forceCropSampleScreenshot
+    : (w >= 900 && h >= 500 && (w / h > 1.55) && (w / h < 1.95));
+
+  const outCanvas = document.createElement('canvas');
+  const ctx = outCanvas.getContext('2d');
+
+  if (isLikelySampleScreenshot) {
+    // Kiểm tra xem vùng trung tâm có phải nền trắng của ảnh mẫu giaoviendoimoi.com không
+    const probeCanvas = document.createElement('canvas');
+    probeCanvas.width = w;
+    probeCanvas.height = h;
+    const pCtx = probeCanvas.getContext('2d');
+    pCtx.drawImage(img, 0, 0);
+    const samplePixel = pCtx.getImageData(Math.floor(w * 0.42), Math.floor(h * 0.30), 1, 1).data;
+    const isWhiteArena = samplePixel[0] > 230 && samplePixel[1] > 230 && samplePixel[2] > 230;
+
+    if (isWhiteArena) {
+      // Cắt chính xác khung 6 bạn học sinh kéo co trong ảnh mẫu (x: 35.4%..67.6%, y: 45.5%..67.5%)
+      const sx = Math.round(w * 0.354);
+      const sy = Math.round(h * 0.455);
+      const sw = Math.round(w * 0.322);
+      const sh = Math.round(h * 0.220);
+
+      outCanvas.width = sw;
+      outCanvas.height = sh;
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      const imgData = ctx.getImageData(0, 0, sw, sh);
+      const d = imgData.data;
+
+      // Bước 1: Khử vạch kẻ đứt nét màu xanh lá cây (#2ecc71) ở giữa ảnh mẫu
+      for (let y = 0; y < sh; y++) {
+        for (let x = Math.floor(sw * 0.46); x < Math.ceil(sw * 0.54); x++) {
+          const i = (y * sw + x) * 4;
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          // Nhận diện điểm ảnh màu xanh lá của vạch đứt nét
+          if (g > 130 && g > r + 25 && g > b + 18) {
+            // Nếu nằm ở cao độ sợi dây thừng/nơ đỏ ở giữa thì tô lại màu nơ đỏ/dây, ngược lại làm trong suốt
+            const relY = y / sh;
+            if (relY > 0.36 && relY < 0.52) {
+              d[i] = 195; d[i + 1] = 45; d[i + 2] = 45; d[i + 3] = 255;
+            } else {
+              d[i + 3] = 0;
+            }
+          }
+        }
+      }
+
+      // Bước 2: Khử nền trắng / xám nhạt xung quanh 6 học sinh để tạo ảnh PNG trong suốt mượt mà
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] === 0) continue;
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        const maxC = Math.max(r, g, b);
+        const minC = Math.min(r, g, b);
+        const sat = maxC - minC;
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        if (lum > 240 && sat < 22) {
+          d[i + 3] = 0;
+        } else if (lum > 224 && sat < 26) {
+          // Làm mềm viền (anti-aliasing feather)
+          d[i + 3] = Math.round(((240 - lum) / 16) * 255);
+        }
+      }
+
+      ctx.putImageData(imgData, 0, 0);
+      return outCanvas.toDataURL('image/png');
+    }
+  }
+
+  // Trường hợp ảnh PNG/JPG kéo co thông thường (tự động thu gọn về kích thước tối ưu và tách nền trắng nếu có)
+  const maxW = 1200;
+  const scale = Math.min(1, maxW / w);
+  const tw = Math.round(w * scale);
+  const th = Math.round(h * scale);
+  outCanvas.width = tw;
+  outCanvas.height = th;
+  ctx.drawImage(img, 0, 0, tw, th);
+
+  const imgData = ctx.getImageData(0, 0, tw, th);
+  const d = imgData.data;
+  // Kiểm tra góc ảnh xem có phải ảnh nền trắng không (nếu đã trong suốt sẵn thì giữ nguyên)
+  const cornerAlpha = d[3];
+  const cornerLum = (d[0] + d[1] + d[2]) / 3;
+  if (cornerAlpha > 240 && cornerLum > 236) {
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      const sat = Math.max(r, g, b) - Math.min(r, g, b);
+      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      if (lum > 242 && sat < 18) d[i + 3] = 0;
+      else if (lum > 228 && sat < 22) d[i + 3] = Math.round(((242 - lum) / 14) * 255);
+    }
+    ctx.putImageData(imgData, 0, 0);
+  }
+
+  return outCanvas.toDataURL('image/png');
+}
+
+function openTugSpritePicker() {
+  let inp = $('#tugSpriteFileInput');
+  if (!inp) {
+    inp = document.createElement('input');
+    inp.id = 'tugSpriteFileInput';
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.className = 'hide';
+    inp.addEventListener('change', e => {
+      const file = e.target.files?.[0];
+      if (file) loadTugSpriteFromFile(file);
+      e.target.value = '';
+    });
+    document.body.appendChild(inp);
+  }
+  inp.click();
+}
+
+function loadTugSpriteFromFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const processedDataUrl = processUploadedTugImage(img);
+        customTugSpriteDataUrl = processedDataUrl;
+        try { localStorage.setItem(GAME_3D_CONFIG.tug.storageKey, processedDataUrl); } catch (_) {}
+        ClassroomDB.saveSnapshot({
+          students, historyData, scoresData, questionBank,
+          customTugSpriteDataUrl: processedDataUrl
+        }).catch(() => {});
+
+        if (game3d?.activeScene?.applyCustomSprite) {
+          game3d.activeScene.applyCustomSprite(processedDataUrl);
+          game3d.requestRender();
+        }
+        $('#downloadTugSpriteBtn')?.classList.remove('hide');
+        toast('✅ Đã tách nền & áp dụng hình nhân vật Kéo co thành công!');
+      } catch (err) {
+        toast('Lỗi xử lý ảnh: ' + (err.message || err));
+      }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetTugSpriteToDefault() {
+  customTugSpriteDataUrl = '';
+  localStorage.removeItem(GAME_3D_CONFIG.tug.storageKey);
+  if (game3d?.activeScene?.applyCustomSprite) {
+    game3d.activeScene.applyCustomSprite('');
+    game3d.requestRender();
+  }
+  $('#downloadTugSpriteBtn')?.classList.add('hide');
+  toast('Đã đặt lại hình Kéo co mặc định.');
+}
+
+function downloadExtractedTugSprite() {
+  if (!customTugSpriteDataUrl) return toast('Chưa có ảnh Kéo co tùy chỉnh để tải về.');
+  const a = document.createElement('a');
+  a.href = customTugSpriteDataUrl;
+  a.download = 'tug_teams.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast('Đã tải xuống file tug_teams.png! Bạn có thể chép vào thư mục assets/tug_teams.png.');
+}
+
+// Hỗ trợ nhấn Ctrl+V (Dán ảnh trực tiếp từ Clipboard khi đang ở màn hình Trò chơi)
+window.addEventListener('paste', e => {
+  if (!$('#games')?.classList.contains('active')) return;
+  const items = e.clipboardData?.items || [];
+  for (const item of items) {
+    if (item.type && item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      if (file) {
+        loadTugSpriteFromFile(file);
+        e.preventDefault();
+        break;
+      }
+    }
+  }
+});
 
 // ============================================================================
 // GIAO DIỆN TRÌNH CHIẾU TV + BẢNG ĐÁP ÁN TRUNG TÂM CỠ LỚN (CÁCH B)
@@ -2720,15 +2915,15 @@ function upgradeGamePlayLayoutV21() {
       background: linear-gradient(135deg, rgba(10, 32, 58, .98), rgba(6, 19, 36, .98));
       border: 1px solid rgba(145, 226, 255, .25);
       display: grid;
-      grid-template-columns: auto minmax(170px, 1.15fr) minmax(175px, 1fr) auto minmax(175px, 1fr) auto auto;
-      gap: 10px;
+      grid-template-columns: auto minmax(160px, 1.1fr) minmax(165px, 1fr) auto minmax(165px, 1fr) auto auto auto;
+      gap: 8px;
       align-items: center;
       box-shadow: 0 10px 28px rgba(0, 0, 0, .35);
     }
     .hud-title-box { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
     .hud-title-box h2 {
       margin: 0;
-      font-size: clamp(16px, 1.35vw, 22px);
+      font-size: clamp(15px, 1.3vw, 21px);
       font-weight: 1000;
       color: var(--gold);
       white-space: nowrap;
@@ -2755,21 +2950,21 @@ function upgradeGamePlayLayoutV21() {
       background: linear-gradient(135deg, rgba(110, 22, 48, .82), rgba(214, 48, 88, .42));
       border: 1.5px solid rgba(255, 110, 145, .5);
     }
-    #gamePlay .tv-score-name { font-size: clamp(15px, 1.2vw, 20px); font-weight: 950; }
+    #gamePlay .tv-score-name { font-size: clamp(14px, 1.15vw, 19px); font-weight: 950; }
     #gamePlay .tv-score-number {
-      font-size: clamp(30px, 2.5vw, 44px);
+      font-size: clamp(28px, 2.4vw, 42px);
       font-weight: 1000;
       line-height: 1;
       color: var(--gold);
     }
     #gamePlay .tv-timer {
-      min-width: 118px;
+      min-width: 112px;
       height: 100%;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 4px 16px;
+      padding: 4px 14px;
       border-radius: 999px;
       background: #050f1d;
       border: 2px solid rgba(255, 255, 255, .28);
@@ -2782,7 +2977,7 @@ function upgradeGamePlayLayoutV21() {
       animation: pulseFast .45s infinite alternate;
     }
     #gamePlay .tv-timer.danger b { color: #ff6e91; }
-    #gamePlay .tv-timer b { font-size: clamp(26px, 2.2vw, 38px); line-height: 1; }
+    #gamePlay .tv-timer b { font-size: clamp(25px, 2.1vw, 36px); line-height: 1; }
 
     /* 2. KHUNG CÂU HỎI TRUNG TÂM HIỂN THỊ 1 LẦN DUY NHẤT */
     #gamePlay > .central-question {
@@ -2987,9 +3182,7 @@ function upgradeGamePlayLayoutV21() {
       padding: 8px 14px !important;
     }
 
-    /* =========================================================================
-       4. BẢNG TUYÊN BỐ ĐÁP ÁN & GIẢI THÍCH CỠ LỚN GIỮA MÀN HÌNH (CÁCH B)
-       ========================================================================= */
+    /* 4. BẢNG TUYÊN BỐ ĐÁP ÁN & GIẢI THÍCH CỠ LỚN GIỮA MÀN HÌNH (CÁCH B) */
     .center-answer-spotlight {
       position: fixed;
       inset: 0;
@@ -3001,9 +3194,7 @@ function upgradeGamePlayLayoutV21() {
       backdrop-filter: blur(10px);
       animation: spotlightFadeIn .22s cubic-bezier(.16, 1, .3, 1);
     }
-    .center-answer-spotlight.show {
-      display: grid;
-    }
+    .center-answer-spotlight.show { display: grid; }
     @keyframes spotlightFadeIn {
       from { opacity: 0; transform: scale(.94); }
       to   { opacity: 1; transform: scale(1); }
@@ -3027,9 +3218,7 @@ function upgradeGamePlayLayoutV21() {
       border-color: #3ee6a3;
       box-shadow: 0 32px 90px rgba(0, 0, 0, .75), 0 0 65px rgba(62, 230, 163, .28);
     }
-    .center-answer-card.bad-theme {
-      border-color: #ff6e91;
-    }
+    .center-answer-card.bad-theme { border-color: #ff6e91; }
     .center-answer-status {
       display: inline-flex;
       align-self: center;
@@ -3079,9 +3268,7 @@ function upgradeGamePlayLayoutV21() {
       color: #09223c;
       word-break: break-word;
     }
-    .center-answer-value mjx-container {
-      font-size: 1.08em !important;
-    }
+    .center-answer-value mjx-container { font-size: 1.08em !important; }
     .center-answer-explain {
       padding: 16px 22px;
       border-radius: 18px;
@@ -3119,8 +3306,9 @@ function upgradeGamePlayLayoutV21() {
   const gp = $('#gamePlay');
   if (!gp) return;
 
+  // Thanh HUD có thêm nút "🖼️ Đổi hình Kéo co" để giáo viên chọn ảnh mẫu hoặc ảnh 3D bất kỳ
   const head = gp.querySelector('.game-tv-head');
-  if (head && !head.querySelector('#hudSoundBtn')) {
+  if (head && !head.querySelector('#hudChangeSpriteBtn')) {
     head.innerHTML = `
       <button class="btn ghost sm" onclick="exitGame()" title="Thoát về cấu hình trò chơi">← Thoát</button>
       <div class="hud-title-box">
@@ -3149,9 +3337,31 @@ function upgradeGamePlayLayoutV21() {
           <span style="width:12px;height:12px;border-radius:50%;background:#ff5c82;display:inline-block"></span>
         </div>
       </div>
+      <button id="hudChangeSpriteBtn" class="btn gold sm" onclick="openTugSpritePicker()" title="Chọn ảnh chụp màn hình mẫu hoặc ảnh Kéo co 3D bất kỳ (Hoặc nhấn Ctrl+V)">🖼️ Hình Kéo co</button>
       <button id="hudSoundBtn" class="btn ghost sm" onclick="toggleGameSoundFromHud()">🔊 Âm thanh</button>
       <button class="btn ghost sm" onclick="toggleGamePresentation()">⛶ Toàn màn hình</button>
     `;
+  }
+
+  // Thêm thanh chọn ảnh Kéo co trong màn hình cấu hình #gameHub
+  const hubCard = $('#gameHub .card');
+  if (hubCard && !$('#hubTugSpriteBar')) {
+    const bar = document.createElement('div');
+    bar.id = 'hubTugSpriteBar';
+    bar.className = 'row space';
+    bar.style.cssText = 'margin-top:10px;padding:10px 14px;border-radius:14px;background:rgba(72,229,255,.07);border:1px dashed rgba(72,229,255,.35)';
+    bar.innerHTML = `
+      <div>
+        <b>🖼️ Hình nhân vật Kéo co (Hỗ trợ cắt tự động từ ảnh mẫu hoặc ảnh 3D/Canva):</b>
+        <div class="muted" style="font-size:12px">Bấm <b>Chọn ảnh Kéo co</b> rồi chọn bức ảnh chụp màn hình mẫu <code>image_e9e8a4.jpg</code> (hoặc nhấn <b>Ctrl + V</b>), web sẽ tự cắt lấy đúng 6 học sinh và tách nền trong suốt!</div>
+      </div>
+      <div class="row">
+        <button class="btn gold sm" onclick="openTugSpritePicker()">🖼️ Chọn ảnh Kéo co</button>
+        <button id="downloadTugSpriteBtn" class="btn good sm ${customTugSpriteDataUrl ? '' : 'hide'}" onclick="downloadExtractedTugSprite()">⬇ Tải file tug_teams.png</button>
+        <button class="btn ghost sm" onclick="resetTugSpriteToDefault()">↺ Mặc định</button>
+      </div>
+    `;
+    hubCard.appendChild(bar);
   }
 
   $('#teamQuestionBoxA')?.remove();
@@ -3172,14 +3382,12 @@ function upgradeGamePlayLayoutV21() {
     if (actions) centerCol.appendChild(actions);
   }
 
-  // Đổi nhãn nút #revealAnswerBtn để giáo viên mở bảng đáp án trung tâm bất cứ lúc nào
   const revBtn = $('#revealAnswerBtn');
   if (revBtn) {
     revBtn.textContent = '🎯 ĐÁP ÁN & GIẢI THÍCH (E)';
     revBtn.classList.remove('hide');
   }
 
-  // Khởi tạo Modal Bảng Tuyên Bố Đáp Án Giữa Màn Hình (Cách B)
   if (!$('#centerAnswerSpotlight')) {
     const spot = document.createElement('div');
     spot.id = 'centerAnswerSpotlight';
@@ -3241,8 +3449,6 @@ function showCenterAnswerSpotlight(opts = {}) {
 
   spot.classList.add('show');
   typeset(card);
-
-  // Đồng thời tô sáng ô đáp án đúng ở cả 2 cột Đội Xanh và Đội Đỏ bên dưới
   highlightCorrectChoicesOnBothTeams(q);
 }
 
@@ -3288,156 +3494,132 @@ function toggleGameSoundFromHud() {
 }
 
 // ============================================================================
-// TẠO SPRITE VECTOR MINH HỌA HỌC SINH KÉO CO CHẤT LƯỢNG CAO (PHƯƠNG ÁN 1)
-// (Thiết kế theo đúng mẫu 6 học sinh đeo khăn quàng đỏ, đồng phục thể thao
-// Xanh/Đỏ kẻ sọc trắng, tóc tỉa lớp anime/chibi, tư thế bám dây tự nhiên)
+// HÌNH CHIBI HỌC SINH KÉO CO MẶC ĐỊNH (TỶ LỆ CHIBI 2.5 ĐẦU, QUẦN THỂ THAO CONG
+// GỐI TỰ NHIÊN, LOẠI BỎ HOÀN TOÀN CHÂN CHỮ V CỨNG NHẮC)
 // ============================================================================
-function buildChibiStudentSVGGroup(isBlue, isFemale, isSmile) {
-  const jacket = isBlue ? '#3b73b9' : '#c83e37';
-  const jacketShadow = isBlue ? '#2a5691' : '#9e2a25';
-  const pants = isBlue ? '#2f5f9e' : '#a8322d';
-  const pantsShadow = isBlue ? '#214678' : '#7d201c';
-  const stripe = '#e8f1fa';
-  const shoeBand = isBlue ? '#3b73b9' : '#c83e37';
+function buildNaturalChibiStudentSVG(isBlue, isFemale, isOpenSmile) {
+  const main = isBlue ? '#3b73b9' : '#c83e37';
+  const dark = isBlue ? '#28528a' : '#9c2823';
+  const stripe = '#edf4fc';
 
-  // Vẽ nhân vật gốc hướng mặt sang phải (+X), khi là Đội Đỏ sẽ được lật đối xứng qua trục X
   return `
     <g>
-      <!-- Bóng đổ dưới chân -->
-      <ellipse cx="4" cy="212" rx="46" ry="11" fill="rgba(30,45,65,0.18)"/>
+      <!-- Bóng đổ mềm sát mặt đất -->
+      <ellipse cx="2" cy="112" rx="44" ry="10" fill="rgba(25,40,65,0.16)"/>
 
-      <!-- Đuôi tóc buộc dây đỏ (nếu là học sinh nữ ở giữa) -->
+      <!-- Đuôi tóc buộc nơ đỏ (nếu là bạn nữ đứng giữa) -->
       ${isFemale ? `
-        <g transform="translate(-34, -52)">
-          <path d="M 4 2 C -18 -14, -44 -2, -46 22 C -32 24, -14 14, 2 6 Z" fill="#3a2314" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
-          <path d="M -6 0 C -22 -4, -34 6, -36 16" stroke="#593822" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <circle cx="2" cy="3" r="6.5" fill="#e53935" stroke="#1e120a" stroke-width="2.8"/>
+        <g transform="translate(-32, -58)">
+          <path d="M 4 0 C -16 -12, -38 -2, -40 20 C -26 22, -10 12, 4 4 Z" fill="#3b2314" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
+          <circle cx="3" cy="2" r="5.5" fill="#e53935" stroke="#1e120a" stroke-width="2.5"/>
         </g>
       ` : ''}
 
-      <!-- CÁNH TAY SAU & BÀN TAY NẮM DÂY -->
-      <path d="M -2 -18 C 14 -12, 32 -4, 48 2" stroke="#1e120a" stroke-width="27" stroke-linecap="round" fill="none"/>
-      <path d="M -2 -18 C 14 -12, 32 -4, 48 2" stroke="${jacketShadow}" stroke-width="20" stroke-linecap="round" fill="none"/>
+      <!-- CHÂN SAU (Quần thể thao ống rộng gập gối mềm mại bằng đường cong Bezier kín) -->
+      <path d="M -22 28
+               C -34 52, -42 74, -46 98
+               L -22 100
+               C -18 80, -10 60, -2 36 Z"
+            fill="${dark}" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
+      <path d="M -28 36 C -36 58, -40 78, -42 96" stroke="${stripe}" stroke-width="3.6" stroke-linecap="round" fill="none" opacity="0.85"/>
 
-      <!-- CHÂN SAU (Đạp trụ phía sau) -->
-      <path d="M -18 58 L -38 122 L -52 192" stroke="#1e120a" stroke-width="33" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M -18 58 L -38 122 L -52 192" stroke="${pantsShadow}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M -22 64 L -40 122 L -53 186" stroke="${stripe}" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.85"/>
-
-      <!-- Giày chân sau -->
-      <g transform="translate(-50, 198) rotate(-4)">
-        <rect x="-22" y="-12" width="50" height="24" rx="11" fill="#ffffff" stroke="#1e120a" stroke-width="3.5"/>
-        <path d="M -10 -4 L 14 -4" stroke="${shoeBand}" stroke-width="6" stroke-linecap="round"/>
-        <rect x="-22" y="7" width="50" height="6" rx="3" fill="#cfd8e3"/>
+      <!-- Giày thể thao chân sau -->
+      <g transform="translate(-34, 102) rotate(-6)">
+        <path d="M -18 -6 C -18 -12, 8 -12, 22 -2 C 26 2, 24 10, 18 10 L -16 10 C -20 10, -20 0, -18 -6 Z"
+              fill="#ffffff" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M -6 -2 L 10 -1" stroke="${main}" stroke-width="4.5" stroke-linecap="round"/>
       </g>
 
-      <!-- CHÂN TRƯỚC (Cong gối chống lực kéo phía trước) -->
-      <path d="M 4 56 L 26 120 L 48 192" stroke="#1e120a" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M 4 56 L 26 120 L 48 192" stroke="${pants}" stroke-width="27" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M 6 62 L 27 120 L 47 186" stroke="${stripe}" stroke-width="5" stroke-linecap="round" fill="none"/>
-      <path d="M 11 64 L 31 120 L 51 184" stroke="${stripe}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <!-- CHÂN TRƯỚC (Cong gối đạp trụ phía trước, đè tự nhiên lên phần hông) -->
+      <path d="M -4 26
+               C 16 46, 26 68, 36 96
+               L 12 100
+               C 4 76, -6 58, -18 38 Z"
+            fill="${main}" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
+      <path d="M 0 34 C 14 54, 22 72, 28 95" stroke="${stripe}" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M -5 37 C 9 56, 17 74, 23 96" stroke="${stripe}" stroke-width="2" stroke-linecap="round" fill="none"/>
 
-      <!-- Giày chân trước -->
-      <g transform="translate(50, 198) rotate(-14)">
-        <rect x="-20" y="-12" width="52" height="24" rx="11" fill="#ffffff" stroke="#1e120a" stroke-width="3.5"/>
-        <path d="M -8 -4 L 16 -4" stroke="${shoeBand}" stroke-width="6.5" stroke-linecap="round"/>
-        <rect x="-20" y="7" width="52" height="6" rx="3" fill="#cfd8e3"/>
+      <!-- Giày thể thao chân trước -->
+      <g transform="translate(28, 102) rotate(-14)">
+        <path d="M -16 -6 C -16 -12, 10 -12, 24 -2 C 28 2, 26 10, 20 10 L -14 10 C -18 10, -18 0, -16 -6 Z"
+              fill="#ffffff" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
+        <path d="M -4 -2 L 12 -1" stroke="${main}" stroke-width="4.5" stroke-linecap="round"/>
       </g>
 
-      <!-- THÂN ÁO KHOÁC THỂ THAO (Nghiêng người về sau kéo dây) -->
-      <g transform="rotate(-17)">
-        <path d="M -28 -32 C -32 4, -28 42, -24 64 L 26 64 C 30 40, 28 2, 24 -32 Z" fill="${jacket}" stroke="#1e120a" stroke-width="3.8" stroke-linejoin="round"/>
-        <!-- Nếp gấp áo & khóa kéo giữa ngực -->
-        <path d="M 4 -28 L 6 60" stroke="${jacketShadow}" stroke-width="3" stroke-linecap="round"/>
-        <path d="M -24 48 L 24 48" stroke="#1e120a" stroke-width="3"/>
-
-        <!-- KHĂN QUÀNG ĐỎ HỌC SINH VIỆT NAM -->
-        <path d="M -24 -33 Q 0 -24 24 -33 L 14 -4 L -4 -14 Z" fill="#e53935" stroke="#1e120a" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Đuôi khăn quàng đỏ tung bay -->
-        <path d="M 8 -14 L 24 14 L 10 18 L 0 -10 Z" fill="#d32f2f" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M 2 -12 L -14 12 L -24 6 L -6 -14 Z" fill="#f44336" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
-        <circle cx="4" cy="-14" r="5.5" fill="#e53935" stroke="#1e120a" stroke-width="2.6"/>
+      <!-- THÂN ÁO THỂ THAO BẦU BĨNH NGẢ VỀ SAU & KHĂN QUÀNG ĐỎ -->
+      <g transform="translate(-4, 4) rotate(-18)">
+        <path d="M -24 -28
+                 C -28 -6, -26 20, -22 34
+                 C -8 38, 12 38, 24 32
+                 C 28 16, 26 -8, 20 -28 Z"
+              fill="${main}" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Khăn quàng đỏ học sinh -->
+        <path d="M -21 -28 Q 0 -18 21 -28 L 12 -4 L -4 -12 Z" fill="#e53935" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 6 -12 L 20 12 L 8 15 L -1 -8 Z" fill="#d32f2f" stroke="#1e120a" stroke-width="2.6" stroke-linejoin="round"/>
+        <path d="M 0 -10 L -14 10 L -22 4 L -6 -12 Z" fill="#f44336" stroke="#1e120a" stroke-width="2.6" stroke-linejoin="round"/>
       </g>
 
-      <!-- ĐẦU, TÓC HOẠT HÌNH TỈA LỚP & KHUÔN MẶT -->
-      <g transform="translate(-12, -68) rotate(-8)">
-        <!-- Cổ -->
-        <rect x="-9" y="24" width="18" height="16" rx="6" fill="#f7cdb0" stroke="#1e120a" stroke-width="3"/>
-
-        <!-- Khuôn mặt bầu bĩnh -->
-        <ellipse cx="2" cy="0" rx="34" ry="31" fill="#fde0c8" stroke="#1e120a" stroke-width="3.6"/>
-
-        <!-- Tai trái -->
-        <circle cx="-30" cy="4" r="8" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
-        <path d="M -31 2 Q -28 4 -30 7" stroke="#d49b78" stroke-width="2" fill="none" stroke-linecap="round"/>
-
+      <!-- ĐẦU CHIBI TO TRÒN ĐÁNG YÊU -->
+      <g transform="translate(-12, -52) rotate(-8)">
+        <ellipse cx="2" cy="0" rx="33" ry="30" fill="#fde0c8" stroke="#1e120a" stroke-width="3.5"/>
+        <!-- Tai -->
+        <circle cx="-29" cy="4" r="7.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
         <!-- Má hồng -->
-        <ellipse cx="-2" cy="10" rx="6.5" ry="3.6" fill="#ff8da1" opacity="0.55"/>
-        <ellipse cx="24" cy="9" rx="5.5" ry="3.2" fill="#ff8da1" opacity="0.55"/>
-
-        <!-- Đôi mắt to biểu cảm & lông mày -->
-        <path d="M -2 -10 Q 5 -14 11 -10" stroke="#2b190e" stroke-width="3.2" fill="none" stroke-linecap="round"/>
-        <path d="M 19 -11 Q 25 -14 29 -9" stroke="#2b190e" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <ellipse cx="5" cy="-2" rx="4.2" ry="4.8" fill="#1e120a"/>
-        <circle cx="3.5" cy="-4" r="1.6" fill="#ffffff"/>
-        <ellipse cx="24" cy="-2" rx="3.8" ry="4.5" fill="#1e120a"/>
-        <circle cx="22.8" cy="-4" r="1.4" fill="#ffffff"/>
-
-        <!-- Mũi & Miệng tươi tắn -->
-        <path d="M 15 3 Q 17 5 15 7" stroke="#c98a67" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-        ${isSmile
-          ? `<path d="M 7 13 Q 15 21 22 13 Z" fill="#e55353" stroke="#1e120a" stroke-width="2.5" stroke-linejoin="round"/>`
-          : `<path d="M 8 14 Q 15 19 21 13" stroke="#1e120a" stroke-width="2.8" fill="none" stroke-linecap="round"/>`
+        <ellipse cx="-1" cy="9" rx="6" ry="3.4" fill="#ff8da1" opacity="0.55"/>
+        <ellipse cx="23" cy="8" rx="5" ry="3" fill="#ff8da1" opacity="0.55"/>
+        <!-- Mắt & Lông mày -->
+        <path d="M -2 -9 Q 4 -13 10 -9" stroke="#2b190e" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <path d="M 18 -10 Q 24 -13 28 -8" stroke="#2b190e" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+        <ellipse cx="5" cy="-2" rx="4" ry="4.6" fill="#1e120a"/>
+        <circle cx="3.6" cy="-3.8" r="1.5" fill="#ffffff"/>
+        <ellipse cx="23" cy="-2" rx="3.6" ry="4.2" fill="#1e120a"/>
+        <circle cx="21.8" cy="-3.8" r="1.3" fill="#ffffff"/>
+        <!-- Miệng -->
+        ${isOpenSmile
+          ? `<path d="M 7 11 Q 14 19 21 11 Z" fill="#e55353" stroke="#1e120a" stroke-width="2.4" stroke-linejoin="round"/>`
+          : `<path d="M 8 12 Q 14 17 20 11" stroke="#1e120a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
         }
-
-        <!-- Mái tóc nâu hạt dẻ tỉa nhọn kiểu hoạt hình học sinh -->
-        <path d="M -33 2
-                 C -38 -22, -18 -38, 4 -36
-                 C 24 -36, 38 -22, 35 -2
-                 C 31 -8, 25 -14, 20 -8
-                 C 16 -16, 8 -18, 2 -8
-                 C -4 -17, -14 -16, -18 -6
-                 C -23 -12, -29 -8, -33 2 Z"
-              fill="#3d2516" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
-        <!-- Ánh sáng bóng trên tóc -->
-        <path d="M -14 -24 Q 4 -30 20 -22" stroke="#63402a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <!-- Tóc mái nâu đen tỉa mềm -->
+        <path d="M -32 2
+                 C -36 -21, -18 -36, 4 -35
+                 C 24 -35, 37 -20, 34 -2
+                 C 29 -8, 24 -13, 19 -7
+                 C 15 -15, 7 -16, 2 -7
+                 C -4 -15, -13 -15, -17 -5
+                 C -22 -11, -28 -7, -32 2 Z"
+              fill="#3a2314" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
       </g>
 
-      <!-- CÁNH TAY TRƯỚC (Kẻ 2 sọc trắng thể thao) & BÀN TAY NẮM DÂY THỪNG -->
-      <path d="M -10 -12 L 10 4 L 34 2" stroke="#1e120a" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M -10 -12 L 10 4 L 34 2" stroke="${jacket}" stroke-width="21" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M -8 -14 L 10 1 L 31 -1" stroke="${stripe}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-      <path d="M -11 -9 L 8 6 L 30 4" stroke="${stripe}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <!-- CÁNH TAY VƯƠN RA NẮM DÂY THỪNG Ở NGANG NGỰC (y = 2) -->
+      <path d="M -14 -8
+               C -2 4, 14 8, 34 6
+               L 34 -8
+               C 16 -6, 2 -10, -8 -20 Z"
+            fill="${main}" stroke="#1e120a" stroke-width="3.3" stroke-linejoin="round"/>
+      <path d="M -10 -12 C 4 -2, 16 1, 31 0" stroke="${stripe}" stroke-width="3.8" stroke-linecap="round" fill="none"/>
 
-      <!-- Hai bàn tay nắm chặt quanh sợi dây thừng (ở y = 2) -->
-      <circle cx="50" cy="2" r="10.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
-      <circle cx="35" cy="3" r="11" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
-      <!-- Ngón tay nắm dây -->
-      <path d="M 31 -2 Q 35 2 39 -2 M 46 -2 Q 50 2 54 -2" stroke="#c98a67" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Hai bàn tay nắm khít lên sợi dây (tại y = 0) -->
+      <circle cx="44" cy="-1" r="9.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3"/>
+      <circle cx="31" cy="0" r="10" fill="#fde0c8" stroke="#1e120a" stroke-width="3"/>
     </g>
   `;
 }
 
-function createTeamSpriteDataUrl(isBlue) {
-  const positions = [150, 320, 490];
-  let membersSvg = '';
+function createDefaultChibiTeamDataUrl(isBlue) {
+  const positions = [155, 315, 475];
+  let members = '';
   positions.forEach((x, idx) => {
-    const isFemale = idx === 1;
-    const isSmile = idx !== 2;
-    membersSvg += `<g transform="translate(${x}, 145)">${buildChibiStudentSVGGroup(isBlue, isFemale, isSmile)}</g>`;
+    members += `<g transform="translate(${x}, 148)">${buildNaturalChibiStudentSVG(isBlue, idx === 1, idx !== 2)}</g>`;
   });
-
-  // Nếu là Đội Đỏ (bên phải), lật đối xứng toàn đội để hướng mặt sang trái kéo về bên phải
-  const wrapper = isBlue
-    ? `<g>${membersSvg}</g>`
-    : `<g transform="translate(640, 0) scale(-1, 1)">${membersSvg}</g>`;
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="390" viewBox="0 0 640 390">${wrapper}</svg>`;
+  const content = isBlue
+    ? `<g>${members}</g>`
+    : `<g transform="translate(630, 0) scale(-1, 1)">${members}</g>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="630" height="290" viewBox="0 0 630 290">${content}</svg>`;
   return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
 // ============================================================================
-// CLASS 1: TugOfWarScene – SÂN KÉO CO SPRITE 2.5D GIỐNG ẢNH MẪU
+// CLASS 1: TugOfWarScene – HỖ TRỢ CẢ ẢNH TÁCH NỀN TỪ ẢNH MẪU LẪN CHIBI 2.5D
 // ============================================================================
 class TugOfWarScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3454,17 +3636,27 @@ class TugOfWarScene {
     this.stateB = 'idle';
     this.particles = [];
 
-    // Khởi tạo Sprite Đội Xanh, Đội Đỏ và hỗ trợ ảnh tùy chỉnh assets/tug_teams.png nếu có
     this.blueTeamImg = new Image();
     this.redTeamImg = new Image();
-    this.blueTeamImg.src = createTeamSpriteDataUrl(true);
-    this.redTeamImg.src = createTeamSpriteDataUrl(false);
+    this.blueTeamImg.src = createDefaultChibiTeamDataUrl(true);
+    this.redTeamImg.src = createDefaultChibiTeamDataUrl(false);
 
     this.customCombinedImg = null;
-    const customImg = new Image();
-    customImg.onload = () => { this.customCombinedImg = customImg; };
-    customImg.onerror = () => {};
-    customImg.src = GAME_3D_CONFIG.tug.customSpriteUrl;
+    if (customTugSpriteDataUrl) {
+      this.applyCustomSprite(customTugSpriteDataUrl);
+    } else {
+      const fileImg = new Image();
+      fileImg.onload = () => {
+        try {
+          const processed = processUploadedTugImage(fileImg);
+          this.applyCustomSprite(processed);
+        } catch (_) {
+          this.customCombinedImg = fileImg;
+        }
+      };
+      fileImg.onerror = () => {};
+      fileImg.src = GAME_3D_CONFIG.tug.customSpriteUrl;
+    }
 
     const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
     this.canvasW = Math.round(1440 * qCfg.canvasScale);
@@ -3487,20 +3679,30 @@ class TugOfWarScene {
     this.group.add(this.stageMesh);
   }
 
+  applyCustomSprite(dataUrl) {
+    if (!dataUrl) {
+      this.customCombinedImg = null;
+      return;
+    }
+    const img = new Image();
+    img.onload = () => { this.customCombinedImg = img; };
+    img.src = dataUrl;
+  }
+
   spawnFootDust(isBlue) {
     const dir = isBlue ? -1 : 1;
-    const baseOffsets = isBlue ? [-165, -315, -465] : [165, 315, 465];
+    const baseOffsets = isBlue ? [-160, -310, -460] : [160, 310, 460];
     baseOffsets.forEach(off => {
       for (let i = 0; i < 4; i++) {
         this.particles.push({
           type: 'dust',
-          x: 720 + this.currentShiftRatio * 250 + off + (Math.random() - 0.5) * 40,
-          y: 638 + (Math.random() - 0.5) * 16,
-          vx: -dir * (48 + Math.random() * 68),
-          vy: -22 - Math.random() * 38,
-          r: 10 + Math.random() * 12,
-          life: 0.55,
-          maxLife: 0.55
+          x: 720 + this.currentShiftRatio * 240 + off + (Math.random() - 0.5) * 36,
+          y: 590 + (Math.random() - 0.5) * 14,
+          vx: -dir * (45 + Math.random() * 60),
+          vy: -20 - Math.random() * 35,
+          r: 9 + Math.random() * 11,
+          life: 0.52,
+          maxLife: 0.52
         });
       }
     });
@@ -3588,146 +3790,116 @@ class TugOfWarScene {
     ctx.save();
     ctx.scale(scale, scale);
 
-    // 1. Nền sân trắng sạch sẽ có chiều sâu nhẹ như ảnh mẫu
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, 840);
-    bgGrad.addColorStop(0, '#ffffff');
-    bgGrad.addColorStop(0.75, '#f8fafd');
-    bgGrad.addColorStop(1, '#eef3f9');
-    ctx.fillStyle = bgGrad;
+    // 1. Nền trắng tinh khiết giống hệt ảnh mẫu
+    ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 1440, 840);
 
-    // 2. Vạch kẻ đứt nét màu xanh lá cây chính giữa sân (giống ảnh mẫu 100%)
+    // 2. Vạch kẻ đứt nét màu xanh lá cây chính giữa sân (#2ecc71)
     ctx.save();
     ctx.setLineDash([16, 14]);
     ctx.lineWidth = 7.5;
     ctx.strokeStyle = '#2ecc71';
     ctx.beginPath();
-    ctx.moveTo(720, 18);
-    ctx.lineTo(720, 822);
+    ctx.moveTo(720, 16);
+    ctx.lineTo(720, 824);
     ctx.stroke();
     ctx.restore();
 
-    const shiftPx = this.currentShiftRatio * 250;
-    const ropeY = 472;
-
-    // 3. Bóng đổ tổng dưới chân 2 đội
-    ctx.fillStyle = 'rgba(20, 35, 60, 0.10)';
-    ctx.beginPath();
-    ctx.ellipse(415 + shiftPx, 646, 255, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(1025 + shiftPx, 646, 255, 22, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 4. Dây thừng giữa 2 đội (vẽ đoạn nối qua tâm và 2 đầu dây)
-    ctx.save();
-    ctx.lineCap = 'round';
-    const ropeWave = Math.sin(elapsed * 9) * (this.pullPulseA > 0 || this.pullPulseB > 0 ? 3.5 : 1.0);
-    ctx.strokeStyle = '#2b190e';
-    ctx.lineWidth = 15;
-    ctx.beginPath();
-    ctx.moveTo(115 + shiftPx, ropeY);
-    ctx.quadraticCurveTo(720 + shiftPx, ropeY + ropeWave, 1325 + shiftPx, ropeY);
-    ctx.stroke();
-
-    ctx.strokeStyle = '#a66c38';
-    ctx.lineWidth = 9.5;
-    ctx.beginPath();
-    ctx.moveTo(115 + shiftPx, ropeY);
-    ctx.quadraticCurveTo(720 + shiftPx, ropeY + ropeWave, 1325 + shiftPx, ropeY);
-    ctx.stroke();
-    ctx.restore();
-
-    // 5. VẼ SPRITE 2 ĐỘI VỚI HIỆU ỨNG NHÚN KÉO 2.5D MƯỢT MÀ
+    const shiftPx = this.currentShiftRatio * 240;
     const pulseA = this.pullPulseA > 0 ? Math.sin((this.pullPulseA / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
     const pulseB = this.pullPulseB > 0 ? Math.sin((this.pullPulseB / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
 
-    if (this.customCombinedImg) {
-      ctx.drawImage(this.customCombinedImg, 120 + shiftPx, 240, 1200, 440);
+    if (this.customCombinedImg && this.customCombinedImg.complete) {
+      // HIỂN THỊ BỨC ẢNH TÁCH NỀN TỪ ẢNH MẪU (HOẶC ẢNH DO GIÁO VIÊN CHỌN)
+      const imgW = this.customCombinedImg.naturalWidth || 900;
+      const imgH = this.customCombinedImg.naturalHeight || 330;
+      const drawW = 1140;
+      const drawH = Math.min(540, Math.round(drawW * (imgH / imgW)));
+      const bob = (this.stateA === 'victory' || this.stateB === 'victory')
+        ? -Math.abs(Math.sin(elapsed * 8.5)) * 24
+        : Math.sin(elapsed * 5.2) * 3;
+      const skew = (pulseB - pulseA) * 0.055;
+
+      // Bóng đổ mềm bên dưới 2 đội
+      ctx.fillStyle = 'rgba(20, 35, 60, 0.11)';
+      ctx.beginPath();
+      ctx.ellipse(435 + shiftPx, 450 + drawH * 0.44, 240, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(1005 + shiftPx, 450 + drawH * 0.44, 240, 18, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(720 + shiftPx, 445 + bob);
+      ctx.transform(1, 0, skew, 1, 0, 0);
+      ctx.drawImage(this.customCombinedImg, -drawW / 2, -drawH / 2, drawW, drawH);
+      ctx.restore();
     } else {
-      // Đội Xanh (Bên trái)
+      // HIỂN THỊ CHIBI MẶC ĐỊNH KHI CHƯA CHỌN ẢNH MẪU
+      const ropeY = 478;
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#2b190e';
+      ctx.lineWidth = 12;
+      ctx.beginPath();
+      ctx.moveTo(145 + shiftPx, ropeY);
+      ctx.lineTo(1295 + shiftPx, ropeY);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#a66c38';
+      ctx.lineWidth = 7.5;
+      ctx.beginPath();
+      ctx.moveTo(145 + shiftPx, ropeY);
+      ctx.lineTo(1295 + shiftPx, ropeY);
+      ctx.stroke();
+      ctx.restore();
+
       if (this.blueTeamImg.complete) {
         ctx.save();
-        const bobA = this.stateA === 'victory'
-          ? -Math.abs(Math.sin(elapsed * 8.5)) * 26
-          : Math.sin(elapsed * 5.5) * 3.5;
-        const skewA = -pulseA * 0.08 - (this.stateA === 'pull' ? 0.03 : 0);
-        ctx.translate(405 + shiftPx, 640 + bobA);
+        const bobA = this.stateA === 'victory' ? -Math.abs(Math.sin(elapsed * 8.5)) * 24 : Math.sin(elapsed * 5.5) * 3;
+        const skewA = -pulseA * 0.07;
+        ctx.translate(410 + shiftPx, 480 + bobA);
         ctx.transform(1, 0, skewA, 1, 0, 0);
-        ctx.drawImage(this.blueTeamImg, -320, -315, 640, 390);
+        ctx.drawImage(this.blueTeamImg, -315, -148, 630, 290);
         ctx.restore();
       }
 
-      // Đội Đỏ (Bên phải)
       if (this.redTeamImg.complete) {
         ctx.save();
-        const bobB = this.stateB === 'victory'
-          ? -Math.abs(Math.sin(elapsed * 8.5 + 1.2)) * 26
-          : Math.sin(elapsed * 5.5 + 1.5) * 3.5;
-        const skewB = pulseB * 0.08 + (this.stateB === 'pull' ? 0.03 : 0);
-        ctx.translate(1035 + shiftPx, 640 + bobB);
+        const bobB = this.stateB === 'victory' ? -Math.abs(Math.sin(elapsed * 8.5 + 1.2)) * 24 : Math.sin(elapsed * 5.5 + 1.5) * 3;
+        const skewB = pulseB * 0.07;
+        ctx.translate(1030 + shiftPx, 480 + bobB);
         ctx.transform(1, 0, skewB, 1, 0, 0);
-        ctx.drawImage(this.redTeamImg, -320, -315, 640, 390);
+        ctx.drawImage(this.redTeamImg, -315, -148, 630, 290);
         ctx.restore();
       }
+
+      // Nơ đỏ ở tâm dây
+      ctx.save();
+      ctx.translate(720 + shiftPx, ropeY);
+      ctx.fillStyle = '#e53935';
+      ctx.strokeStyle = '#1e120a';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(-26, -20, -30, 14, 0, 4);
+      ctx.bezierCurveTo(30, 14, 26, -20, 0, 0);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(-3, 4); ctx.lineTo(-14, 34); ctx.lineTo(-4, 30); ctx.lineTo(0, 6);
+      ctx.moveTo(3, 4); ctx.lineTo(14, 34); ctx.lineTo(4, 30); ctx.lineTo(0, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
     }
 
-    // 6. VẼ NƠ ĐỎ (RED BOW) NỔI BẬT Ở TÂM DÂY THỪNG
-    const bowX = 720 + shiftPx;
-    const bowY = ropeY + ropeWave * 0.5;
-    ctx.save();
-    ctx.translate(bowX, bowY);
-    ctx.rotate(Math.sin(elapsed * 5.5) * 0.07);
-    ctx.fillStyle = '#e53935';
-    ctx.strokeStyle = '#1e120a';
-    ctx.lineWidth = 3.2;
-
-    // Cánh nơ trái & phải
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(-30, -24, -34, 16, 0, 5);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo(30, -24, 34, 16, 0, 5);
-    ctx.fill();
-    ctx.stroke();
-
-    // Hai dải dây nơ rủ xuống
-    ctx.beginPath();
-    ctx.moveTo(-3, 5);
-    ctx.lineTo(-16, 40);
-    ctx.lineTo(-5, 36);
-    ctx.lineTo(0, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(3, 5);
-    ctx.lineTo(16, 40);
-    ctx.lineTo(5, 36);
-    ctx.lineTo(0, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Tâm nơ
-    ctx.fillStyle = '#ff5252';
-    ctx.beginPath();
-    ctx.arc(0, 2, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // 7. Hạt bụi dưới giày & Pháo giấy chiến thắng
+    // 3. Hạt bụi dưới giày & Pháo giấy chiến thắng
     this.particles.forEach(p => {
       ctx.save();
       const alpha = Math.max(0, p.life / p.maxLife);
       if (p.type === 'dust') {
-        ctx.fillStyle = `rgba(175, 192, 210, ${alpha * 0.68})`;
+        ctx.fillStyle = `rgba(175, 192, 210, ${alpha * 0.65})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -4671,7 +4843,6 @@ function handleTeamCorrect(team) {
   game3d?.onCorrect(team);
   highlightCorrectChoicesOnBothTeams(game.current);
 
-  // Mở Bảng Tuyên Bố Đáp Án Cỡ Lớn Giữa Màn Hình (Cách B) sau 650ms để học sinh kịp nhìn hiệu ứng kéo co / tăng tốc xe
   if (!victoryTriggered) {
     setTimeout(() => {
       if (game.locked && !victoryTriggered) {
@@ -5272,6 +5443,10 @@ async function init() {
     if (!historyData.length && Array.isArray(snap.historyData)) historyData = snap.historyData;
     if (!scoresData.length && Array.isArray(snap.scoresData)) scoresData = snap.scoresData;
     if (!questionBank.length && Array.isArray(snap.questionBank)) questionBank = snap.questionBank;
+    if (!customTugSpriteDataUrl && snap.customTugSpriteDataUrl) {
+      customTugSpriteDataUrl = snap.customTugSpriteDataUrl;
+      $('#downloadTugSpriteBtn')?.classList.remove('hide');
+    }
   }
 
   populateClasses();

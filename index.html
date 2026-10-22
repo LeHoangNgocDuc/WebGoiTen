@@ -2093,7 +2093,1431 @@ async function loadStudentsFromSheet(silent = false) {
   if (loadingStudents) return false;
   loadingStudents = true;
   try {
-    const d = await apiGet('students', { nocache: '1' });
+    let d = null;
+    try {
+      d = await apiGet('students', { nocache: '1' });
+    } catch (apiErr) {
+      // Dự phòng: đọc trực tiếp từ Google Sheet của lớp nếu chưa gắn link Web App
+      d = await fallbackReadStudentsFromPublicSheet();
+      if (!d || !Array.isArray(d.students)) throw apiErr;
+    }
+
     if (Array.isArray(d.students) && d.students.length) {
       mergeStudentsFromSheet(d.students);
-      localStorage.setItem(LS.lastSync,
+      localStorage.setItem(LS.lastSync, new Date().toISOString());
+      try {
+        const sc = await apiGet('scores');
+        if (Array.isArray(sc.scores)) scoresData = sc.scores;
+      } catch (_) {}
+      saveLocal();
+      populateClasses(currentClass());
+      renderAll();
+      rebuildWheel();
+      if (!silent) toast(`Đã đồng bộ ${students.length} học sinh từ Google Sheet!`);
+      return true;
+    } else {
+      if (!silent) toast('Sheet Students hiện đang trống. Hãy nhập danh sách học sinh.');
+      renderAll();
+      rebuildWheel();
+      return false;
+    }
+  } catch (err) {
+    if (!silent) toast('Lỗi tải dữ liệu: ' + (err.message || err));
+    const st = $('#studentStatus');
+    if (st) {
+      st.className = 'data-status err';
+      st.innerHTML = `Không lấy được dữ liệu (${esc(err.message || err)}). <button class="btn gold sm" style="margin-left:6px" onclick="go('settings');setTimeout(()=>$('#apiUrl')?.focus(),100)">⚙️ Dán link Code.gs</button>`;
+    }
+    return false;
+  } finally {
+    loadingStudents = false;
+  }
+}
+
+// ============================================================================
+// MỞ KHÓA Ô NHẬP LINK WEB APP (CODE.GS) & HỖ TRỢ KẾT NỐI TRỰC TIẾP + DỰ PHÒNG
+// ============================================================================
+const DEFAULT_GOOGLE_SHEET_ID = '1nPqpN1sWkGzT4_0UW31biD8SMJdTRQsn9p1-ZSY47Pc';
+LS.apiUrl = 'class3d_v21_api_url';
+
+function getConfiguredApiUrl() {
+  const saved = String(localStorage.getItem(LS.apiUrl) || '').trim();
+  const inputVal = String($('#apiUrl')?.value || '').trim();
+  return saved || inputVal || API_PROXY_URL;
+}
+
+function saveApiUrl(val, testNow = false) {
+  let clean = String(val || '').trim();
+  if (!clean) clean = API_PROXY_URL;
+  if (clean.includes('docs.google.com/spreadsheets')) {
+    toast('⚠️ Bạn vừa dán link Google Sheet. Để lưu điểm 2 chiều, hãy dán link Web App (.../exec) từ Code.gs!');
+  }
+  localStorage.setItem(LS.apiUrl, clean);
+  if ($('#apiUrl')) $('#apiUrl').value = clean;
+  if (testNow) testApi();
+  else toast('Đã lưu đường dẫn kết nối: ' + clean);
+}
+
+function unlockApiUrlInputUI() {
+  const inp = $('#apiUrl');
+  if (!inp) return;
+  inp.removeAttribute('readonly');
+  inp.placeholder = 'Dán link https://script.google.com/macros/s/.../exec hoặc để /api/sheet';
+  const saved = localStorage.getItem(LS.apiUrl);
+  if (saved) inp.value = saved;
+  inp.addEventListener('change', () => saveApiUrl(inp.value, false));
+
+  if (!$('#saveApiUrlBtn')) {
+    const wrap = document.createElement('div');
+    wrap.className = 'row';
+    wrap.style.marginTop = '8px';
+    wrap.innerHTML = `
+      <button id="saveApiUrlBtn" class="btn primary sm" onclick="saveApiUrl(document.getElementById('apiUrl').value, true)">💾 Lưu Link Web App & Kết nối ngay</button>
+      <button class="btn ghost sm" onclick="saveApiUrl('/api/sheet', false)">↺ Đặt về /api/sheet</button>
+    `;
+    inp.insertAdjacentElement('afterend', wrap);
+  }
+}
+
+function jsonpRequest(url, timeoutMs = 14000) {
+  return new Promise((resolve, reject) => {
+    const cbName = '__gasJsonp_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('Quá thời gian chờ phản hồi từ Google Apps Script (JSONP).'));
+    }, timeoutMs);
+
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cbName] = data => {
+      cleanup();
+      if (data && data.ok === false) reject(new Error(data.error || 'Lỗi từ Apps Script.'));
+      else resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('Không thể kết nối tới link Google Apps Script. Hãy kiểm tra quyền Anyone khi Deploy.'));
+    };
+
+    const sep = url.includes('?') ? '&' : '?';
+    script.src = `${url}${sep}callback=${cbName}`;
+    document.head.appendChild(script);
+  });
+}
+
+// Ghi đè hàm apiGet và apiPostDirect để hỗ trợ cả link trực tiếp script.google.com (.../exec) lẫn /api/sheet
+apiGet = async function(action, params = {}) {
+  const targetUrl = getConfiguredApiUrl();
+  const secret = localStorage.getItem(LS.passcode) || '';
+  const q = new URLSearchParams({ action, _: Date.now().toString(), ...(secret ? { secret } : {}), ...params });
+  const fullUrl = `${targetUrl}${targetUrl.includes('?') ? '&' : '?'}${q.toString()}`;
+
+  if (targetUrl.includes('script.google.com')) {
+    try {
+      const res = await fetch(fullUrl, { method: 'GET', redirect: 'follow', cache: 'no-store' });
+      const txt = await res.text();
+      const data = JSON.parse(txt);
+      if (data?.ok === false) throw new Error(data.error || 'Lỗi Apps Script');
+      return data;
+    } catch (_) {
+      return await jsonpRequest(fullUrl);
+    }
+  }
+  return await fetchWithRetry(fullUrl, { method: 'GET', headers: getHeaders() }, 2, 14000);
+};
+
+apiPostDirect = async function(payload, retries = 2) {
+  const targetUrl = getConfiguredApiUrl();
+  const secret = localStorage.getItem(LS.passcode) || '';
+  const bodyObj = secret ? { ...payload, secret } : payload;
+
+  if (targetUrl.includes('script.google.com')) {
+    // Dùng text/plain để tránh CORS preflight OPTIONS trên Google Apps Script
+    return await fetchWithRetry(targetUrl, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(bodyObj)
+    }, retries, 16000);
+  }
+
+  return await fetchWithRetry(targetUrl, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify(bodyObj)
+  }, retries, 16000);
+};
+
+// Đọc trực tiếp từ Google Sheet (GViz JSONP) nếu người dùng chưa kịp gắn link Code.gs
+function fetchGoogleSheetGviz(sheetName = 'Students') {
+  return new Promise((resolve, reject) => {
+    const cbName = '__gvizCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+    const script = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); reject(new Error('Timeout GViz')); }, 10000);
+    function cleanup() {
+      clearTimeout(timer);
+      try { delete window[cbName]; } catch (_) { window[cbName] = undefined; }
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = resp => {
+      cleanup();
+      if (!resp || resp.status === 'error' || !resp.table) {
+        return reject(new Error('Không đọc được bảng ' + sheetName));
+      }
+      resolve(resp.table);
+    };
+    script.onerror = () => { cleanup(); reject(new Error('Lỗi tải GViz')); };
+    script.src = `https://docs.google.com/spreadsheets/d/${DEFAULT_GOOGLE_SHEET_ID}/gviz/tq?tqx=responseHandler:${cbName}&sheet=${encodeURIComponent(sheetName)}`;
+    document.head.appendChild(script);
+  });
+}
+
+async function fallbackReadStudentsFromPublicSheet() {
+  let table = null;
+  try {
+    table = await fetchGoogleSheetGviz('Students');
+  } catch (_) {
+    table = await fetchGoogleSheetGviz('Sheet1');
+  }
+  if (!table || !Array.isArray(table.rows)) return null;
+
+  const cols = (table.cols || []).map(c => String(c?.label || '').trim().toLowerCase());
+  const rows = table.rows.map(r => (r?.c || []).map(cell => cell ? (cell.f ?? cell.v ?? '') : ''));
+  let startIdx = 0;
+  let header = cols;
+  if (header.every(h => !h) && rows.length) {
+    header = rows[0].map(x => String(x || '').trim().toLowerCase());
+    startIdx = 1;
+  }
+
+  const findCol = (names, fb) => {
+    for (const n of names) {
+      const idx = header.findIndex(h => h.includes(n));
+      if (idx >= 0) return idx;
+    }
+    return fb;
+  };
+
+  const idxId = findCol(['id', 'mã', 'ma hs'], 0);
+  const idxStt = findCol(['stt', 'số thứ tự'], 1);
+  const idxName = findCol(['name', 'họ và tên', 'họ tên', 'tên'], 2);
+  const idxClass = findCol(['classname', 'lớp', 'lop', 'class'], 3);
+  const idxPoint = findCol(['totalpoint', 'điểm', 'diem'], 4);
+  const idxCalls = findCol(['callcount', 'lượt gọi', 'so lan goi'], 5);
+
+  const list = [];
+  for (let i = startIdx; i < rows.length; i++) {
+    const r = rows[i];
+    const name = String(r[idxName] ?? '').trim();
+    if (!name || name.toLowerCase() === 'name' || name.toLowerCase() === 'họ và tên') continue;
+    const cls = String(r[idxClass] ?? '').trim() || 'Lớp chung';
+    const stt = Number(r[idxStt]) || (list.length + 1);
+    const id = String(r[idxId] ?? '').trim() || `${cls}_${stt}`;
+    list.push({
+      id,
+      stt,
+      name,
+      className: cls,
+      totalPoint: Number(r[idxPoint]) || 0,
+      callCount: Number(r[idxCalls]) || 0,
+      lastCalled: '',
+      active: true
+    });
+  }
+  return { ok: true, students: list };
+}
+
+// ============================================================================
+// ĐỒNG BỘ DANH SÁCH HỌC SINH, EXCEL & LỊCH SỬ
+// ============================================================================
+async function syncStudents() {
+  if (!students.length) return toast('Danh sách học sinh đang trống.');
+  try {
+    toast('Đang tải danh sách học sinh lên Google Sheet...');
+    const res = await apiPostDirect({ action: 'saveStudents', students });
+    localStorage.setItem(LS.lastSync, new Date().toISOString());
+    updateSyncQueueUI();
+    toast(`Đã lưu ${res.saved || students.length} học sinh lên Google Sheet!`);
+  } catch (err) {
+    toast('Lỗi ghi danh sách lên Sheet: ' + (err.message || err));
+  }
+}
+
+async function loadHistoryFromSheet() {
+  try {
+    const [hRes, sRes] = await Promise.all([
+      apiGet('history'),
+      apiGet('scores').catch(() => ({ scores: scoresData }))
+    ]);
+    if (Array.isArray(hRes.history)) historyData = hRes.history;
+    if (Array.isArray(sRes.scores)) scoresData = sRes.scores;
+    saveLocal();
+    renderAll();
+    toast(`Đã tải ${historyData.length} dòng lịch sử từ Google Sheet.`);
+  } catch (err) {
+    toast('Không tải được lịch sử: ' + (err.message || err));
+  }
+}
+
+$('#excelFile')?.addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const firstSheet = wb.Sheets[wb.SheetNames[0]];
+    const json = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+    if (!json.length) return toast('File Excel không có dữ liệu.');
+
+    const imported = json.map((row, idx) => {
+      const keys = Object.keys(row);
+      const getVal = patterns => {
+        for (const p of patterns) {
+          const k = keys.find(key => key.trim().toLowerCase().includes(p));
+          if (k && String(row[k]).trim() !== '') return String(row[k]).trim();
+        }
+        return '';
+      };
+      const name = getVal(['họ và tên', 'họ tên', 'tên', 'name', 'hoc sinh']);
+      const className = getVal(['lớp', 'lop', 'class', 'classname']) || currentClass() || '10A1';
+      const stt = Number(getVal(['stt', 'số thứ tự', 'so thu tu'])) || (idx + 1);
+      const id = getVal(['mã', 'ma hs', 'id']) || `${className}_${stt}`;
+      return normalizeStudent({ id, stt, name, className, totalPoint: 0, callCount: 0, active: true }, idx);
+    }).filter(s => s.name);
+
+    if (!imported.length) return toast('Không tìm thấy cột Họ tên trong file Excel.');
+    students = imported;
+    saveLocal();
+    populateClasses(imported[0].className);
+    renderAll();
+    rebuildWheel();
+    toast(`Đã nhập ${imported.length} học sinh từ file Excel!`);
+  } catch (err) {
+    toast('Lỗi đọc file Excel: ' + (err.message || err));
+  } finally {
+    e.target.value = '';
+  }
+});
+
+// ============================================================================
+// NGÂN HÀNG CÂU HỎI, BỘ LỌC & XỬ LÝ NỘI DUNG TOÁN/TIN
+// ============================================================================
+function normalizeQuestion(q, i = 0, sourceFile = '') {
+  if (!q || typeof q !== 'object') return null;
+  const rawType = String(q.type || q.questionType || 'MC').trim().toUpperCase();
+  const type = ['MC', 'TF', 'SA'].includes(rawType) ? rawType : 'MC';
+  const question = String(q.question || q.text || q.stem || '').trim();
+  let rawOpts = q.options || q.choices || q.answers || [];
+  if (typeof rawOpts === 'string') {
+    try { rawOpts = JSON.parse(rawOpts); } catch (_) { rawOpts = []; }
+  }
+  if (!Array.isArray(rawOpts) && type === 'MC') {
+    rawOpts = ['A', 'B', 'C', 'D'].map(k => q[k] || q[k.toLowerCase()]).filter(Boolean);
+  }
+
+  const options = Array.isArray(rawOpts) ? rawOpts.map((o, idx) => {
+    const defaultKey = type === 'TF' ? String.fromCharCode(97 + idx) : String.fromCharCode(65 + idx);
+    if (o && typeof o === 'object') {
+      return {
+        key: String(o.key || o.label || defaultKey).trim(),
+        text: String(o.text ?? o.content ?? o.value ?? '').trim(),
+        answer: o.answer ?? o.correct
+      };
+    }
+    const str = String(o ?? '').trim();
+    const m = str.match(/^([A-Da-d])[\.\)\:\-]\s*(.*)$/);
+    return {
+      key: m ? m[1].toUpperCase() : defaultKey,
+      text: m ? m[2] : str
+    };
+  }) : [];
+
+  return {
+    id: String(q.id || `Q_${i + 1}`).trim(),
+    type,
+    level: String(q.level || q.difficulty || 'Thông hiểu').trim(),
+    grade: String(q.grade || q.class || '12').trim(),
+    subject: String(q.subject || 'Toán').trim(),
+    chapter: String(q.chapter || 'Chương 1').trim(),
+    topic: String(q.topic || q.lesson || 'Bài học').trim(),
+    question,
+    image: String(q.image || q.Image || q.img || '').trim(),
+    options,
+    answer: String(q.answer ?? q.correctAnswer ?? q.correct ?? 'A').trim(),
+    explanation: String(q.explanation || q.explain || q.solution || '').trim(),
+    sourceFile: String(sourceFile || q.sourceFile || '').trim()
+  };
+}
+
+function validQuestion(q) {
+  return Boolean(q && String(q.question || '').trim().length > 0);
+}
+
+function questionImageUrls(q) {
+  const urls = [];
+  if (q?.image) urls.push(String(q.image).trim());
+  const text = String(q?.question || '');
+  const matches = text.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s"'<>]*)?/gi) || [];
+  matches.forEach(u => { if (!urls.includes(u)) urls.push(u); });
+  return urls;
+}
+
+function stripUrls(text) {
+  return String(text || '').replace(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|gif|webp|svg)(?:\?[^\s"'<>]*)?/gi, '').trim();
+}
+
+function questionTypeLabel(q) {
+  const t = String(q?.type || 'MC').toUpperCase();
+  if (t === 'TF') return 'Đúng / Sai';
+  if (t === 'SA') return 'Trả lời ngắn';
+  return 'Trắc nghiệm';
+}
+
+function renderRich(text) {
+  return esc(String(text ?? '')).replace(/\n/g, '<br>');
+}
+
+function renderQuestionOnlyText(text) {
+  return renderRich(stripUrls(text));
+}
+
+function correctIndex(q) {
+  if (!q || !Array.isArray(q.options)) return 0;
+  const ans = String(q.answer ?? '').trim();
+  const upper = ans.toUpperCase();
+  const byKey = q.options.findIndex(o => String(o.key || '').toUpperCase() === upper);
+  if (byKey >= 0) return byKey;
+  if (/^[0-3]$/.test(ans)) return Number(ans);
+  if (['A', 'B', 'C', 'D'].includes(upper)) return upper.charCodeAt(0) - 65;
+  const byText = q.options.findIndex(o => String(o.text || '').trim().toLowerCase() === ans.toLowerCase());
+  return byText >= 0 ? byText : 0;
+}
+
+function normalizeSAValue(val) {
+  return String(val ?? '').trim().toLowerCase().replace(/\s+/g, '').replace(/,/g, '.');
+}
+
+function parseTfExpected(q) {
+  const raw = String(q?.answer || '').trim().toUpperCase();
+  if (raw.includes(',') || raw.includes('-') || raw.includes(';')) {
+    const parts = raw.split(/[,;\-\s]+/).filter(Boolean);
+    return [0, 1, 2, 3].map(i => (parts[i] && ['D', 'Đ', 'T', 'TRUE', '1'].includes(parts[i][0])) ? 'D' : 'S');
+  }
+  if (raw.length >= 4) {
+    return [0, 1, 2, 3].map(i => ['D', 'Đ', 'T', '1'].includes(raw[i]) ? 'D' : 'S');
+  }
+  return (q?.options || []).slice(0, 4).map(o => {
+    const a = String(o?.answer ?? '').trim().toUpperCase();
+    return ['D', 'Đ', 'T', 'TRUE', '1'].includes(a) ? 'D' : 'S';
+  });
+}
+
+function answerSummaryHtml(q) {
+  if (!q) return '';
+  const type = String(q.type || 'MC').toUpperCase();
+  if (type === 'SA') return `<b style="color:var(--gold)">${esc(q.answer)}</b>`;
+  if (type === 'TF') {
+    const exp = parseTfExpected(q);
+    return exp.map((v, i) => `${String.fromCharCode(97 + i)}) <b>${v === 'D' ? 'Đúng' : 'Sai'}</b>`).join(' • ');
+  }
+  const idx = correctIndex(q);
+  const opt = q.options?.[idx];
+  return opt ? `<b>${esc(opt.key)}. ${renderRich(opt.text)}</b>` : `<b>${esc(q.answer)}</b>`;
+}
+
+function populateFilterSelect(selId, values, labelAll) {
+  const el = $(selId); if (!el) return;
+  const old = el.value;
+  const uniq = [...new Set(values.filter(Boolean))];
+  el.innerHTML = `<option value="">Tất cả ${labelAll}</option>` + uniq.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if (uniq.includes(old)) el.value = old;
+}
+
+function renderBank() {
+  populateFilterSelect('#subjectSelect', questionBank.map(q => q.subject), 'môn');
+  populateFilterSelect('#gradeSelect', questionBank.map(q => q.grade), 'khối');
+  populateFilterSelect('#chapterSelect', questionBank.map(q => q.chapter), 'chương');
+  populateFilterSelect('#topicSelect', questionBank.map(q => q.topic), 'chủ đề');
+  populateFilterSelect('#levelSelect', questionBank.map(q => q.level), 'mức độ');
+
+  const fSub = $('#subjectSelect')?.value || '';
+  const fGrd = $('#gradeSelect')?.value || '';
+  const fChp = $('#chapterSelect')?.value || '';
+  const fTop = $('#topicSelect')?.value || '';
+  const fLvl = $('#levelSelect')?.value || '';
+
+  selectedQuestions = questionBank.filter(q =>
+    (!fSub || q.subject === fSub) &&
+    (!fGrd || q.grade === fGrd) &&
+    (!fChp || q.chapter === fChp) &&
+    (!fTop || q.topic === fTop) &&
+    (!fLvl || q.level === fLvl)
+  );
+
+  if ($('#gameBankBadge')) $('#gameBankBadge').textContent = `${selectedQuestions.length} / ${questionBank.length} câu`;
+  if ($('#statQuestions')) $('#statQuestions').textContent = selectedQuestions.length;
+  const sum = $('#bankSummary');
+  if (sum) {
+    sum.className = 'data-status ' + (selectedQuestions.length ? 'ok' : '');
+    sum.textContent = selectedQuestions.length
+      ? `Đã sẵn sàng ${selectedQuestions.length} câu hỏi theo bộ lọc (Tổng ngân hàng: ${questionBank.length} câu).`
+      : 'Chưa có câu hỏi nào khớp bộ lọc. Hãy tải từ Sheet hoặc nhập file JSON.';
+  }
+}
+
+['#subjectSelect', '#gradeSelect', '#chapterSelect', '#topicSelect', '#levelSelect'].forEach(id => {
+  $(id)?.addEventListener('change', renderBank);
+});
+
+function toggleQuestionPreview() {
+  const box = $('#questionPreview'); if (!box) return;
+  box.classList.toggle('hide');
+  if (!box.classList.contains('hide')) {
+    const list = (selectedQuestions.length ? selectedQuestions : questionBank).slice(0, 12);
+    box.innerHTML = list.length ? list.map((q, i) => `
+      <div class="card span6">
+        <div class="row space"><span class="pill">${esc(questionTypeLabel(q))}</span><span class="muted">${esc(q.subject)} • Khối ${esc(q.grade)}</span></div>
+        <div style="margin:8px 0;font-weight:800">${i + 1}. ${renderRich(q.question)}</div>
+        <div class="muted" style="font-size:13px">Đáp án: ${answerSummaryHtml(q)}</div>
+      </div>`).join('') : '<div class="muted span12">Chưa có câu hỏi để xem trước.</div>';
+    typeset(box);
+  }
+}
+
+$('#jsonFile')?.addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const txt = await file.text();
+    const raw = JSON.parse(txt);
+    const arr = Array.isArray(raw) ? raw : (raw.questions || raw.data || []);
+    const normalized = arr.map((q, i) => normalizeQuestion(q, i, file.name)).filter(validQuestion);
+    if (!normalized.length) return toast('File JSON không có câu hỏi hợp lệ.');
+    questionBank = normalized;
+    saveLocal();
+    renderBank();
+    toast(`Đã nạp ${normalized.length} câu hỏi từ ${file.name}!`);
+  } catch (err) {
+    toast('Lỗi đọc file JSON: ' + (err.message || err));
+  } finally {
+    e.target.value = '';
+  }
+});
+
+async function loadQuestionBankFromSheet(silent = false) {
+  try {
+    const res = await apiGet('questions');
+    if (Array.isArray(res.questions) && res.questions.length) {
+      questionBank = res.questions.map((q, i) => normalizeQuestion(q, i, q.sourceFile || 'Sheet')).filter(validQuestion);
+      saveLocal();
+      renderBank();
+      if (!silent) toast(`Đã tải ${questionBank.length} câu hỏi từ Google Sheet!`);
+      return true;
+    } else if (!silent) {
+      toast('Sheet QuestionBank hiện chưa có câu hỏi nào.');
+    }
+  } catch (err) {
+    if (!silent) toast('Lỗi tải câu hỏi từ Sheet: ' + (err.message || err));
+  }
+  return false;
+}
+
+async function syncQuestionBank() {
+  if (!questionBank.length) return toast('Ngân hàng câu hỏi đang trống.');
+  try {
+    toast('Đang đồng bộ ngân hàng câu hỏi lên Google Sheet...');
+    const res = await apiPostDirect({ action: 'saveQuestions', questions: questionBank });
+    toast(`Đã đồng bộ câu hỏi lên Sheet (Thêm mới: ${res.inserted || 0}, Cập nhật: ${res.updated || 0})!`);
+  } catch (err) {
+    toast('Lỗi đồng bộ câu hỏi: ' + (err.message || err));
+  }
+}
+
+// ============================================================================
+// TRÒ CHƠI 2 ĐỘI 3D (KÉO CO & ĐUA XE)
+// ============================================================================
+let gameTimerInterval = null;
+let gameTimeRemaining = 15;
+let gameTimerPaused = false;
+
+function gameTimeLimit() {
+  return Number($('#gameTimeLimit')?.value ?? 15);
+}
+
+function startSelectedGame() {
+  const pool = selectedQuestions.length ? selectedQuestions : questionBank;
+  if (!pool.length) {
+    toast('Chưa có câu hỏi! Hãy nhập file JSON hoặc tải câu hỏi từ Sheet trước.');
+    return;
+  }
+  const type = $('#gameTypeSelect')?.value || 'tug';
+  const aName = ($('#teamAName')?.value || 'ĐỘI XANH').trim();
+  const bName = ($('#teamBName')?.value || 'ĐỘI ĐỎ').trim();
+
+  game = {
+    type,
+    a: 0,
+    b: 0,
+    turn: 'A',
+    used: [],
+    current: null,
+    locked: false,
+    readMode: !$('#autoRevealAnswers')?.checked,
+    wrongHistory: []
+  };
+
+  $('#tvAName').textContent = aName;
+  $('#tvBName').textContent = bName;
+  $('#panelAName').textContent = aName;
+  $('#panelBName').textContent = bName;
+  $('#hudAName').textContent = aName;
+  $('#hudBName').textContent = bName;
+  $('#gameTitleHead').textContent = type === 'race' ? '🏎️ ĐUA XE KIẾN THỨC 3D' : '🪢 KÉO CO KIẾN THỨC 3D';
+
+  $('#gameHub')?.classList.add('hide');
+  $('#gamePlay')?.classList.remove('hide');
+  $('#winner')?.classList.remove('show');
+
+  if (!game3d && typeof THREE !== 'undefined' && $('#gameCanvas')) {
+    game3d = new Game3D($('#gameCanvas'));
+  }
+  if (game3d) {
+    game3d.setMode(type);
+    game3d.resize();
+    game3d.updateProgress(0, Number($('#winScore')?.value || 5));
+  }
+
+  updateGameScoreHUD();
+  nextQuestion();
+}
+
+function updateGameScoreHUD() {
+  const winTarget = Math.max(1, Number($('#winScore')?.value || 5));
+  $('#tvAScore').textContent = game.a;
+  $('#tvBScore').textContent = game.b;
+  $('#hudAScore').textContent = game.a;
+  $('#hudBScore').textContent = game.b;
+
+  const diff = game.b - game.a; // âm: A dẫn, dương: B dẫn
+  const ratio = Math.max(-1, Math.min(1, diff / winTarget));
+  const pct = 50 + ratio * 44;
+  const marker = $('#arenaProgressMarker');
+  if (marker) {
+    marker.style.left = `${pct}%`;
+    marker.textContent = game.type === 'race' ? '🏎️' : '🪢';
+  }
+  game3d?.updateProgress(diff, winTarget);
+
+  if (game.a >= winTarget || game.b >= winTarget) {
+    finishGameWithWinner(game.a >= winTarget ? 'A' : 'B');
+  }
+}
+
+function nextQuestion() {
+  stopGameTimer();
+  const pool = selectedQuestions.length ? selectedQuestions : questionBank;
+  const maxQ = Math.max(1, Number($('#gameQuestionCount')?.value || 10));
+  if (game.used.length >= maxQ) {
+    const winTeam = game.a > game.b ? 'A' : game.b > game.a ? 'B' : 'DRAW';
+    finishGameWithWinner(winTeam);
+    return;
+  }
+
+  let avail = pool.filter(q => !game.used.includes(q.id));
+  if (!avail.length) { game.used = []; avail = pool; }
+  const q = avail[Math.floor(Math.random() * avail.length)];
+  game.used.push(q.id);
+  game.current = q;
+  game.locked = false;
+  game.answeredBy = { A: false, B: false };
+
+  $('#qCounter').textContent = `Câu ${game.used.length} / ${maxQ}`;
+  $('#qMeta').textContent = [questionTypeLabel(q), q.subject, q.level].filter(Boolean).join(' • ');
+  $('#duelResponderBadge').textContent = 'Quyền trả lời: Cả hai đội';
+  $('#qExplain').innerHTML = 'Học sinh hai đội chọn đáp án trên bảng tương ứng.';
+  $('#revealAnswerBtn')?.classList.add('hide');
+
+  const imgs = questionImageUrls(q);
+  const media = $('#qCentralMedia');
+  const body = $('#centralQuestionBody');
+  if (imgs.length) {
+    media.innerHTML = `<img src="${esc(imgs[0])}" alt="Hình câu hỏi" onclick="openQuestionImage(this.src)">`;
+    media.classList.remove('hide');
+    body.classList.remove('no-image');
+  } else {
+    media.innerHTML = '';
+    media.classList.add('hide');
+    body.classList.add('no-image');
+  }
+
+  $('#qCentralText').innerHTML = renderQuestionOnlyText(q.question);
+  $('#qCentralFoot').textContent = q.topic ? `Chủ đề: ${q.topic}` : '';
+
+  renderTeamAnswerOptions('A', q);
+  renderTeamAnswerOptions('B', q);
+  setGameReadMode(!$('#autoRevealAnswers')?.checked);
+  typeset($('#gamePlay'));
+  playGameSound('reveal');
+  startGameTimer();
+}
+
+function renderTeamAnswerOptions(team, q) {
+  const host = $(team === 'A' ? '#answersA' : '#answersB');
+  const status = $(team === 'A' ? '#teamStatusA' : '#teamStatusB');
+  if (status) status.textContent = 'Sẵn sàng';
+  if (!host || !q) return;
+
+  const type = String(q.type || 'MC').toUpperCase();
+  if (type === 'SA') {
+    host.innerHTML = `
+      <div class="special-answer-panel" style="grid-column:1/-1">
+        <input id="saInput_${team}" class="input sa-answer-input" placeholder="Nhập đáp số...">
+        <button class="btn primary" onclick="submitTeamSAAnswer('${team}')">GỬI ĐÁP ÁN ĐỘI ${team}</button>
+      </div>`;
+    return;
+  }
+  if (type === 'TF') {
+    host.innerHTML = `
+      <div class="special-answer-panel" style="grid-column:1/-1">
+        <div class="tf-answer-grid">
+          ${(q.options || []).slice(0, 4).map((o, idx) => `
+            <div class="tf-answer-row" data-idx="${idx}">
+              <span class="tf-key">${String.fromCharCode(97 + idx)}</span>
+              <button class="tf-choice" onclick="pickTeamTF('${team}', ${idx}, 'D', this)">Đúng</button>
+              <button class="tf-choice" onclick="pickTeamTF('${team}', ${idx}, 'S', this)">Sai</button>
+            </div>`).join('')}
+        </div>
+        <button class="btn primary sm" onclick="submitTeamTFAnswer('${team}')">CHỐT ĐÁP ÁN ĐỘI ${team}</button>
+      </div>`;
+    return;
+  }
+
+  host.innerHTML = (q.options || []).map((o, idx) => `
+    <button class="answer" data-idx="${idx}" onclick="submitTeamMCAnswer('${team}', ${idx})">
+      <span class="opt-key">${esc(o.key)}</span>
+      <span class="rich">${renderRich(o.text)}</span>
+    </button>`).join('');
+}
+
+function submitTeamMCAnswer(team, idx) {
+  if (game.locked || !game.current || game.answeredBy?.[team]) return;
+  const q = game.current;
+  const right = correctIndex(q);
+  const host = $(team === 'A' ? '#answersA' : '#answersB');
+  const buttons = [...host.querySelectorAll('.answer')];
+
+  if (idx === right) {
+    game.locked = true;
+    stopGameTimer();
+    buttons[idx]?.classList.add('correct');
+    handleTeamCorrect(team);
+  } else {
+    game.answeredBy[team] = true;
+    buttons[idx]?.classList.add('wrong');
+    buttons.forEach(b => b.disabled = true);
+    handleTeamWrong(team);
+  }
+}
+
+function submitTeamSAAnswer(team) {
+  if (game.locked || !game.current || game.answeredBy?.[team]) return;
+  const val = $(`#saInput_${team}`)?.value || '';
+  if (normalizeSAValue(val) === normalizeSAValue(game.current.answer)) {
+    game.locked = true;
+    stopGameTimer();
+    handleTeamCorrect(team);
+  } else {
+    game.answeredBy[team] = true;
+    handleTeamWrong(team);
+  }
+}
+
+function pickTeamTF(team, idx, val, btn) {
+  const row = btn.closest('.tf-answer-row');
+  row?.querySelectorAll('.tf-choice').forEach(b => b.classList.remove('selected', 'true', 'false'));
+  btn.classList.add('selected', val === 'D' ? 'true' : 'false');
+  row.dataset.choice = val;
+}
+
+function submitTeamTFAnswer(team) {
+  if (game.locked || !game.current || game.answeredBy?.[team]) return;
+  const host = $(team === 'A' ? '#answersA' : '#answersB');
+  const rows = [...host.querySelectorAll('.tf-answer-row')];
+  const expected = parseTfExpected(game.current);
+  const allMatch = rows.length === expected.length && rows.every((r, i) => (r.dataset.choice || '') === expected[i]);
+  if (allMatch) {
+    game.locked = true;
+    stopGameTimer();
+    handleTeamCorrect(team);
+  } else {
+    game.answeredBy[team] = true;
+    handleTeamWrong(team);
+  }
+}
+
+function handleTeamCorrect(team) {
+  const teamName = $(team === 'A' ? '#tvAName' : '#tvBName')?.textContent || `Đội ${team}`;
+  if (team === 'A') game.a++; else game.b++;
+  $(team === 'A' ? '#teamStatusA' : '#teamStatusB').textContent = '🎉 Chính xác (+1)';
+  $('#qExplain').innerHTML = `✅ <b>${esc(teamName)}</b> trả lời ĐÚNG và ghi được 1 điểm!`;
+  $('#revealAnswerBtn')?.classList.remove('hide');
+  playGameSound('correct');
+  showAnswerBanner('good', `🎉 ${teamName} TRẢ LỜI CHÍNH XÁC! (+1 ĐIỂM)`);
+  updateGameScoreHUD();
+}
+
+function handleTeamWrong(team) {
+  const other = team === 'A' ? 'B' : 'A';
+  $(team === 'A' ? '#teamStatusA' : '#teamStatusB').textContent = '❌ Sai lượt này';
+  playGameSound('wrong');
+  if (game.answeredBy.A && game.answeredBy.B) {
+    game.locked = true;
+    stopGameTimer();
+    game.wrongHistory.push(game.current);
+    $('#qExplain').innerHTML = '❌ Cả hai đội đều trả lời chưa đúng. Giáo viên có thể bấm <b>HIỆN GIẢI THÍCH</b>.';
+    $('#revealAnswerBtn')?.classList.remove('hide');
+    showAnswerBanner('bad', '❌ CẢ HAI ĐỘI CHƯA CHÍNH XÁC!');
+  } else {
+    const otherName = $(other === 'A' ? '#tvAName' : '#tvBName')?.textContent || `Đội ${other}`;
+    $('#duelResponderBadge').textContent = `Quyền trả lời: ${otherName}`;
+    $('#qExplain').innerHTML = `⚠️ Chưa đúng! Nhường quyền trả lời cho <b>${esc(otherName)}</b>.`;
+  }
+}
+
+function revealGameAnswers() {
+  setGameReadMode(false);
+}
+
+function setGameReadMode(flag) {
+  game.readMode = Boolean(flag);
+  document.body.classList.toggle('v20-hide-answers', game.readMode);
+  const btn = $('#gameReadModeBtn');
+  if (btn) btn.textContent = game.readMode ? '👁 Hiện phương án' : '📖 Chế độ Đọc đề';
+}
+
+function revealTeacherAnswer() {
+  const q = game.current; if (!q) return;
+  const exp = $('#qExplain');
+  exp.innerHTML = `🎯 <b>Đáp án đúng:</b> ${answerSummaryHtml(q)}${q.explanation ? `<br>💡 <b>Giải thích:</b> ${renderRich(q.explanation)}` : ''}`;
+  typeset(exp);
+  playGameSound('reveal');
+}
+
+function manualPoint(team) {
+  if (team === 'A') game.a++; else game.b++;
+  playGameSound('score');
+  updateGameScoreHUD();
+}
+
+function startGameTimer() {
+  stopGameTimer();
+  const limit = gameTimeLimit();
+  gameTimeRemaining = limit;
+  gameTimerPaused = false;
+  $('#gameTimer').textContent = limit > 0 ? limit : '∞';
+  if (limit <= 0) return;
+
+  gameTimerInterval = setInterval(() => {
+    if (gameTimerPaused || game.locked) return;
+    gameTimeRemaining--;
+    $('#gameTimer').textContent = Math.max(0, gameTimeRemaining);
+    if (gameTimeRemaining <= 5 && gameTimeRemaining > 0) playGameSound('tick', { sec: gameTimeRemaining });
+    if (gameTimeRemaining <= 0) {
+      stopGameTimer();
+      game.locked = true;
+      playGameSound('timeout');
+      $('#revealAnswerBtn')?.classList.remove('hide');
+      showAnswerBanner('bad', '⏱️ HẾT THỜI GIAN!');
+    }
+  }, 1000);
+}
+
+function stopGameTimer() {
+  if (gameTimerInterval) { clearInterval(gameTimerInterval); gameTimerInterval = null; }
+}
+
+function toggleGameTimerPause() {
+  gameTimerPaused = !gameTimerPaused;
+  toast(gameTimerPaused ? 'Đã tạm dừng đồng hồ.' : 'Đã tiếp tục đồng hồ.');
+}
+
+function finishGameWithWinner(winnerTeam) {
+  stopGameTimer();
+  game.locked = true;
+  const aName = $('#tvAName')?.textContent || 'ĐỘI XANH';
+  const bName = $('#tvBName')?.textContent || 'ĐỘI ĐỎ';
+  const msg = winnerTeam === 'A'
+    ? `🏆 ${aName} CHIẾN THẮNG (${game.a} - ${game.b})!`
+    : winnerTeam === 'B'
+      ? `🏆 ${bName} CHIẾN THẮNG (${game.b} - ${game.a})!`
+      : `🤝 HÒA NHAU (${game.a} - ${game.b})!`;
+  $('#winnerText').textContent = msg;
+  $('#winner')?.classList.add('show');
+  playGameSound('victory');
+}
+
+function resetGame() {
+  stopGameTimer();
+  startSelectedGame();
+}
+
+function exitGame() {
+  stopGameTimer();
+  document.body.classList.remove('game-presentation', 'v20-hide-answers');
+  $('#gamePlay')?.classList.add('hide');
+  $('#gameHub')?.classList.remove('hide');
+}
+
+// ============================================================================
+// HỆ THỐNG ÂM THANH WEB AUDIO (KHÔNG CẦN FILE MP3 NGOÀI)
+// ============================================================================
+class WheelAudio {
+  constructor() { this.ctx = null; }
+  ensure() {
+    if (!$('#soundMode')?.checked || !$('#v201AudioEnabled')?.checked) return null;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    if (!this.ctx) this.ctx = new AC();
+    if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+    return this.ctx;
+  }
+  vol(scale = 1) {
+    const m = Number($('#v201MasterVolume')?.value ?? 70) / 100;
+    const fx = Number($('#v201FxVolume')?.value ?? 85) / 100;
+    return Math.max(0.01, m * fx * scale);
+  }
+  tick(speed = 1) {
+    const ctx = this.ensure(); if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(520 + Math.min(400, speed * 180), ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.035);
+    g.gain.setValueAtTime(0.18 * this.vol(), ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.04);
+  }
+  win() {
+    playGameSound('victory');
+  }
+}
+
+function playGameSound(type, opts = {}) {
+  if (!$('#soundMode')?.checked || !$('#v201AudioEnabled')?.checked) return;
+  if (!wheelAudio) wheelAudio = new WheelAudio();
+  const ctx = wheelAudio.ensure();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const v = wheelAudio.vol();
+
+  const tone = (freq, start, dur, wave = 'sine', gainVal = 0.2) => {
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = wave;
+    o.frequency.setValueAtTime(freq, now + start);
+    g.gain.setValueAtTime(gainVal * v, now + start);
+    g.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(now + start); o.stop(now + start + dur + 0.01);
+  };
+
+  if (type === 'correct' || type === 'score') {
+    tone(523.25, 0, 0.14, 'triangle', 0.26);
+    tone(659.25, 0.09, 0.16, 'triangle', 0.28);
+    tone(783.99, 0.18, 0.22, 'triangle', 0.30);
+    tone(1046.5, 0.28, 0.38, 'sine', 0.32);
+  } else if (type === 'wrong') {
+    tone(220, 0, 0.22, 'sawtooth', 0.22);
+    tone(165, 0.18, 0.32, 'sawtooth', 0.24);
+  } else if (type === 'tick') {
+    const urgent = (opts.sec || 5) <= 3;
+    tone(urgent ? 880 : 660, 0, 0.07, 'sine', urgent ? 0.25 : 0.16);
+  } else if (type === 'timeout') {
+    tone(196, 0, 0.25, 'sawtooth', 0.28);
+    tone(146.8, 0.22, 0.45, 'sawtooth', 0.30);
+  } else if (type === 'reveal') {
+    tone(587.33, 0, 0.12, 'sine', 0.18);
+    tone(880, 0.08, 0.18, 'sine', 0.20);
+  } else if (type === 'victory') {
+    [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5].forEach((f, i) => {
+      tone(f, i * 0.11, i === 5 ? 0.55 : 0.16, 'triangle', 0.32);
+    });
+  }
+}
+
+function previewGameSound(type) { playGameSound(type); }
+
+['Master', 'Fx', 'Music'].forEach(k => {
+  const slider = $(`#v201${k}Volume`), label = $(`#v201${k}Value`);
+  slider?.addEventListener('input', () => { if (label) label.textContent = slider.value + '%'; });
+});
+
+// ============================================================================
+// VÒNG QUAY 3D (THREE.JS WHEEL3D) & SÂN ĐẤU 3D (GAME3D)
+// ============================================================================
+const WHEEL_PALETTE = [
+  '#16a085', '#2980b9', '#8e44ad', '#d35400',
+  '#c0392b', '#27ae60', '#2c3e50', '#e67e22',
+  '#1abc9c', '#3498db', '#9b59b6', '#e74c3c'
+];
+
+class Wheel3D {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.students = [];
+    this.angle = 0;
+    this.spinning = false;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+    this.camera.position.set(0, 0.35, 11.2);
+    this.camera.lookAt(0, 0, 0);
+
+    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    this.wheelGroup = new THREE.Group();
+    this.scene.add(this.wheelGroup);
+
+    const amb = new THREE.AmbientLight(0xffffff, 0.95);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.85);
+    dir.position.set(4, 8, 10);
+    this.scene.add(amb, dir);
+
+    this.buildWheelMesh([]);
+    this.resize();
+    this.animate();
+  }
+
+  createWheelTexture(list) {
+    const size = GRAPHICS_QUALITY === 'low' ? 1024 : 2048;
+    const c = document.createElement('canvas');
+    c.width = size; c.height = size;
+    const ctx = c.getContext('2d');
+    const cx = size / 2, cy = size / 2, r = size * 0.47;
+
+    const items = list.length ? list : [{ name: 'Chưa có HS', stt: 1 }];
+    const n = items.length;
+    const arc = (Math.PI * 2) / n;
+
+    for (let i = 0; i < n; i++) {
+      // Đặt lát cắt thứ 0 ở góc -PI/2 (hướng 12 giờ ngay dưới mũi tên chỉ)
+      const start = -Math.PI / 2 - arc / 2 + i * arc;
+      const end = start + arc;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, start, end);
+      ctx.closePath();
+      ctx.fillStyle = WHEEL_PALETTE[i % WHEEL_PALETTE.length];
+      ctx.fill();
+      ctx.lineWidth = Math.max(2, size / 512);
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(start + arc / 2);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffffff';
+      const fontSize = Math.max(18, Math.min(52, Math.floor((2 * Math.PI * r * 0.65) / Math.max(8, n) * 0.55)));
+      ctx.font = `900 ${fontSize}px Inter, Segoe UI, Arial, sans-serif`;
+      const rawName = String(items[i].name || '').trim();
+      const shortName = rawName.length > 20 ? rawName.slice(0, 19) + '…' : rawName;
+      ctx.shadowColor = 'rgba(0,0,0,0.55)';
+      ctx.shadowBlur = 6;
+      ctx.fillText(shortName, r * 0.92, 0);
+      ctx.restore();
+    }
+
+    // Viền vàng và tâm vòng quay
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.lineWidth = size * 0.022;
+    ctx.strokeStyle = '#ffd859';
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, size * 0.08, 0, Math.PI * 2);
+    ctx.fillStyle = '#091d36';
+    ctx.fill();
+    ctx.lineWidth = size * 0.012;
+    ctx.strokeStyle = '#48e5ff';
+    ctx.stroke();
+
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  buildWheelMesh(list) {
+    while (this.wheelGroup.children.length) {
+      const ch = this.wheelGroup.children.pop();
+      ch.geometry?.dispose?.();
+      if (Array.isArray(ch.material)) ch.material.forEach(m => m.dispose?.());
+      else ch.material?.dispose?.();
+    }
+    const tex = this.createWheelTexture(list);
+    const geo = new THREE.CylinderGeometry(3.85, 3.85, 0.36, 64);
+    geo.rotateX(Math.PI / 2);
+    const sideMat = new THREE.MeshStandardMaterial({ color: 0x1a3c64, metalness: 0.4, roughness: 0.4 });
+    const faceMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.35, metalness: 0.08 });
+    const mesh = new THREE.Mesh(geo, [sideMat, faceMat, sideMat]);
+    this.wheelGroup.add(mesh);
+  }
+
+  setStudents(list) {
+    this.students = Array.isArray(list) ? list : [];
+    this.buildWheelMesh(this.students);
+  }
+
+  resize() {
+    if (!this.canvas) return;
+    const rect = this.canvas.parentElement?.getBoundingClientRect() || { width: 600, height: 500 };
+    const w = Math.max(280, rect.width);
+    const h = Math.max(260, rect.height);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    const pr = GRAPHICS_QUALITY === 'high' ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+    this.renderer.setPixelRatio(pr);
+    this.renderer.setSize(w, h, false);
+  }
+
+  spinTo(chosenIndex, pool) {
+    const n = Math.max(1, pool.length);
+    const sliceArc = (Math.PI * 2) / n;
+    const targetMod = (chosenIndex * sliceArc) % (Math.PI * 2);
+    const currentMod = ((this.angle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    let delta = targetMod - currentMod;
+    if (delta < 0) delta += Math.PI * 2;
+    const extraSpins = (5 + Math.floor(Math.random() * 2)) * Math.PI * 2;
+    const startAngle = this.angle;
+    const finalAngle = startAngle + extraSpins + delta;
+    const duration = 4100;
+    const startTime = performance.now();
+    let lastTickSlot = -1;
+    this.spinning = true;
+
+    return new Promise(resolve => {
+      const step = now => {
+        const t = Math.min(1, (now - startTime) / duration);
+        const ease = 1 - Math.pow(1 - t, 4);
+        this.angle = startAngle + (finalAngle - startAngle) * ease;
+        this.wheelGroup.rotation.z = this.angle;
+
+        const slot = Math.floor((this.angle / sliceArc) + 0.5);
+        if (slot !== lastTickSlot && t < 0.992) {
+          lastTickSlot = slot;
+          wheelAudio?.tick(1 - t);
+        }
+
+        if (t < 1) requestAnimationFrame(step);
+        else {
+          this.spinning = false;
+          resolve();
+        }
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    if (!this.spinning && $('#random')?.classList.contains('active')) {
+      this.angle += 0.0025;
+      this.wheelGroup.rotation.z = this.angle;
+    }
+    if ($('#random')?.classList.contains('active')) {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+}
+
+class Game3D {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.mode = 'tug';
+    this.targetOffset = 0;
+    this.currentOffset = 0;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(42, 1.6, 0.1, 100);
+    this.camera.position.set(0, 4.2, 8.8);
+    this.camera.lookAt(0, 0.5, 0);
+
+    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    const amb = new THREE.AmbientLight(0xffffff, 0.9);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(5, 10, 7);
+    this.scene.add(amb, dir);
+
+    this.group = new THREE.Group();
+    this.scene.add(this.group);
+    this.buildScene();
+    this.resize();
+    this.animate();
+  }
+
+  buildScene() {
+    while (this.group.children.length) this.group.remove(this.group.children[0]);
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(16, 8),
+      new THREE.MeshStandardMaterial({ color: 0x0d2744, roughness: 0.8 })
+    );
+    floor.rotation.x = -Math.PI / 2;
+    this.group.add(floor);
+
+    this.movingGroup = new THREE.Group();
+    const rope = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.08, 9, 16),
+      new THREE.MeshStandardMaterial({ color: 0xe6b85c })
+    );
+    rope.rotation.z = Math.PI / 2;
+    rope.position.y = 0.7;
+
+    const flag = new THREE.Mesh(
+      new THREE.ConeGeometry(0.35, 0.75, 16),
+      new THREE.MeshStandardMaterial({ color: 0xffd859, emissive: 0x553300 })
+    );
+    flag.position.y = 1.25;
+
+    const blueBox = new THREE.Mesh(
+      new THREE.BoxGeometry(1.3, 1.1, 1.1),
+      new THREE.MeshStandardMaterial({ color: 0x1fc5ec })
+    );
+    blueBox.position.set(-2.6, 0.65, 0);
+
+    const redBox = new THREE.Mesh(
+      new THREE.BoxGeometry(1.3, 1.1, 1.1),
+      new THREE.MeshStandardMaterial({ color: 0xff5e84 })
+    );
+    redBox.position.set(2.6, 0.65, 0);
+
+    this.movingGroup.add(rope, flag, blueBox, redBox);
+    this.group.add(this.movingGroup);
+  }
+
+  setMode(mode) { this.mode = mode || 'tug'; }
+  applyQuality() { this.resize(); }
+  updateProgress(diff, winScore = 5) {
+    const ratio = Math.max(-1, Math.min(1, diff / Math.max(1, winScore)));
+    this.targetOffset = ratio * 2.6;
+  }
+  resize() {
+    if (!this.canvas) return;
+    const rect = this.canvas.parentElement?.getBoundingClientRect() || { width: 420, height: 310 };
+    const w = Math.max(260, rect.width), h = Math.max(240, rect.height);
+    this.camera.aspect = w / h;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h, false);
+  }
+  animate() {
+    requestAnimationFrame(() => this.animate());
+    this.currentOffset += (this.targetOffset - this.currentOffset) * 0.08;
+    if (this.movingGroup) this.movingGroup.position.x = this.currentOffset;
+    if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+}
+
+// ============================================================================
+// TIỆN ÍCH TRÌNH CHIẾU TV, MODAL, KIỂM TRA KẾT NỐI & PHÍM TẮT
+// ============================================================================
+function syncActiveRenderLoops() {}
+
+function toggleCallPanel() {
+  $('#callPanel')?.classList.toggle('open');
+}
+
+function toggleWheelPresentation() {
+  document.body.classList.toggle('wheel-presentation');
+  setTimeout(() => wheel3d?.resize(), 120);
+}
+
+function toggleGamePresentation() {
+  document.body.classList.toggle('game-presentation');
+  setTimeout(() => game3d?.resize(), 120);
+}
+
+function exitPresentation() {
+  document.body.classList.remove('wheel-presentation', 'game-presentation');
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  setTimeout(() => { wheel3d?.resize(); game3d?.resize(); }, 120);
+}
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  } else {
+    document.exitFullscreen?.().catch(() => {});
+  }
+}
+
+function toggleBlackScreen() {
+  $('#v20BlackScreen')?.classList.toggle('show');
+}
+
+function closeV20Modal(id) {
+  document.getElementById(id)?.classList.remove('show');
+}
+
+function openQuestionImage(src) {
+  if (!src) return;
+  let modal = $('#questionZoomModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'questionZoomModal';
+    modal.className = 'question-zoom';
+    modal.innerHTML = `
+      <button class="question-zoom-close" onclick="closeV20Modal('questionZoomModal')">✕</button>
+      <img id="questionZoomImg" src="" alt="Phóng to hình">
+    `;
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+    document.body.appendChild(modal);
+  }
+  $('#questionZoomImg').src = src;
+  modal.classList.add('show');
+}
+
+function zoomCurrentQuestionImage() {
+  const img = $('#qCentralMedia img');
+  if (img?.src) openQuestionImage(img.src);
+  else toast('Câu hỏi này không có hình minh họa.');
+}
+
+function showAnswerBanner(type, text) {
+  let banner = $('#v21ResultBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'v21ResultBanner';
+    banner.className = 'result-banner';
+    document.body.appendChild(banner);
+  }
+  banner.className = `result-banner ${type} show`;
+  banner.textContent = text;
+  clearTimeout(showAnswerBanner._t);
+  showAnswerBanner._t = setTimeout(() => banner.classList.remove('show'), 2400);
+}
+
+async function testApi() {
+  const st = $('#apiStatus'), diag = $('#apiDiag');
+  const url = getConfiguredApiUrl();
+  if (st) { st.className = 'data-status'; st.textContent = '⏳ Đang kiểm tra kết nối tới ' + url + '...'; }
+  try {
+    const res = await apiGet('ping');
+    if (st) {
+      st.className = 'data-status ok';
+      st.textContent = `✅ Kết nối thành công với Google Sheet "${res.spreadsheetName}" (Sĩ số: ${res.studentRows} HS, Câu hỏi: ${res.questionRows} câu).`;
+    }
+    if (diag) diag.textContent = JSON.stringify(res, null, 2);
+    await loadStudentsFromSheet(true);
+    await loadQuestionBankFromSheet(true);
+    await flushSyncQueue(false);
+    toast('Đã kết nối và đồng bộ dữ liệu Google Sheet thành công!');
+  } catch (err) {
+    if (st) {
+      st.className = 'data-status err';
+      st.textContent = '❌ Lỗi kết nối: ' + (err.message || err);
+    }
+    if (diag) {
+      diag.textContent =
+        `Đường dẫn đang gọi: ${url}\nChi tiết lỗi: ${err.message || err}\n\n` +
+        `HƯỚNG DẪN KHẮC PHỤC:\n` +
+        `1. Mở Google Sheet -> Extensions -> Apps Script -> Dán Code.gs (đã có link Sheet) -> Chạy hàm setup().\n` +
+        `2. Vào Deploy -> New deployment -> Web app -> Who has access: Anyone (Bất kỳ ai) -> Copy link .../exec.\n` +
+        `3. Dán link .../exec vào ô bên trên rồi bấm "Lưu Link Web App & Kết nối ngay".`;
+    }
+  }
+}
+
+function openProxyTest() {
+  const url = getConfiguredApiUrl();
+  const sep = url.includes('?') ? '&' : '?';
+  window.open(`${url}${sep}action=ping`, '_blank');
+}
+
+// Phím tắt bàn phím trên lớp
+window.addEventListener('keydown', e => {
+  const tag = (e.target?.tagName || '').toUpperCase();
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) {
+    if (e.key === 'Enter' && e.target.id === 'callScoreInput') {
+      e.preventDefault();
+      saveCallScore();
+    }
+    return;
+  }
+
+  const k = e.key.toUpperCase();
+  if (e.code === 'Space') {
+    e.preventDefault();
+    if (oralState.active) toggleOralTimer();
+    else if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) revealGameAnswers();
+    else if ($('#random')?.classList.contains('active')) callRandomStudent();
+  } else if (k === 'R') {
+    if (oralState.active) finishOralAndCallNext();
+    else if ($('#random')?.classList.contains('active')) callRandomStudent();
+  } else if (k === 'Q' && $('#random')?.classList.contains('active') && currentStudent) {
+    openOralCheckForCurrent();
+  } else if (k === 'N') {
+    if (oralState.active) pickNextOralQuestion();
+    else if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) nextQuestion();
+  } else if (k === 'E') {
+    if (oralState.active) toggleOralExplanation();
+    else if ($('#games')?.classList.contains('active')) revealTeacherAnswer();
+  } else if (k === 'F') {
+    toggleFullscreen();
+  } else if (k === 'Z') {
+    if (oralState.active) zoomOralQuestionImage();
+    else zoomCurrentQuestionImage();
+  } else if (k === 'B') {
+    toggleBlackScreen();
+  } else if (e.key === 'Escape') {
+    if ($('#questionZoomModal')?.classList.contains('show')) closeV20Modal('questionZoomModal');
+    else if (oralState.active) closeOralCheckModal();
+    else exitPresentation();
+  } else if (oralState.active && ['A', 'B', 'C', 'D'].includes(k)) {
+    selectOralMcOption(k.charCodeAt(0) - 65);
+  }
+});
+
+window.addEventListener('resize', () => {
+  wheel3d?.resize();
+  game3d?.resize();
+});
+
+// ============================================================================
+// KHỞI CHẠY ỨNG DỤNG LẦN ĐẦU
+// ============================================================================
+(async function initApp() {
+  unlockApiUrlInputUI();
+  if ($('#qualitySelect')) $('#qualitySelect').value = GRAPHICS_QUALITY;
+  if ($('#teacherPasscodeInput')) $('#teacherPasscodeInput').value = localStorage.getItem(LS.passcode) || '';
+
+  const snap = await ClassroomDB.loadSnapshot();
+  if (snap) {
+    if (!students.length && Array.isArray(snap.students)) students = snap.students;
+    if (!historyData.length && Array.isArray(snap.historyData)) historyData = snap.historyData;
+    if (!scoresData.length && Array.isArray(snap.scoresData)) scoresData = snap.scoresData;
+    if (!questionBank.length && Array.isArray(snap.questionBank)) questionBank = snap.questionBank;
+  }
+
+  populateClasses();
+  renderAll();
+  rebuildWheel();
+
+  // Tự động đồng bộ dữ liệu từ Google Sheet khi mở trang
+  await loadStudentsFromSheet(true);
+  await loadQuestionBankFromSheet(true);
+  flushSyncQueue(false);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>

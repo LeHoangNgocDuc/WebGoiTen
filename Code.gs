@@ -1,17 +1,20 @@
 /**
- * LOP HOC TUONG TAC - BACKEND V20.1 TV + AUDIO
- * Google Apps Script bound to the Google Sheet.
+ * LOP HOC TUONG TAC - BACKEND V21.0.0 (TV-FIRST & SAFE SYNC)
+ * Google Apps Script bound to Google Sheet.
  *
- * FIRST USE:
- * 1) Open the Google Sheet > Extensions > Apps Script.
- * 2) Paste this entire file into Code.gs and Save.
- * 3) Select function setup > Run once > grant permissions.
- * 4) Deploy > Manage deployments > Edit > New version > Deploy.
+ * HƯỚNG DẪN CÀI ĐẶT LẦN ĐẦU HOẶC NÂNG CẤP TỪ V20.1:
+ * 1) Mở Google Sheet của lớp -> Extensions (Tiện ích mở rộng) -> Apps Script.
+ * 2) Dán toàn bộ mã này vào Code.gs và nhấn Save (Ctrl+S).
+ * 3) Chọn hàm setup -> Nhấn Run (Chạy) 1 lần để liên kết Sheet và nâng cấp cấu trúc an toàn.
+ * 4) Vào Deploy -> Manage deployments -> Edit (biểu tượng bút chì) -> Version: New version -> Deploy.
  */
 
 const APP = {
-  VERSION: '20.1.0',
+  VERSION: '21.0.0',
   DB_KEY: 'CLASSROOM_DB_ID',
+  SECRET_KEY: 'CLASSROOM_API_SECRET',
+  SCHEMA_KEY: 'CLASSROOM_SCHEMA_V21_READY',
+  CACHE_TTL_SEC: 90,
   SHEETS: {
     STUDENTS: 'Students',
     HISTORY: 'History',
@@ -20,31 +23,45 @@ const APP = {
   }
 };
 
-// OPTIONAL FALLBACK.
-// Normally leave blank and run setup() once.
-// If setup() is impossible, paste the Google Sheet ID between the quotes.
-// Example Sheet URL: https://docs.google.com/spreadsheets/d/SHEET_ID/edit
-// 🔴 CÓ THỂ DÁN ID GOOGLE SHEET VÀO ĐÂY ĐỂ KHÔNG PHỤ THUỘC setup().
-// Nếu để trống, hãy chạy setup() một lần trong Apps Script editor.
-const SPREADSHEET_ID = ''; // ví dụ: 1AbC...XYZ
+// TÙY CHỌN: Có thể dán toàn bộ đường link Google Sheet hoặc ID vào giữa cặp dấu nháy dưới đây.
+// Nếu để trống, chỉ cần mở Apps Script từ trong Google Sheet và chạy hàm setup() 1 lần.
+const SPREADSHEET_URL_OR_ID = '';
 
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (!ss) {
-    throw new Error('Khong tim thay Google Sheet dang mo. Hay mo Sheet > Extensions > Apps Script, sau do chay setup() lai.');
-  }
+  const ss = resolveSpreadsheetForSetup_();
   PropertiesService.getScriptProperties().setProperty(APP.DB_KEY, ss.getId());
-  ensureSheets_(ss);
+
+  ensureSheets_(ss, true);
   repairStudentClassColumn_(ss);
+  PropertiesService.getScriptProperties().setProperty(APP.SCHEMA_KEY, APP.VERSION);
+  invalidateCache_();
   SpreadsheetApp.flush();
+
+  const stuSheet = ss.getSheetByName(APP.SHEETS.STUDENTS);
   return {
     ok: true,
     version: APP.VERSION,
-    spreadsheetId: ss.getId(),
     spreadsheetName: ss.getName(),
-    studentRows: Math.max(0, ss.getSheetByName(APP.SHEETS.STUDENTS).getLastRow() - 1),
-    message: 'Da lien ket Web App voi Google Sheet nay.'
+    studentRows: stuSheet ? Math.max(0, stuSheet.getLastRow() - 1) : 0,
+    message: 'Đã liên kết và kiểm tra cấu trúc dữ liệu V21 thành công.'
   };
+}
+
+function backupDatabase() {
+  const ss = db_();
+  const stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyyMMdd_HHmm');
+  const backupName = 'Backup_V21_' + stamp;
+  const results = [];
+  Object.keys(APP.SHEETS).forEach(k => {
+    const name = APP.SHEETS[k];
+    const sh = ss.getSheetByName(name);
+    if (sh) {
+      const copy = sh.copyTo(ss);
+      copy.setName(name + '_' + stamp);
+      results.push(copy.getName());
+    }
+  });
+  return { ok: true, backupName: backupName, copiedSheets: results };
 }
 
 function onOpen() {
@@ -52,10 +69,11 @@ function onOpen() {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     if (ss) {
       PropertiesService.getScriptProperties().setProperty(APP.DB_KEY, ss.getId());
-      ensureSheets_(ss);
       SpreadsheetApp.getUi()
-        .createMenu('Web goi ten')
-        .addItem('Kiem tra / sua cau truc du lieu', 'setup')
+        .createMenu('Web gọi tên V21')
+        .addItem('1. Kiểm tra / Nâng cấp cấu trúc V21 (setup)', 'setup')
+        .addItem('2. Tạo bản sao lưu các Sheet hiện tại', 'backupDatabase')
+        .addItem('3. Xóa bộ nhớ đệm (Cache)', 'invalidateCache_')
         .addToUi();
     }
   } catch (_) {}
@@ -63,26 +81,31 @@ function onOpen() {
 
 function doGet(e) {
   const p = (e && e.parameter) || {};
-  const action = String(p.action || 'ping');
-  const callback = String(p.prefix || p.callback || '');
+  const action = String(p.action || 'ping').trim();
+  const callback = String(p.prefix || p.callback || '').trim();
 
   try {
-    // alive KHÔNG truy cập Spreadsheet. Dùng để kiểm tra deployment / quyền truy cập trước.
     if (action === 'alive') {
-      return output_({ ok: true, version: APP.VERSION, message: 'Apps Script Web App is reachable.' }, callback);
+      return output_({
+        ok: true,
+        version: APP.VERSION,
+        serverTime: new Date().toISOString(),
+        message: 'Apps Script Web App V21 is reachable.'
+      }, callback);
     }
 
+    verifySecretIfConfigured_(p.secret);
     const ss = db_();
-    ensureSheets_(ss);
+    ensureSheetsQuick_(ss);
     let result;
 
     if (action === 'ping') result = ping_(ss);
-    else if (action === 'students') result = getStudents_(ss);
+    else if (action === 'students') result = getStudents_(ss, String(p.className || '').trim(), p.nocache === '1');
     else if (action === 'history') result = getHistory_(ss);
-    else if (action === 'scores') result = getScores_(ss);
-    else if (action === 'questions') result = getQuestions_(ss);
+    else if (action === 'scores') result = getScores_(ss, String(p.className || '').trim());
+    else if (action === 'questions') result = getQuestions_(ss, p);
     else if (action === 'debug') result = debug_(ss);
-    else result = { ok: false, error: 'Unknown GET action: ' + action, version: APP.VERSION };
+    else result = { ok: false, error: 'Hành động GET không hợp lệ: ' + action, version: APP.VERSION };
 
     return output_(result, callback);
   } catch (err) {
@@ -90,97 +113,145 @@ function doGet(e) {
       ok: false,
       error: errorText_(err),
       version: APP.VERSION,
-      hint: 'Mo Google Sheet > Extensions > Apps Script > chay setup() mot lan, sau do Deploy New version.'
+      hint: 'Mở Google Sheet > Extensions > Apps Script > chạy hàm setup() một lần, sau đó Deploy New version.'
     }, callback);
   }
 }
 
 function doPost(e) {
   try {
-    const ss = db_();
-    ensureSheets_(ss);
     const payload = parsePayload_(e);
-    const action = String(payload.action || '');
+    verifySecretIfConfigured_(payload.secret);
+
+    const ss = db_();
+    ensureSheetsQuick_(ss);
+    const action = String(payload.action || '').trim();
     let result;
 
     if (action === 'saveStudents') result = saveStudents_(ss, payload.students || []);
     else if (action === 'addHistory') result = addHistory_(ss, payload.entry || payload);
     else if (action === 'saveScore') result = saveScore_(ss, payload.entry || payload);
+    else if (action === 'deleteScore') result = deleteScore_(ss, payload.entry || payload);
+    else if (action === 'batchSync') result = batchSync_(ss, payload.items || []);
     else if (action === 'saveQuestions') result = saveQuestions_(ss, payload.questions || []);
     else if (action === 'clearQuestionBank') result = clearQuestionBank_(ss);
-    else result = { ok: false, error: 'Unknown POST action: ' + action };
+    else result = { ok: false, error: 'Hành động POST không hợp lệ: ' + action };
 
     result.version = APP.VERSION;
+    result.serverTime = new Date().toISOString();
     return jsonOutput_(result);
   } catch (err) {
-    return jsonOutput_({ ok: false, error: errorText_(err), version: APP.VERSION });
+    return jsonOutput_({
+      ok: false,
+      error: errorText_(err),
+      version: APP.VERSION
+    });
   }
 }
 
-function db_() {
-  let id = String(SPREADSHEET_ID || '').trim();
-  let source = id ? 'constant' : '';
-
-  if (!id) {
-    id = String(PropertiesService.getScriptProperties().getProperty(APP.DB_KEY) || '').trim();
-    if (id) source = 'script-property';
+function verifySecretIfConfigured_(clientSecret) {
+  const configured = String(PropertiesService.getScriptProperties().getProperty(APP.SECRET_KEY) || '').trim();
+  if (configured && String(clientSecret || '').trim() !== configured) {
+    throw new Error('Từ chối truy cập: Khóa bảo mật API (CLASSROOM_API_SECRET) không khớp.');
   }
+}
 
+function extractSpreadsheetId_(raw) {
+  const s = String(raw || '').trim();
+  if (!s) return '';
+  const match = s.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  if (match && match[1]) return match[1];
+  if (/^[a-zA-Z0-9-_]{20,}$/.test(s)) return s;
+  return '';
+}
+
+function resolveSpreadsheetForSetup_() {
+  const fromConst = extractSpreadsheetId_(SPREADSHEET_URL_OR_ID);
+  if (fromConst) return SpreadsheetApp.openById(fromConst);
+  const active = SpreadsheetApp.getActiveSpreadsheet();
+  if (active) return active;
+  const saved = extractSpreadsheetId_(PropertiesService.getScriptProperties().getProperty(APP.DB_KEY));
+  if (saved) return SpreadsheetApp.openById(saved);
+  throw new Error('Không tìm thấy Google Sheet. Hãy mở Apps Script từ Google Sheet hoặc dán link vào SPREADSHEET_URL_OR_ID.');
+}
+
+function db_() {
+  let id = extractSpreadsheetId_(SPREADSHEET_URL_OR_ID);
+  if (!id) {
+    id = extractSpreadsheetId_(PropertiesService.getScriptProperties().getProperty(APP.DB_KEY));
+  }
   if (!id) {
     const active = SpreadsheetApp.getActiveSpreadsheet();
     if (active) {
       id = active.getId();
-      source = 'active-spreadsheet';
       PropertiesService.getScriptProperties().setProperty(APP.DB_KEY, id);
     }
   }
-
   if (!id) {
-    throw new Error('Chua lien ket Google Sheet. Chay ham setup() mot lan trong Apps Script editor.');
+    throw new Error('Chưa liên kết Google Sheet. Hãy chạy hàm setup() một lần trong Apps Script editor.');
   }
-
   return SpreadsheetApp.openById(id);
 }
 
-function ensureSheets_(ss) {
-  ensureSheet_(ss, APP.SHEETS.STUDENTS, ['id', 'stt', 'name', 'className', 'totalPoint', 'callCount', 'lastCalled', 'active']);
-  ensureSheet_(ss, APP.SHEETS.HISTORY, ['timestamp', 'className', 'studentId', 'studentName', 'action', 'value', 'note']);
-  ensureScoresSheet_(ss);
-  ensureQuestionSheet_(ss);
+function ensureSheetsQuick_(ss) {
+  const schemaVer = PropertiesService.getScriptProperties().getProperty(APP.SCHEMA_KEY);
+  const hasAll =
+    ss.getSheetByName(APP.SHEETS.STUDENTS) &&
+    ss.getSheetByName(APP.SHEETS.HISTORY) &&
+    ss.getSheetByName(APP.SHEETS.SCORES) &&
+    ss.getSheetByName(APP.SHEETS.QUESTIONS);
+  if (schemaVer === APP.VERSION && hasAll) return;
+  ensureSheets_(ss, false);
+  PropertiesService.getScriptProperties().setProperty(APP.SCHEMA_KEY, APP.VERSION);
 }
 
-function ensureSheet_(ss, name, headers) {
+function ensureSheets_(ss, fullFormat) {
+  ensureSheet_(ss, APP.SHEETS.STUDENTS, ['id', 'stt', 'name', 'className', 'totalPoint', 'callCount', 'lastCalled', 'active'], fullFormat);
+  ensureSheet_(ss, APP.SHEETS.HISTORY, ['timestamp', 'className', 'studentId', 'studentName', 'action', 'value', 'note', 'recordId'], fullFormat);
+  ensureScoresSheet_(ss, fullFormat);
+  ensureQuestionSheet_(ss, fullFormat);
+}
+
+function ensureSheet_(ss, name, headers, fullFormat) {
   let sh = ss.getSheetByName(name);
-  if (!sh) sh = ss.insertSheet(name);
+  let created = false;
+  if (!sh) {
+    sh = ss.insertSheet(name);
+    created = true;
+  }
   if (sh.getLastRow() === 0) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-  } else {
+    created = true;
+  } else if (fullFormat) {
     const width = Math.max(headers.length, sh.getLastColumn());
     const existing = sh.getRange(1, 1, 1, width).getDisplayValues()[0];
     if (existing.every(v => !String(v || '').trim())) {
       sh.getRange(1, 1, 1, headers.length).setValues([headers]);
+    } else if (sh.getLastColumn() < headers.length) {
+      sh.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
   }
-  sh.setFrozenRows(1);
-  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  if (created || fullFormat) {
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
   return sh;
 }
 
-
-/**
- * V7: Scores lưu rõ điểm theo từng lần gọi.
- * Cấu trúc mới: timestamp | className | studentId | studentName | callNo | score | note
- * Nếu sheet Scores cũ chỉ có 6 cột, tự chèn cột callNo tại E mà không mất dữ liệu cũ.
- */
-function ensureScoresSheet_(ss) {
-  const headers = ['timestamp', 'className', 'studentId', 'studentName', 'callNo', 'score', 'note'];
+function ensureScoresSheet_(ss, fullFormat) {
+  const headers = ['timestamp', 'className', 'studentId', 'studentName', 'callNo', 'score', 'note', 'recordId'];
   let sh = ss.getSheetByName(APP.SHEETS.SCORES);
-  if (!sh) sh = ss.insertSheet(APP.SHEETS.SCORES);
+  let created = false;
+  if (!sh) {
+    sh = ss.insertSheet(APP.SHEETS.SCORES);
+    created = true;
+  }
 
   if (sh.getLastRow() === 0) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-  } else {
-    const width = Math.max(7, sh.getLastColumn());
+    created = true;
+  } else if (fullFormat || sh.getLastColumn() < 7) {
+    const width = Math.max(8, sh.getLastColumn());
     const h = sh.getRange(1, 1, 1, width).getDisplayValues()[0].map(normalizeHeader_);
     const hasCallNo = h.indexOf('callno') >= 0 || h.indexOf('lan goi') >= 0;
     const scoreAtE = h[4] === 'score' || h[4] === 'diem';
@@ -189,29 +260,29 @@ function ensureScoresSheet_(ss) {
     }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
-  sh.setFrozenRows(1);
-  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  if (created || fullFormat) {
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
   return sh;
 }
 
-
-/**
- * V13: QuestionBank hỗ trợ ảnh minh họa riêng cho từng câu hỏi.
- * Cấu trúc: id | type | level | grade | subject | chapter | topic | question | image |
- * optionsJson | correctAnswer | explain | sourceFile | updatedAt
- * Nếu sheet V7/V9 cũ chưa có cột image, tự chèn sau cột question mà không mất dữ liệu.
- */
-function ensureQuestionSheet_(ss) {
+function ensureQuestionSheet_(ss, fullFormat) {
   const headers = [
     'id', 'type', 'level', 'grade', 'subject', 'chapter', 'topic', 'question', 'image',
     'optionsJson', 'correctAnswer', 'explain', 'sourceFile', 'updatedAt'
   ];
   let sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
-  if (!sh) sh = ss.insertSheet(APP.SHEETS.QUESTIONS);
+  let created = false;
+  if (!sh) {
+    sh = ss.insertSheet(APP.SHEETS.QUESTIONS);
+    created = true;
+  }
 
   if (sh.getLastRow() === 0) {
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
-  } else {
+    created = true;
+  } else if (fullFormat || sh.getLastColumn() < 14) {
     const width = Math.max(headers.length, sh.getLastColumn());
     const current = sh.getRange(1, 1, 1, width).getDisplayValues()[0].map(normalizeHeader_);
     const hasImage = current.indexOf('image') >= 0 || current.indexOf('hinh') >= 0 || current.indexOf('hinhanh') >= 0;
@@ -221,15 +292,13 @@ function ensureQuestionSheet_(ss) {
     }
     sh.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
-  sh.setFrozenRows(1);
-  sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  if (created || fullFormat) {
+    sh.setFrozenRows(1);
+    sh.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
   return sh;
 }
 
-/**
- * Excel/Google Sheets often interprets class names such as 7/2 as dates.
- * This converts the visible value in column D back to plain text once.
- */
 function repairStudentClassColumn_(ss) {
   const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
   if (!sh || sh.getLastRow() <= 1) return;
@@ -244,7 +313,6 @@ function repairStudentClassColumn_(ss) {
   for (let i = 0; i < n; i++) {
     let value = String(display[i][0] || '').trim();
     if (raw[i][0] instanceof Date) {
-      // Preserve what the teacher sees (e.g. 7/2), not the date serial value.
       value = value || Utilities.formatDate(raw[i][0], Session.getScriptTimeZone(), 'd/M');
       needsWrite = true;
     }
@@ -255,6 +323,13 @@ function repairStudentClassColumn_(ss) {
   if (needsWrite) range.setValues(out);
 }
 
+function invalidateCache_() {
+  try {
+    const cache = CacheService.getScriptCache();
+    cache.removeAll(['v21_students_all', 'v21_questions_all', 'v21_ping']);
+  } catch (_) {}
+}
+
 function ping_(ss) {
   const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
   const q = ss.getSheetByName(APP.SHEETS.QUESTIONS);
@@ -263,13 +338,13 @@ function ping_(ss) {
   return {
     ok: true,
     version: APP.VERSION,
-    spreadsheetId: ss.getId(),
     spreadsheetName: ss.getName(),
     studentRows: Math.max(0, sh.getLastRow() - 1),
     questionRows: Math.max(0, q.getLastRow() - 1),
     scoreRows: Math.max(0, sc.getLastRow() - 1),
     studentHeaders: headers,
-    timeZone: Session.getScriptTimeZone()
+    timeZone: Session.getScriptTimeZone(),
+    serverTime: new Date().toISOString()
   };
 }
 
@@ -277,68 +352,108 @@ function debug_(ss) {
   return {
     ok: true,
     version: APP.VERSION,
-    spreadsheetId: ss.getId(),
     spreadsheetName: ss.getName(),
     sheetNames: ss.getSheets().map(s => s.getName()),
-    students: getStudents_(ss).students.slice(0, 5),
+    studentsSample: getStudents_(ss, '', true).students.slice(0, 5),
     ping: ping_(ss)
   };
 }
 
-function getStudents_(ss) {
-  const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
-  const lastRow = sh.getLastRow();
-  if (lastRow <= 1) return { ok: true, students: [], version: APP.VERSION };
-
-  const width = Math.max(8, sh.getLastColumn());
-  const range = sh.getRange(1, 1, lastRow, width);
-  const raw = range.getValues();
-  const display = range.getDisplayValues();
-  const map = headerMap_(display[0]);
-  const students = [];
-
-  for (let i = 1; i < raw.length; i++) {
-    const r = raw[i], d = display[i];
-    const name = textAt_(r, d, map, ['name', 'ho va ten', 'ho ten', 'ten'], 2);
-    if (!name) continue;
-
-    students.push({
-      id: textAt_(r, d, map, ['id'], 0) || String(i),
-      stt: numberAt_(r, d, map, ['stt', 'so thu tu'], 1, i),
-      name: name,
-      className: classAt_(r, d, map, 3),
-      totalPoint: numberAt_(r, d, map, ['totalpoint', 'diem +/-'], 4, 0),
-      callCount: numberAt_(r, d, map, ['callcount', 'so lan goi'], 5, 0),
-      lastCalled: isoAt_(r, map, ['lastcalled'], 6),
-      active: boolAt_(r, d, map, ['active'], 7, true)
-    });
+function getStudents_(ss, classFilter, skipCache) {
+  let students = null;
+  const cache = CacheService.getScriptCache();
+  if (!skipCache) {
+    try {
+      const cached = cache.get('v21_students_all');
+      if (cached) students = JSON.parse(cached);
+    } catch (_) {}
   }
-  return { ok: true, students: students, version: APP.VERSION };
+
+  if (!students) {
+    const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
+    const lastRow = sh.getLastRow();
+    if (lastRow <= 1) {
+      students = [];
+    } else {
+      const width = Math.max(8, sh.getLastColumn());
+      const range = sh.getRange(1, 1, lastRow, width);
+      const raw = range.getValues();
+      const display = range.getDisplayValues();
+      const map = headerMap_(display[0]);
+      students = [];
+
+      for (let i = 1; i < raw.length; i++) {
+        const r = raw[i], d = display[i];
+        const name = textAt_(r, d, map, ['name', 'ho va ten', 'ho ten', 'ten'], 2);
+        if (!name) continue;
+        const cls = classAt_(r, d, map, 3);
+        const stt = numberAt_(r, d, map, ['stt', 'so thu tu'], 1, i);
+        const rawId = textAt_(r, d, map, ['id', 'ma hoc sinh', 'mahs'], 0);
+        const stableId = rawId || (cls ? cls + '_' + stt : String(i));
+
+        students.push({
+          id: stableId,
+          stt: stt,
+          name: name,
+          className: cls,
+          totalPoint: numberAt_(r, d, map, ['totalpoint', 'diem +/-'], 4, 0),
+          callCount: numberAt_(r, d, map, ['callcount', 'so lan goi'], 5, 0),
+          lastCalled: isoAt_(r, map, ['lastcalled'], 6),
+          active: boolAt_(r, d, map, ['active'], 7, true)
+        });
+      }
+    }
+    try {
+      cache.put('v21_students_all', JSON.stringify(students), APP.CACHE_TTL_SEC);
+    } catch (_) {}
+  }
+
+  const filtered = classFilter
+    ? students.filter(s => String(s.className || '').trim() === classFilter)
+    : students;
+
+  return {
+    ok: true,
+    students: filtered,
+    totalStudents: students.length,
+    syncedAt: new Date().toISOString(),
+    version: APP.VERSION
+  };
 }
 
 function saveStudents_(ss, students) {
-  if (!Array.isArray(students) || !students.length) throw new Error('Danh sach hoc sinh trong. Khong ghi de Students.');
+  if (!Array.isArray(students) || !students.length) {
+    throw new Error('Danh sách học sinh trống. Không ghi đè Sheet Students.');
+  }
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
     const sh = ss.getSheetByName(APP.SHEETS.STUDENTS);
     const rows = students
-      .filter(s => String(s && s.name || '').trim())
-      .map((s, i) => [
-        String(s.id || i + 1),
-        Number(s.stt || i + 1),
-        String(s.name || '').trim(),
-        String(s.className || '').trim(),
-        Number(s.totalPoint || 0),
-        Number(s.callCount || 0),
-        s.lastCalled ? new Date(s.lastCalled) : '',
-        s.active !== false
-      ]);
+      .filter(s => String((s && s.name) || '').trim())
+      .map((s, i) => {
+        const cls = String(s.className || '').trim();
+        const stt = Number(s.stt || i + 1);
+        const id = String(s.id || (cls ? cls + '_' + stt : i + 1)).trim();
+        return [
+          id,
+          stt,
+          String(s.name || '').trim(),
+          cls,
+          Number(s.totalPoint || 0),
+          Number(s.callCount || 0),
+          s.lastCalled ? new Date(s.lastCalled) : '',
+          s.active !== false
+        ];
+      });
 
-    if (!rows.length) throw new Error('Khong co hoc sinh hop le de luu.');
-    if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(8, sh.getLastColumn())).clearContent();
+    if (!rows.length) throw new Error('Không có học sinh hợp lệ để lưu.');
+    if (sh.getLastRow() > 1) {
+      sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(8, sh.getLastColumn())).clearContent();
+    }
     sh.getRange(2, 4, rows.length, 1).setNumberFormat('@');
     sh.getRange(2, 1, rows.length, 8).setValues(rows);
+    invalidateCache_();
     SpreadsheetApp.flush();
     return { ok: true, saved: rows.length };
   } finally {
@@ -348,10 +463,12 @@ function saveStudents_(ss, students) {
 
 function getHistory_(ss) {
   const sh = ss.getSheetByName(APP.SHEETS.HISTORY);
-  const v = sh.getDataRange().getValues();
+  if (sh.getLastRow() <= 1) return { ok: true, history: [], version: APP.VERSION };
+  const width = Math.max(8, sh.getLastColumn());
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, width).getValues();
   const rows = [];
-  for (let i = 1; i < v.length; i++) {
-    if (!v[i][0]) continue;
+  for (let i = 0; i < v.length; i++) {
+    if (!v[i][0] && !v[i][3]) continue;
     rows.push({
       timestamp: toIso_(v[i][0]),
       className: String(v[i][1] || ''),
@@ -359,90 +476,218 @@ function getHistory_(ss) {
       studentName: String(v[i][3] || ''),
       action: String(v[i][4] || ''),
       value: v[i][5],
-      note: String(v[i][6] || '')
+      note: String(v[i][6] || ''),
+      recordId: String(v[i][7] || '')
     });
   }
   return { ok: true, history: rows.slice(-1000), version: APP.VERSION };
 }
 
-function getScores_(ss) {
-  const sh = ensureScoresSheet_(ss);
-  const v = sh.getDataRange().getValues();
+function getScores_(ss, classFilter) {
+  const sh = ss.getSheetByName(APP.SHEETS.SCORES);
+  if (!sh || sh.getLastRow() <= 1) return { ok: true, scores: [], version: APP.VERSION };
+  const width = Math.max(8, sh.getLastColumn());
+  const v = sh.getRange(2, 1, sh.getLastRow() - 1, width).getValues();
   const rows = [];
-  for (let i = 1; i < v.length; i++) {
+  for (let i = 0; i < v.length; i++) {
     if (!v[i][0] && !v[i][3]) continue;
+    const cls = String(v[i][1] || '').trim();
+    if (classFilter && cls !== classFilter) continue;
     rows.push({
       timestamp: toIso_(v[i][0]),
-      className: String(v[i][1] || ''),
+      className: cls,
       studentId: String(v[i][2] || ''),
       studentName: String(v[i][3] || ''),
       callNo: Number(v[i][4] || 0),
       score: Number(v[i][5] || 0),
-      note: String(v[i][6] || '')
+      note: String(v[i][6] || ''),
+      recordId: String(v[i][7] || '')
     });
   }
   rows.reverse();
   return { ok: true, scores: rows.slice(0, 1500), version: APP.VERSION };
 }
 
-function addHistory_(ss, entry) {
-  const sh = ss.getSheetByName(APP.SHEETS.HISTORY);
-  sh.appendRow([
-    entry.timestamp ? new Date(entry.timestamp) : new Date(),
-    String(entry.className || ''),
-    String(entry.studentId || ''),
-    String(entry.studentName || ''),
-    String(entry.action || ''),
-    entry.value === undefined ? '' : entry.value,
-    String(entry.note || '')
-  ]);
-  updateStudentStats_(ss, entry);
-  SpreadsheetApp.flush();
-  return { ok: true };
+function addHistory_(ss, entry, skipLock) {
+  const lock = skipLock ? null : LockService.getScriptLock();
+  if (lock) lock.waitLock(15000);
+  try {
+    const sh = ss.getSheetByName(APP.SHEETS.HISTORY);
+    const recId = String(entry.recordId || '').trim();
+
+    if (recId && sh.getLastRow() > 1) {
+      const checkRows = Math.min(250, sh.getLastRow() - 1);
+      const startRow = sh.getLastRow() - checkRows + 1;
+      const recentIds = sh.getRange(startRow, 8, checkRows, 1).getDisplayValues();
+      for (let i = 0; i < recentIds.length; i++) {
+        if (String(recentIds[i][0] || '').trim() === recId) {
+          return { ok: true, duplicate: true, recordId: recId };
+        }
+      }
+    }
+
+    sh.appendRow([
+      entry.timestamp ? new Date(entry.timestamp) : new Date(),
+      String(entry.className || ''),
+      String(entry.studentId || ''),
+      String(entry.studentName || ''),
+      String(entry.action || ''),
+      entry.value === undefined ? '' : entry.value,
+      String(entry.note || ''),
+      recId
+    ]);
+    updateStudentStats_(ss, entry);
+    invalidateCache_();
+    SpreadsheetApp.flush();
+    return { ok: true, recordId: recId };
+  } finally {
+    if (lock) lock.releaseLock();
+  }
 }
 
-function saveScore_(ss, entry) {
+function saveScore_(ss, entry, skipLock) {
   const score = Number(entry.score);
-  if (!Number.isFinite(score) || score < 0 || score > 10) throw new Error('Diem phai tu 0 den 10.');
-  const callNo = Math.max(0, Number(entry.callNo || 0));
-  const sh = ensureScoresSheet_(ss);
-  const row = [
-    entry.timestamp ? new Date(entry.timestamp) : new Date(),
-    String(entry.className || ''),
-    String(entry.studentId || ''),
-    String(entry.studentName || ''),
-    callNo,
-    score,
-    String(entry.note || '')
-  ];
-
-  // Nếu cùng học sinh + cùng lần gọi đã có điểm thì cập nhật, không tạo bản sao.
-  let target = -1;
-  if (callNo > 0 && sh.getLastRow() > 1) {
-    const data = sh.getRange(2, 1, sh.getLastRow() - 1, 7).getDisplayValues();
-    const sid = String(entry.studentId || '').trim();
-    const sname = String(entry.studentName || '').trim();
-    const cls = String(entry.className || '').trim();
-    for (let i = 0; i < data.length; i++) {
-      const sameId = sid && String(data[i][2] || '').trim() === sid;
-      const sameFallback = !sameId && sname && String(data[i][3] || '').trim() === sname && String(data[i][1] || '').trim() === cls;
-      if ((sameId || sameFallback) && Number(data[i][4] || 0) === callNo) { target = i + 2; break; }
-    }
+  if (!Number.isFinite(score) || score < 0 || score > 10) {
+    throw new Error('Điểm phải nằm trong khoảng từ 0 đến 10.');
   }
-  if (target > 0) sh.getRange(target, 1, 1, 7).setValues([row]);
-  else sh.appendRow(row);
+  const lock = skipLock ? null : LockService.getScriptLock();
+  if (lock) lock.waitLock(20000);
+  try {
+    const callNo = Math.max(0, Number(entry.callNo || 0));
+    const recId = String(entry.recordId || '').trim();
+    const sh = ss.getSheetByName(APP.SHEETS.SCORES);
+    const row = [
+      entry.timestamp ? new Date(entry.timestamp) : new Date(),
+      String(entry.className || ''),
+      String(entry.studentId || ''),
+      String(entry.studentName || ''),
+      callNo,
+      score,
+      String(entry.note || ''),
+      recId
+    ];
 
-  addHistory_(ss, {
-    timestamp: entry.timestamp || new Date().toISOString(),
-    className: entry.className,
-    studentId: entry.studentId,
-    studentName: entry.studentName,
-    action: 'SCORE',
-    value: score,
-    note: (callNo ? ('Lan goi #' + callNo + ' - ') : '') + String(entry.note || '')
-  });
-  SpreadsheetApp.flush();
-  return { ok: true, updated: target > 0, callNo: callNo, score: score };
+    let target = -1;
+    if (sh.getLastRow() > 1) {
+      const width = Math.max(8, sh.getLastColumn());
+      const data = sh.getRange(2, 1, sh.getLastRow() - 1, width).getDisplayValues();
+      const sid = String(entry.studentId || '').trim();
+      const sname = String(entry.studentName || '').trim();
+      const cls = String(entry.className || '').trim();
+
+      for (let i = data.length - 1; i >= 0; i--) {
+        const rowRecId = String(data[i][7] || '').trim();
+        if (recId && rowRecId === recId) {
+          target = i + 2;
+          break;
+        }
+        if (callNo > 0) {
+          const sameId = sid && String(data[i][2] || '').trim() === sid;
+          const sameFallback = !sameId && sname && String(data[i][3] || '').trim() === sname && String(data[i][1] || '').trim() === cls;
+          if ((sameId || sameFallback) && Number(data[i][4] || 0) === callNo) {
+            target = i + 2;
+            break;
+          }
+        }
+      }
+    }
+
+    if (target > 0) {
+      sh.getRange(target, 1, 1, 8).setValues([row]);
+    } else {
+      sh.appendRow(row);
+    }
+
+    addHistory_(ss, {
+      timestamp: entry.timestamp || new Date().toISOString(),
+      className: entry.className,
+      studentId: entry.studentId,
+      studentName: entry.studentName,
+      action: target > 0 ? 'SCORE_UPDATE' : 'SCORE',
+      value: score,
+      note: (callNo ? ('Lần gọi #' + callNo + ' - ') : '') + String(entry.note || ''),
+      recordId: recId ? (recId + '_H') : ''
+    }, true);
+
+    invalidateCache_();
+    SpreadsheetApp.flush();
+    return {
+      ok: true,
+      updated: target > 0,
+      callNo: callNo,
+      score: score,
+      recordId: recId
+    };
+  } finally {
+    if (lock) lock.releaseLock();
+  }
+}
+
+function deleteScore_(ss, entry) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    const sh = ss.getSheetByName(APP.SHEETS.SCORES);
+    if (!sh || sh.getLastRow() <= 1) return { ok: true, deleted: false };
+
+    const width = Math.max(8, sh.getLastColumn());
+    const data = sh.getRange(2, 1, sh.getLastRow() - 1, width).getDisplayValues();
+    const recId = String(entry.recordId || '').trim();
+    const sid = String(entry.studentId || '').trim();
+    const callNo = Number(entry.callNo || 0);
+    let target = -1;
+
+    for (let i = data.length - 1; i >= 0; i--) {
+      const rowRecId = String(data[i][7] || '').trim();
+      const sameId = sid && String(data[i][2] || '').trim() === sid && Number(data[i][4] || 0) === callNo;
+      if ((recId && rowRecId === recId) || sameId) {
+        target = i + 2;
+        break;
+      }
+    }
+
+    if (target > 0) {
+      sh.deleteRow(target);
+      addHistory_(ss, {
+        timestamp: new Date().toISOString(),
+        className: entry.className || '',
+        studentId: sid,
+        studentName: entry.studentName || '',
+        action: 'SCORE_DELETE',
+        value: '',
+        note: 'Hủy điểm lần gọi #' + callNo + (entry.reason ? (' (' + entry.reason + ')') : ''),
+        recordId: recId ? (recId + '_DEL') : ''
+      }, true);
+    }
+
+    invalidateCache_();
+    SpreadsheetApp.flush();
+    return { ok: true, deleted: target > 0, recordId: recId };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function batchSync_(ss, items) {
+  if (!Array.isArray(items) || !items.length) return { ok: true, processed: 0 };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(25000);
+  try {
+    const results = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i] || {};
+      const type = String(item.action || '').trim();
+      const payload = item.entry || item;
+      if (type === 'saveScore') {
+        results.push(saveScore_(ss, payload, true));
+      } else if (type === 'addHistory') {
+        results.push(addHistory_(ss, payload, true));
+      }
+    }
+    return { ok: true, processed: results.length, results: results };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function updateStudentStats_(ss, entry) {
@@ -463,7 +708,10 @@ function updateStudentStats_(ss, entry) {
     const rowClass = classCellText_(data[i][3], disp[i][3]);
     const idMatch = id && rowId === id;
     const fallbackMatch = !idMatch && name && rowName === name && rowClass === cls;
-    if (idMatch || fallbackMatch) { target = i + 2; break; }
+    if (idMatch || fallbackMatch) {
+      target = i + 2;
+      break;
+    }
   }
   if (target < 0) return;
 
@@ -478,27 +726,50 @@ function updateStudentStats_(ss, entry) {
   }
 }
 
-function getQuestions_(ss) {
-  const sh = ensureQuestionSheet_(ss);
+function getQuestions_(ss, filterParams) {
+  filterParams = filterParams || {};
+  const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
   const last = sh.getLastRow();
   if (last <= 1) return { ok: true, questions: [], version: APP.VERSION };
 
   const raw = sh.getRange(2, 1, last - 1, 14).getValues();
   const disp = sh.getRange(2, 1, last - 1, 14).getDisplayValues();
-  const out = [];
+  const fSubject = String(filterParams.subject || '').trim();
+  const fGrade = String(filterParams.grade || '').trim();
+  const fChapter = String(filterParams.chapter || '').trim();
+  const fTopic = String(filterParams.topic || '').trim();
+  const fLevel = String(filterParams.level || '').trim();
 
+  const out = [];
   for (let i = 0; i < raw.length; i++) {
     if (!raw[i][0] && !raw[i][7]) continue;
+    const subject = String(disp[i][4] || raw[i][4] || '').trim();
+    const grade = String(disp[i][3] || raw[i][3] || '').trim();
+    const chapter = String(disp[i][5] || raw[i][5] || '').trim();
+    const topic = String(disp[i][6] || raw[i][6] || '').trim();
+    const level = String(disp[i][2] || raw[i][2] || '').trim();
+
+    if (fSubject && subject !== fSubject) continue;
+    if (fGrade && grade !== fGrade) continue;
+    if (fChapter && chapter !== fChapter) continue;
+    if (fTopic && topic !== fTopic) continue;
+    if (fLevel && level !== fLevel) continue;
+
     let options = [];
-    try { options = JSON.parse(String(raw[i][9] || '[]')); } catch (_) { options = []; }
+    try {
+      options = JSON.parse(String(raw[i][9] || '[]'));
+    } catch (_) {
+      options = [];
+    }
+
     out.push({
       id: String(disp[i][0] || raw[i][0] || ''),
-      type: String(disp[i][1] || raw[i][1] || ''),
-      level: String(disp[i][2] || raw[i][2] || ''),
-      grade: String(disp[i][3] || raw[i][3] || ''),
-      subject: String(disp[i][4] || raw[i][4] || ''),
-      chapter: String(disp[i][5] || raw[i][5] || ''),
-      topic: String(disp[i][6] || raw[i][6] || ''),
+      type: String(disp[i][1] || raw[i][1] || 'MC'),
+      level: level,
+      grade: grade,
+      subject: subject,
+      chapter: chapter,
+      topic: topic,
       question: String(raw[i][7] || ''),
       image: String(raw[i][8] || ''),
       options: options,
@@ -512,48 +783,65 @@ function getQuestions_(ss) {
 }
 
 function saveQuestions_(ss, questions) {
-  if (!Array.isArray(questions) || !questions.length) throw new Error('Khong co cau hoi de luu.');
+  if (!Array.isArray(questions) || !questions.length) {
+    throw new Error('Không có câu hỏi để lưu.');
+  }
   const lock = LockService.getScriptLock();
-  lock.waitLock(20000);
+  lock.waitLock(25000);
   try {
-    const sh = ensureQuestionSheet_(ss);
+    const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
     const existing = sh.getLastRow() > 1 ? sh.getRange(2, 1, sh.getLastRow() - 1, 14).getValues() : [];
     const order = [];
-    const byId = {};
+    const byKey = {};
 
     existing.forEach(row => {
       const id = String(row[0] || '').trim();
       if (!id) return;
-      byId[id] = row;
-      order.push(id);
+      const dedupeKey = id + '|' + String(row[3] || '').trim() + '|' + String(row[5] || '').trim();
+      byKey[dedupeKey] = row;
+      order.push(dedupeKey);
     });
 
     let inserted = 0, updated = 0;
     questions.forEach((q, i) => {
+      const questionText = String(q.question || '').trim();
+      if (!questionText) return;
       const id = String(q.id || ('Q_' + Date.now() + '_' + i)).trim();
+      const grade = String(q.grade || '').trim();
+      const chapter = String(q.chapter || '').trim();
+      const dedupeKey = id + '|' + grade + '|' + chapter;
+
       const row = [
         id,
-        String(q.type || ''),
-        String(q.level || ''),
-        String(q.grade || ''),
-        String(q.subject || ''),
-        String(q.chapter || ''),
-        String(q.topic || ''),
-        String(q.question || ''),
-        String(q.image || q.Image || ''),
+        String(q.type || 'MC').trim().toUpperCase(),
+        String(q.level || '').trim(),
+        grade,
+        String(q.subject || '').trim(),
+        chapter,
+        String(q.topic || '').trim(),
+        questionText,
+        String(q.image || q.Image || '').trim(),
         JSON.stringify(q.options || []),
         String(q.answer !== undefined ? q.answer : (q.correctAnswer || '')),
         String(q.explanation || q.explain || ''),
         String(q.sourceFile || ''),
         new Date()
       ];
-      if (byId[id]) { byId[id] = row; updated++; }
-      else { byId[id] = row; order.push(id); inserted++; }
+
+      if (byKey[dedupeKey]) {
+        byKey[dedupeKey] = row;
+        updated++;
+      } else {
+        byKey[dedupeKey] = row;
+        order.push(dedupeKey);
+        inserted++;
+      }
     });
 
-    const rows = order.map(id => byId[id]);
+    const rows = order.map(k => byKey[k]);
     if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 14).clearContent();
     if (rows.length) sh.getRange(2, 1, rows.length, 14).setValues(rows);
+    invalidateCache_();
     SpreadsheetApp.flush();
     return { ok: true, inserted: inserted, updated: updated, total: rows.length };
   } finally {
@@ -562,9 +850,16 @@ function saveQuestions_(ss, questions) {
 }
 
 function clearQuestionBank_(ss) {
-  const sh = ensureQuestionSheet_(ss);
-  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 14).clearContent();
-  return { ok: true };
+  const lock = LockService.getScriptLock();
+  lock.waitLock(15000);
+  try {
+    const sh = ss.getSheetByName(APP.SHEETS.QUESTIONS);
+    if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 14).clearContent();
+    invalidateCache_();
+    return { ok: true };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 function output_(data, callback) {

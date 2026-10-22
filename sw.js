@@ -1,11 +1,54 @@
-const CACHE='classroom-v20-1-tv-audio-1';
-const APP_SHELL=['./','./index.html'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP_SHELL)).catch(()=>{})));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))));
-self.addEventListener('fetch',e=>{
-  if(e.request.method!=='GET')return;
-  const u=new URL(e.request.url);
-  // API/Apps Script luôn ưu tiên mạng; dữ liệu ứng dụng đã có localStorage fallback.
-  if(u.pathname.startsWith('/api/'))return;
-  e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{});return r}).catch(()=>caches.match(e.request).then(r=>r||caches.match('./index.html'))));
+/**
+ * LỚP HỌC TƯƠNG TÁC V21 - SERVICE WORKER
+ * - Chỉ cache tài nguyên tĩnh (App Shell, thư viện CDN).
+ * - Tuyệt đối không cache dữ liệu học sinh / điểm số từ /api/ hoặc script.google.com.
+ * - Không lưu vào cache các phản hồi lỗi HTTP (!response.ok).
+ */
+const CACHE = 'classroom-v21-0-tv-first';
+const APP_SHELL = [
+  './',
+  './index.html'
+];
+
+self.addEventListener('install', event => {
+  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(APP_SHELL)).catch(() => {})
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+
+  // Không bao giờ lưu cache dữ liệu API riêng tư hoặc Google Apps Script
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.hostname.includes('script.google.com') ||
+    url.hostname.includes('googleusercontent.com')
+  ) {
+    return;
+  }
+
+  event.respondWith(
+    fetch(event.request)
+      .then(response => {
+        if (response && response.ok && response.status === 200 && (url.origin === self.location.origin || url.hostname.includes('cdn.jsdelivr.net'))) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then(cached => cached || caches.match('./index.html'))
+      )
+  );
 });

@@ -2643,171 +2643,106 @@ async function syncQuestionBank() {
 // TRÒ CHƠI 2 ĐỘI 3D (KÉO CO & ĐUA XE)
 // ============================================================================
 // ============================================================================
-// CẤU HÌNH ĐỒ HỌA 3D TẬP TRUNG (GAME_3D_CONFIG)
+// CẤU HÌNH ĐỒ HỌA 3D TẬP TRUNG (GAME_3D_CONFIG) - GIẢI PHÁP 3 (REAL 3D & GLB)
 // ============================================================================
 const GAME_3D_CONFIG = {
   common: {
     targetFPS: 60,
     maxDeltaSec: 0.08,
-    fov: 38,
+    fov: 36,
     near: 0.1,
-    far: 140
+    far: 150,
+    gltfLoaderCdn: 'https://cdn.jsdelivr.net/npm/three@0.152.2/examples/js/loaders/GLTFLoader.js'
   },
   quality: {
-    low:      { pixelRatio: 1.0, antialias: false, shadows: false, maxParticles: 20, wheelSegments: 12, canvasScale: 0.85 },
-    balanced: { pixelRatio: 1.4, antialias: true,  shadows: true,  maxParticles: 50, wheelSegments: 18, canvasScale: 1.0 },
-    high:     { pixelRatio: 1.85, antialias: true, shadows: true,  maxParticles: 90, wheelSegments: 24, canvasScale: 1.25 }
+    low:      { pixelRatio: 1.0, antialias: false, shadows: false, maxParticles: 24, ropeSegments: 32, wheelSegments: 14 },
+    balanced: { pixelRatio: 1.4, antialias: true,  shadows: true,  maxParticles: 55, ropeSegments: 48, wheelSegments: 20 },
+    high:     { pixelRatio: 1.85, antialias: true, shadows: true,  maxParticles: 95, ropeSegments: 64, wheelSegments: 28 }
   },
   tug: {
-    maxShiftRatio: 0.28,
+    cameraPos: [0, 3.55, 8.85],
+    cameraLookAt: [0, 0.95, 0],
+    teamCount: 3,
+    memberSpacing: 1.08,
+    startXOffset: 1.38,
+    ropeLength: 10.6,
+    ropeRadius: 0.068,
+    maxShiftX: 2.25,
     pullPulseDuration: 0.72,
-    customSpriteUrl: 'assets/tug_teams.png',
-    storageKey: 'class3d_v21_custom_tug_sprite'
+    models: {
+      blue: 'assets/models/tug_team_blue.glb',
+      red: 'assets/models/tug_team_red.glb'
+    }
   },
   race: {
-    cameraPos: [0, 5.2, 8.9],
-    cameraLookAt: [0, 0.35, -0.4],
+    cameraPos: [0, 5.1, 8.8],
+    cameraLookAt: [0, 0.35, -0.35],
     laneZ: [-1.05, 1.05],
     trackLength: 13.6,
     startX: -4.6,
     finishX: 4.5,
     boostDuration: 0.75,
-    baseWheelSpin: 2.2,
-    boostWheelSpin: 16.0,
+    baseWheelSpin: 2.4,
+    boostWheelSpin: 16.5,
     colors: {
       asphalt: 0x1b2636,
       grass: 0x0d3b2e,
       blueKart: 0x18b8f5,
       redKart: 0xff4769
+    },
+    models: {
+      blue: 'assets/models/kart_blue.glb',
+      red: 'assets/models/kart_red.glb'
     }
   },
   animation: {
-    lerpSpeed: 5.5,
+    lerpSpeed: 5.4,
     cameraEase: 3.5,
-    victoryConfettiCount: 75
+    victoryConfettiCount: 80
   }
 };
 
 // ============================================================================
-// BỘ XỬ LÝ TÁCH NỀN & CẮT TỰ ĐỘNG 6 HỌC SINH TỪ ẢNH MẪU HOẶC ẢNH BẤT KỲ
+// TRÌNH NẠP TỰ ĐỘNG THREE.GLTFLoader & QUẢN LÝ FILE MÔ HÌNH .GLB TÙY CHỌN
 // ============================================================================
-let customTugSpriteDataUrl = localStorage.getItem(GAME_3D_CONFIG.tug.storageKey) || '';
+let gltfLoaderPromise = null;
+const customGlbUrls = {
+  tugBlue: null,
+  tugRed: null,
+  kartBlue: null,
+  kartRed: null
+};
 
-function processUploadedTugImage(img, forceCropSampleScreenshot = null) {
-  const w = img.naturalWidth || img.width;
-  const h = img.naturalHeight || img.height;
+function ensureGLTFLoader() {
+  if (window.THREE && THREE.GLTFLoader) return Promise.resolve(new THREE.GLTFLoader());
+  if (gltfLoaderPromise) return gltfLoaderPromise;
 
-  // Nhận diện tự động nếu người dùng chọn bức ảnh chụp màn hình mẫu (16:9 có khung trắng ở giữa)
-  const isLikelySampleScreenshot = forceCropSampleScreenshot !== null
-    ? forceCropSampleScreenshot
-    : (w >= 900 && h >= 500 && (w / h > 1.55) && (w / h < 1.95));
-
-  const outCanvas = document.createElement('canvas');
-  const ctx = outCanvas.getContext('2d');
-
-  if (isLikelySampleScreenshot) {
-    // Kiểm tra xem vùng trung tâm có phải nền trắng của ảnh mẫu giaoviendoimoi.com không
-    const probeCanvas = document.createElement('canvas');
-    probeCanvas.width = w;
-    probeCanvas.height = h;
-    const pCtx = probeCanvas.getContext('2d');
-    pCtx.drawImage(img, 0, 0);
-    const samplePixel = pCtx.getImageData(Math.floor(w * 0.42), Math.floor(h * 0.30), 1, 1).data;
-    const isWhiteArena = samplePixel[0] > 230 && samplePixel[1] > 230 && samplePixel[2] > 230;
-
-    if (isWhiteArena) {
-      // Cắt chính xác khung 6 bạn học sinh kéo co trong ảnh mẫu (x: 35.4%..67.6%, y: 45.5%..67.5%)
-      const sx = Math.round(w * 0.354);
-      const sy = Math.round(h * 0.455);
-      const sw = Math.round(w * 0.322);
-      const sh = Math.round(h * 0.220);
-
-      outCanvas.width = sw;
-      outCanvas.height = sh;
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-
-      const imgData = ctx.getImageData(0, 0, sw, sh);
-      const d = imgData.data;
-
-      // Bước 1: Khử vạch kẻ đứt nét màu xanh lá cây (#2ecc71) ở giữa ảnh mẫu
-      for (let y = 0; y < sh; y++) {
-        for (let x = Math.floor(sw * 0.46); x < Math.ceil(sw * 0.54); x++) {
-          const i = (y * sw + x) * 4;
-          const r = d[i], g = d[i + 1], b = d[i + 2];
-          // Nhận diện điểm ảnh màu xanh lá của vạch đứt nét
-          if (g > 130 && g > r + 25 && g > b + 18) {
-            // Nếu nằm ở cao độ sợi dây thừng/nơ đỏ ở giữa thì tô lại màu nơ đỏ/dây, ngược lại làm trong suốt
-            const relY = y / sh;
-            if (relY > 0.36 && relY < 0.52) {
-              d[i] = 195; d[i + 1] = 45; d[i + 2] = 45; d[i + 3] = 255;
-            } else {
-              d[i + 3] = 0;
-            }
-          }
-        }
-      }
-
-      // Bước 2: Khử nền trắng / xám nhạt xung quanh 6 học sinh để tạo ảnh PNG trong suốt mượt mà
-      for (let i = 0; i < d.length; i += 4) {
-        if (d[i + 3] === 0) continue;
-        const r = d[i], g = d[i + 1], b = d[i + 2];
-        const maxC = Math.max(r, g, b);
-        const minC = Math.min(r, g, b);
-        const sat = maxC - minC;
-        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-
-        if (lum > 240 && sat < 22) {
-          d[i + 3] = 0;
-        } else if (lum > 224 && sat < 26) {
-          // Làm mềm viền (anti-aliasing feather)
-          d[i + 3] = Math.round(((240 - lum) / 16) * 255);
-        }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      return outCanvas.toDataURL('image/png');
-    }
-  }
-
-  // Trường hợp ảnh PNG/JPG kéo co thông thường (tự động thu gọn về kích thước tối ưu và tách nền trắng nếu có)
-  const maxW = 1200;
-  const scale = Math.min(1, maxW / w);
-  const tw = Math.round(w * scale);
-  const th = Math.round(h * scale);
-  outCanvas.width = tw;
-  outCanvas.height = th;
-  ctx.drawImage(img, 0, 0, tw, th);
-
-  const imgData = ctx.getImageData(0, 0, tw, th);
-  const d = imgData.data;
-  // Kiểm tra góc ảnh xem có phải ảnh nền trắng không (nếu đã trong suốt sẵn thì giữ nguyên)
-  const cornerAlpha = d[3];
-  const cornerLum = (d[0] + d[1] + d[2]) / 3;
-  if (cornerAlpha > 240 && cornerLum > 236) {
-    for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i + 1], b = d[i + 2];
-      const sat = Math.max(r, g, b) - Math.min(r, g, b);
-      const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-      if (lum > 242 && sat < 18) d[i + 3] = 0;
-      else if (lum > 228 && sat < 22) d[i + 3] = Math.round(((242 - lum) / 14) * 255);
-    }
-    ctx.putImageData(imgData, 0, 0);
-  }
-
-  return outCanvas.toDataURL('image/png');
+  gltfLoaderPromise = new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = GAME_3D_CONFIG.common.gltfLoaderCdn;
+    script.onload = () => {
+      if (window.THREE && THREE.GLTFLoader) resolve(new THREE.GLTFLoader());
+      else resolve(null);
+    };
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+  return gltfLoaderPromise;
 }
 
-function openTugSpritePicker() {
-  let inp = $('#tugSpriteFileInput');
+function openCustomGLBPicker() {
+  let inp = $('#customGlbFileInput');
   if (!inp) {
     inp = document.createElement('input');
-    inp.id = 'tugSpriteFileInput';
+    inp.id = 'customGlbFileInput';
     inp.type = 'file';
-    inp.accept = 'image/*';
+    inp.accept = '.glb,.gltf';
+    inp.multiple = true;
     inp.className = 'hide';
     inp.addEventListener('change', e => {
-      const file = e.target.files?.[0];
-      if (file) loadTugSpriteFromFile(file);
+      const files = [...(e.target.files || [])];
+      if (!files.length) return;
+      handleCustomGLBFiles(files);
       e.target.value = '';
     });
     document.body.appendChild(inp);
@@ -2815,72 +2750,26 @@ function openTugSpritePicker() {
   inp.click();
 }
 
-function loadTugSpriteFromFile(file) {
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      try {
-        const processedDataUrl = processUploadedTugImage(img);
-        customTugSpriteDataUrl = processedDataUrl;
-        try { localStorage.setItem(GAME_3D_CONFIG.tug.storageKey, processedDataUrl); } catch (_) {}
-        ClassroomDB.saveSnapshot({
-          students, historyData, scoresData, questionBank,
-          customTugSpriteDataUrl: processedDataUrl
-        }).catch(() => {});
-
-        if (game3d?.activeScene?.applyCustomSprite) {
-          game3d.activeScene.applyCustomSprite(processedDataUrl);
-          game3d.requestRender();
-        }
-        $('#downloadTugSpriteBtn')?.classList.remove('hide');
-        toast('✅ Đã tách nền & áp dụng hình nhân vật Kéo co thành công!');
-      } catch (err) {
-        toast('Lỗi xử lý ảnh: ' + (err.message || err));
-      }
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-function resetTugSpriteToDefault() {
-  customTugSpriteDataUrl = '';
-  localStorage.removeItem(GAME_3D_CONFIG.tug.storageKey);
-  if (game3d?.activeScene?.applyCustomSprite) {
-    game3d.activeScene.applyCustomSprite('');
-    game3d.requestRender();
-  }
-  $('#downloadTugSpriteBtn')?.classList.add('hide');
-  toast('Đã đặt lại hình Kéo co mặc định.');
-}
-
-function downloadExtractedTugSprite() {
-  if (!customTugSpriteDataUrl) return toast('Chưa có ảnh Kéo co tùy chỉnh để tải về.');
-  const a = document.createElement('a');
-  a.href = customTugSpriteDataUrl;
-  a.download = 'tug_teams.png';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  toast('Đã tải xuống file tug_teams.png! Bạn có thể chép vào thư mục assets/tug_teams.png.');
-}
-
-// Hỗ trợ nhấn Ctrl+V (Dán ảnh trực tiếp từ Clipboard khi đang ở màn hình Trò chơi)
-window.addEventListener('paste', e => {
-  if (!$('#games')?.classList.contains('active')) return;
-  const items = e.clipboardData?.items || [];
-  for (const item of items) {
-    if (item.type && item.type.startsWith('image/')) {
-      const file = item.getAsFile();
-      if (file) {
-        loadTugSpriteFromFile(file);
-        e.preventDefault();
-        break;
-      }
+function handleCustomGLBFiles(files) {
+  files.forEach(file => {
+    const name = file.name.toLowerCase();
+    const blobUrl = URL.createObjectURL(file);
+    if (name.includes('kart')) {
+      if (name.includes('red')) customGlbUrls.kartRed = blobUrl;
+      else if (name.includes('blue')) customGlbUrls.kartBlue = blobUrl;
+      else { customGlbUrls.kartBlue = blobUrl; customGlbUrls.kartRed = blobUrl; }
+    } else {
+      if (name.includes('red')) customGlbUrls.tugRed = blobUrl;
+      else if (name.includes('blue')) customGlbUrls.tugBlue = blobUrl;
+      else { customGlbUrls.tugBlue = blobUrl; customGlbUrls.tugRed = blobUrl; }
     }
+  });
+
+  if (game3d && !game3d.disposed) {
+    game3d.setMode(game3d.mode);
   }
-});
+  toast(`📦 Đã nạp ${files.length} mô hình 3D (.glb) vào đấu trường!`);
+}
 
 // ============================================================================
 // GIAO DIỆN TRÌNH CHIẾU TV + BẢNG ĐÁP ÁN TRUNG TÂM CỠ LỚN (CÁCH B)
@@ -3129,7 +3018,7 @@ function upgradeGamePlayLayoutV21() {
       background: #872638;
     }
 
-    /* CỘT SÂN THI ĐẤU TRUNG TÂM */
+    /* CỘT SÂN THI ĐẤU 3D TRUNG TÂM */
     .tv-arena-col {
       height: 100%;
       min-height: 0;
@@ -3143,8 +3032,8 @@ function upgradeGamePlayLayoutV21() {
       border-radius: 22px;
       position: relative;
       overflow: hidden;
-      background: #ffffff;
-      border: 2px solid rgba(190, 225, 255, .55);
+      background: linear-gradient(180deg, #ffffff 0%, #f1f6fc 68%, #e2ecf7 100%);
+      border: 2px solid rgba(190, 225, 255, .65);
       box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
     }
     #gamePlay .tv-arena.race-mode {
@@ -3306,13 +3195,12 @@ function upgradeGamePlayLayoutV21() {
   const gp = $('#gamePlay');
   if (!gp) return;
 
-  // Thanh HUD có thêm nút "🖼️ Đổi hình Kéo co" để giáo viên chọn ảnh mẫu hoặc ảnh 3D bất kỳ
   const head = gp.querySelector('.game-tv-head');
-  if (head && !head.querySelector('#hudChangeSpriteBtn')) {
+  if (head && !head.querySelector('#hudLoadGlbBtn')) {
     head.innerHTML = `
       <button class="btn ghost sm" onclick="exitGame()" title="Thoát về cấu hình trò chơi">← Thoát</button>
       <div class="hud-title-box">
-        <h2 id="gameTitleHead">🪢 Kéo Co Kiến Thức</h2>
+        <h2 id="gameTitleHead">🪢 Kéo Co Kiến Thức 3D</h2>
         <div class="hud-sub-pills">
           <span id="qCounter" class="pill">Câu 0</span>
           <span id="qMeta" class="pill"></span>
@@ -3337,28 +3225,27 @@ function upgradeGamePlayLayoutV21() {
           <span style="width:12px;height:12px;border-radius:50%;background:#ff5c82;display:inline-block"></span>
         </div>
       </div>
-      <button id="hudChangeSpriteBtn" class="btn gold sm" onclick="openTugSpritePicker()" title="Chọn ảnh chụp màn hình mẫu hoặc ảnh Kéo co 3D bất kỳ (Hoặc nhấn Ctrl+V)">🖼️ Hình Kéo co</button>
+      <button id="hudLoadGlbBtn" class="btn gold sm" onclick="openCustomGLBPicker()" title="Chọn file mô hình 3D (.glb / .gltf) từ máy tính">📦 Nạp Model .GLB</button>
       <button id="hudSoundBtn" class="btn ghost sm" onclick="toggleGameSoundFromHud()">🔊 Âm thanh</button>
       <button class="btn ghost sm" onclick="toggleGamePresentation()">⛶ Toàn màn hình</button>
     `;
   }
 
-  // Thêm thanh chọn ảnh Kéo co trong màn hình cấu hình #gameHub
+  // Thanh chọn file .GLB trong màn hình cấu hình #gameHub
   const hubCard = $('#gameHub .card');
-  if (hubCard && !$('#hubTugSpriteBar')) {
+  if (hubCard && !$('#hubGlbModelBar')) {
+    $('#hubTugSpriteBar')?.remove();
     const bar = document.createElement('div');
-    bar.id = 'hubTugSpriteBar';
+    bar.id = 'hubGlbModelBar';
     bar.className = 'row space';
     bar.style.cssText = 'margin-top:10px;padding:10px 14px;border-radius:14px;background:rgba(72,229,255,.07);border:1px dashed rgba(72,229,255,.35)';
     bar.innerHTML = `
       <div>
-        <b>🖼️ Hình nhân vật Kéo co (Hỗ trợ cắt tự động từ ảnh mẫu hoặc ảnh 3D/Canva):</b>
-        <div class="muted" style="font-size:12px">Bấm <b>Chọn ảnh Kéo co</b> rồi chọn bức ảnh chụp màn hình mẫu <code>image_e9e8a4.jpg</code> (hoặc nhấn <b>Ctrl + V</b>), web sẽ tự cắt lấy đúng 6 học sinh và tách nền trong suốt!</div>
+        <b>📦 Mô hình 3D (.GLB / .GLTF) & Nhân vật 3D Chibi có Khung Xương Khớp (Giải pháp 3):</b>
+        <div class="muted" style="font-size:12px">Hệ thống tự động đọc file trong <code>assets/models/tug_team_blue.glb</code>, <code>tug_team_red.glb</code>, <code>kart_blue.glb</code>, <code>kart_red.glb</code> hoặc bạn bấm <b>Nạp file .GLB</b> để chọn trực tiếp từ máy. Nếu chưa có file .GLB, hệ thống dựng sẵn 6 nhân vật Chibi 3D có khớp tay chân thực sự.</div>
       </div>
       <div class="row">
-        <button class="btn gold sm" onclick="openTugSpritePicker()">🖼️ Chọn ảnh Kéo co</button>
-        <button id="downloadTugSpriteBtn" class="btn good sm ${customTugSpriteDataUrl ? '' : 'hide'}" onclick="downloadExtractedTugSprite()">⬇ Tải file tug_teams.png</button>
-        <button class="btn ghost sm" onclick="resetTugSpriteToDefault()">↺ Mặc định</button>
+        <button class="btn gold sm" onclick="openCustomGLBPicker()">📦 Nạp file .GLB từ máy</button>
       </div>
     `;
     hubCard.appendChild(bar);
@@ -3494,132 +3381,7 @@ function toggleGameSoundFromHud() {
 }
 
 // ============================================================================
-// HÌNH CHIBI HỌC SINH KÉO CO MẶC ĐỊNH (TỶ LỆ CHIBI 2.5 ĐẦU, QUẦN THỂ THAO CONG
-// GỐI TỰ NHIÊN, LOẠI BỎ HOÀN TOÀN CHÂN CHỮ V CỨNG NHẮC)
-// ============================================================================
-function buildNaturalChibiStudentSVG(isBlue, isFemale, isOpenSmile) {
-  const main = isBlue ? '#3b73b9' : '#c83e37';
-  const dark = isBlue ? '#28528a' : '#9c2823';
-  const stripe = '#edf4fc';
-
-  return `
-    <g>
-      <!-- Bóng đổ mềm sát mặt đất -->
-      <ellipse cx="2" cy="112" rx="44" ry="10" fill="rgba(25,40,65,0.16)"/>
-
-      <!-- Đuôi tóc buộc nơ đỏ (nếu là bạn nữ đứng giữa) -->
-      ${isFemale ? `
-        <g transform="translate(-32, -58)">
-          <path d="M 4 0 C -16 -12, -38 -2, -40 20 C -26 22, -10 12, 4 4 Z" fill="#3b2314" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
-          <circle cx="3" cy="2" r="5.5" fill="#e53935" stroke="#1e120a" stroke-width="2.5"/>
-        </g>
-      ` : ''}
-
-      <!-- CHÂN SAU (Quần thể thao ống rộng gập gối mềm mại bằng đường cong Bezier kín) -->
-      <path d="M -22 28
-               C -34 52, -42 74, -46 98
-               L -22 100
-               C -18 80, -10 60, -2 36 Z"
-            fill="${dark}" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
-      <path d="M -28 36 C -36 58, -40 78, -42 96" stroke="${stripe}" stroke-width="3.6" stroke-linecap="round" fill="none" opacity="0.85"/>
-
-      <!-- Giày thể thao chân sau -->
-      <g transform="translate(-34, 102) rotate(-6)">
-        <path d="M -18 -6 C -18 -12, 8 -12, 22 -2 C 26 2, 24 10, 18 10 L -16 10 C -20 10, -20 0, -18 -6 Z"
-              fill="#ffffff" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
-        <path d="M -6 -2 L 10 -1" stroke="${main}" stroke-width="4.5" stroke-linecap="round"/>
-      </g>
-
-      <!-- CHÂN TRƯỚC (Cong gối đạp trụ phía trước, đè tự nhiên lên phần hông) -->
-      <path d="M -4 26
-               C 16 46, 26 68, 36 96
-               L 12 100
-               C 4 76, -6 58, -18 38 Z"
-            fill="${main}" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
-      <path d="M 0 34 C 14 54, 22 72, 28 95" stroke="${stripe}" stroke-width="4" stroke-linecap="round" fill="none"/>
-      <path d="M -5 37 C 9 56, 17 74, 23 96" stroke="${stripe}" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-      <!-- Giày thể thao chân trước -->
-      <g transform="translate(28, 102) rotate(-14)">
-        <path d="M -16 -6 C -16 -12, 10 -12, 24 -2 C 28 2, 26 10, 20 10 L -14 10 C -18 10, -18 0, -16 -6 Z"
-              fill="#ffffff" stroke="#1e120a" stroke-width="3.2" stroke-linejoin="round"/>
-        <path d="M -4 -2 L 12 -1" stroke="${main}" stroke-width="4.5" stroke-linecap="round"/>
-      </g>
-
-      <!-- THÂN ÁO THỂ THAO BẦU BĨNH NGẢ VỀ SAU & KHĂN QUÀNG ĐỎ -->
-      <g transform="translate(-4, 4) rotate(-18)">
-        <path d="M -24 -28
-                 C -28 -6, -26 20, -22 34
-                 C -8 38, 12 38, 24 32
-                 C 28 16, 26 -8, 20 -28 Z"
-              fill="${main}" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
-        <!-- Khăn quàng đỏ học sinh -->
-        <path d="M -21 -28 Q 0 -18 21 -28 L 12 -4 L -4 -12 Z" fill="#e53935" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M 6 -12 L 20 12 L 8 15 L -1 -8 Z" fill="#d32f2f" stroke="#1e120a" stroke-width="2.6" stroke-linejoin="round"/>
-        <path d="M 0 -10 L -14 10 L -22 4 L -6 -12 Z" fill="#f44336" stroke="#1e120a" stroke-width="2.6" stroke-linejoin="round"/>
-      </g>
-
-      <!-- ĐẦU CHIBI TO TRÒN ĐÁNG YÊU -->
-      <g transform="translate(-12, -52) rotate(-8)">
-        <ellipse cx="2" cy="0" rx="33" ry="30" fill="#fde0c8" stroke="#1e120a" stroke-width="3.5"/>
-        <!-- Tai -->
-        <circle cx="-29" cy="4" r="7.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
-        <!-- Má hồng -->
-        <ellipse cx="-1" cy="9" rx="6" ry="3.4" fill="#ff8da1" opacity="0.55"/>
-        <ellipse cx="23" cy="8" rx="5" ry="3" fill="#ff8da1" opacity="0.55"/>
-        <!-- Mắt & Lông mày -->
-        <path d="M -2 -9 Q 4 -13 10 -9" stroke="#2b190e" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <path d="M 18 -10 Q 24 -13 28 -8" stroke="#2b190e" stroke-width="2.8" fill="none" stroke-linecap="round"/>
-        <ellipse cx="5" cy="-2" rx="4" ry="4.6" fill="#1e120a"/>
-        <circle cx="3.6" cy="-3.8" r="1.5" fill="#ffffff"/>
-        <ellipse cx="23" cy="-2" rx="3.6" ry="4.2" fill="#1e120a"/>
-        <circle cx="21.8" cy="-3.8" r="1.3" fill="#ffffff"/>
-        <!-- Miệng -->
-        ${isOpenSmile
-          ? `<path d="M 7 11 Q 14 19 21 11 Z" fill="#e55353" stroke="#1e120a" stroke-width="2.4" stroke-linejoin="round"/>`
-          : `<path d="M 8 12 Q 14 17 20 11" stroke="#1e120a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
-        }
-        <!-- Tóc mái nâu đen tỉa mềm -->
-        <path d="M -32 2
-                 C -36 -21, -18 -36, 4 -35
-                 C 24 -35, 37 -20, 34 -2
-                 C 29 -8, 24 -13, 19 -7
-                 C 15 -15, 7 -16, 2 -7
-                 C -4 -15, -13 -15, -17 -5
-                 C -22 -11, -28 -7, -32 2 Z"
-              fill="#3a2314" stroke="#1e120a" stroke-width="3.4" stroke-linejoin="round"/>
-      </g>
-
-      <!-- CÁNH TAY VƯƠN RA NẮM DÂY THỪNG Ở NGANG NGỰC (y = 2) -->
-      <path d="M -14 -8
-               C -2 4, 14 8, 34 6
-               L 34 -8
-               C 16 -6, 2 -10, -8 -20 Z"
-            fill="${main}" stroke="#1e120a" stroke-width="3.3" stroke-linejoin="round"/>
-      <path d="M -10 -12 C 4 -2, 16 1, 31 0" stroke="${stripe}" stroke-width="3.8" stroke-linecap="round" fill="none"/>
-
-      <!-- Hai bàn tay nắm khít lên sợi dây (tại y = 0) -->
-      <circle cx="44" cy="-1" r="9.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3"/>
-      <circle cx="31" cy="0" r="10" fill="#fde0c8" stroke="#1e120a" stroke-width="3"/>
-    </g>
-  `;
-}
-
-function createDefaultChibiTeamDataUrl(isBlue) {
-  const positions = [155, 315, 475];
-  let members = '';
-  positions.forEach((x, idx) => {
-    members += `<g transform="translate(${x}, 148)">${buildNaturalChibiStudentSVG(isBlue, idx === 1, idx !== 2)}</g>`;
-  });
-  const content = isBlue
-    ? `<g>${members}</g>`
-    : `<g transform="translate(630, 0) scale(-1, 1)">${members}</g>`;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="630" height="290" viewBox="0 0 630 290">${content}</svg>`;
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-}
-
-// ============================================================================
-// CLASS 1: TugOfWarScene – HỖ TRỢ CẢ ẢNH TÁCH NỀN TỪ ẢNH MẪU LẪN CHIBI 2.5D
+// CLASS 1: TugOfWarScene – ĐẤU TRƯỜNG 3D THỰC THỤ (GLTF/GLB + RIG 3D CHIBI PBR)
 // ============================================================================
 class TugOfWarScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3628,102 +3390,542 @@ class TugOfWarScene {
     this.group = new THREE.Group();
     this.parent.add(this.group);
 
-    this.targetShiftRatio = 0;
-    this.currentShiftRatio = 0;
+    this.targetShiftX = 0;
+    this.currentShiftX = 0;
     this.pullPulseA = 0;
     this.pullPulseB = 0;
-    this.stateA = 'idle';
+    this.stateA = 'idle'; // idle | pull | resist | loseBalance | victory | defeat
     this.stateB = 'idle';
+    this.blueTeam = [];
+    this.redTeam = [];
+    this.mixers = [];
     this.particles = [];
 
-    this.blueTeamImg = new Image();
-    this.redTeamImg = new Image();
-    this.blueTeamImg.src = createDefaultChibiTeamDataUrl(true);
-    this.redTeamImg.src = createDefaultChibiTeamDataUrl(false);
+    this.buildBrightArena3D();
+    this.buildRopeAndRedBow3D();
+    this.buildArticulated3DTeams();
+    this.tryLoadGLBModels();
+  }
 
-    this.customCombinedImg = null;
-    if (customTugSpriteDataUrl) {
-      this.applyCustomSprite(customTugSpriteDataUrl);
-    } else {
-      const fileImg = new Image();
-      fileImg.onload = () => {
-        try {
-          const processed = processUploadedTugImage(fileImg);
-          this.applyCustomSprite(processed);
-        } catch (_) {
-          this.customCombinedImg = fileImg;
-        }
-      };
-      fileImg.onerror = () => {};
-      fileImg.src = GAME_3D_CONFIG.tug.customSpriteUrl;
+  buildBrightArena3D() {
+    const cfg = GAME_3D_CONFIG.tug;
+
+    // Mặt sàn thể thao 3D sáng sạch (nhận bóng đổ mềm từ nhân vật)
+    const floorGeo = new THREE.PlaneGeometry(22, 12);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0xf4f8fc,
+      roughness: 0.85,
+      metalness: 0.02
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    this.group.add(floor);
+
+    // Đường chạy/thảm kéo co nổi nhẹ ở trung tâm
+    const trackMat = new THREE.MeshStandardMaterial({
+      color: 0xe6eef8,
+      roughness: 0.75,
+      metalness: 0.04
+    });
+    const track = new THREE.Mesh(new THREE.PlaneGeometry(14, 2.5), trackMat);
+    track.rotation.x = -Math.PI / 2;
+    track.position.y = 0.01;
+    track.receiveShadow = true;
+    this.group.add(track);
+
+    // Vạch đứt nét màu xanh lá cây (#2ecc71) ở chính giữa sân (giống bố cục ảnh mẫu nhưng trong không gian 3D)
+    const centerDashGroup = new THREE.Group();
+    const dashMat = new THREE.MeshBasicMaterial({ color: 0x2ecc71 });
+    for (let z = -4.2; z <= 4.2; z += 0.42) {
+      const dash = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.025, 0.24), dashMat);
+      dash.position.set(0, 0.02, z);
+      centerDashGroup.add(dash);
     }
+    this.group.add(centerDashGroup);
 
+    // Hai vạch giới hạn thắng cuộc Xanh & Đỏ hai bên
+    const makeSideDashes = (xPos, hexColor) => {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshBasicMaterial({ color: hexColor, transparent: true, opacity: 0.55 });
+      for (let z = -3.6; z <= 3.6; z += 0.45) {
+        const d = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.22), mat);
+        d.position.set(xPos, 0.018, z);
+        g.add(d);
+      }
+      this.group.add(g);
+    };
+    makeSideDashes(-cfg.maxShiftX, 0x3b82f6);
+    makeSideDashes(cfg.maxShiftX, 0xef4444);
+  }
+
+  createRopeTexture3D() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#c68642';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.strokeStyle = '#6e4214';
+    ctx.lineWidth = 7;
+    for (let x = -64; x < 320; x += 18) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 42, 64);
+      ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(22, 2);
+    return tex;
+  }
+
+  buildRopeAndRedBow3D() {
+    this.movingAssembly = new THREE.Group();
+    this.group.add(this.movingAssembly);
+
+    const cfg = GAME_3D_CONFIG.tug;
     const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
-    this.canvasW = Math.round(1440 * qCfg.canvasScale);
-    this.canvasH = Math.round(840 * qCfg.canvasScale);
-    this.stageCanvas = document.createElement('canvas');
-    this.stageCanvas.width = this.canvasW;
-    this.stageCanvas.height = this.canvasH;
-    this.ctx = this.stageCanvas.getContext('2d');
 
-    this.stageTexture = new THREE.CanvasTexture(this.stageCanvas);
-    if ('colorSpace' in this.stageTexture && THREE.SRGBColorSpace) {
-      this.stageTexture.colorSpace = THREE.SRGBColorSpace;
-    }
-    this.stageTexture.minFilter = THREE.LinearFilter;
-    this.stageTexture.magFilter = THREE.LinearFilter;
+    // Dây thừng 3D TubeGeometry uốn nhẹ tự nhiên
+    const pts = [
+      new THREE.Vector3(-cfg.ropeLength / 2, 0.78, 0.16),
+      new THREE.Vector3(-cfg.ropeLength * 0.25, 0.80, 0.16),
+      new THREE.Vector3(0, 0.78, 0.16),
+      new THREE.Vector3(cfg.ropeLength * 0.25, 0.80, 0.16),
+      new THREE.Vector3(cfg.ropeLength / 2, 0.78, 0.16)
+    ];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const ropeGeo = new THREE.TubeGeometry(curve, qCfg.ropeSegments, cfg.ropeRadius, 14, false);
+    const ropeMat = new THREE.MeshStandardMaterial({
+      map: this.createRopeTexture3D(),
+      roughness: 0.72,
+      metalness: 0.05
+    });
+    this.ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
+    this.ropeMesh.castShadow = true;
+    this.movingAssembly.add(this.ropeMesh);
 
-    const planeGeo = new THREE.PlaneGeometry(12.8, 7.45);
-    const planeMat = new THREE.MeshBasicMaterial({ map: this.stageTexture, transparent: false });
-    this.stageMesh = new THREE.Mesh(planeGeo, planeMat);
-    this.group.add(this.stageMesh);
+    // Nơ đỏ 3D (3D Red Ribbon Bow) ở chính giữa sợi dây
+    this.centerBow = new THREE.Group();
+    this.centerBow.position.set(0, 0.78, 0.22);
+    const bowMat = new THREE.MeshStandardMaterial({
+      color: 0xe53935,
+      roughness: 0.35,
+      metalness: 0.08
+    });
+
+    const knot = new THREE.Mesh(new THREE.SphereGeometry(0.11, 16, 16), bowMat);
+    const leftLoop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 12, 24), bowMat);
+    leftLoop.scale.set(1.2, 0.85, 0.6);
+    leftLoop.position.set(-0.18, 0.03, 0);
+    leftLoop.rotation.z = 0.25;
+
+    const rightLoop = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.055, 12, 24), bowMat);
+    rightLoop.scale.set(1.2, 0.85, 0.6);
+    rightLoop.position.set(0.18, 0.03, 0);
+    rightLoop.rotation.z = -0.25;
+
+    const tailGeo = new THREE.BoxGeometry(0.11, 0.42, 0.04);
+    const leftTail = new THREE.Mesh(tailGeo, bowMat);
+    leftTail.position.set(-0.10, -0.22, 0);
+    leftTail.rotation.z = 0.32;
+
+    const rightTail = new THREE.Mesh(tailGeo, bowMat);
+    rightTail.position.set(0.10, -0.22, 0);
+    rightTail.rotation.z = -0.32;
+
+    this.centerBow.add(knot, leftLoop, rightLoop, leftTail, rightTail);
+    this.movingAssembly.add(this.centerBow);
   }
 
-  applyCustomSprite(dataUrl) {
-    if (!dataUrl) {
-      this.customCombinedImg = null;
-      return;
+  // Tạo nhân vật Chibi 3D có Khung Xương Khớp (Articulated 3D Toy/Pixar Style)
+  createArticulatedChibi3D(isBlue, index) {
+    const dir = isBlue ? 1 : -1;
+    const isFemale = index === 1;
+
+    const suitColor = isBlue ? 0x2b6cb0 : 0xc53030;
+    const suitDark  = isBlue ? 0x1e4e8c : 0x9b2c2c;
+    const stripeHex = 0xf0f7ff;
+
+    const skinMat   = new THREE.MeshStandardMaterial({ color: 0xffe0c8, roughness: 0.45, metalness: 0.02 });
+    const suitMat   = new THREE.MeshStandardMaterial({ color: suitColor, roughness: 0.42, metalness: 0.06 });
+    const darkMat   = new THREE.MeshStandardMaterial({ color: suitDark, roughness: 0.48, metalness: 0.05 });
+    const stripeMat = new THREE.MeshStandardMaterial({ color: stripeHex, roughness: 0.35 });
+    const hairMat   = new THREE.MeshStandardMaterial({ color: 0x382214, roughness: 0.65 });
+    const scarfMat  = new THREE.MeshStandardMaterial({ color: 0xe53935, roughness: 0.4 });
+    const shoeMat   = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+
+    const root = new THREE.Group();
+
+    // Bóng tròn mềm dưới chân nhân vật
+    const contactShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.52, 24),
+      new THREE.MeshBasicMaterial({ color: 0x1e293b, transparent: true, opacity: 0.22 })
+    );
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = 0.015;
+    root.add(contactShadow);
+
+    // Hông (Pelvis Pivot) - Tâm xoay của toàn bộ cơ thể
+    const pelvis = new THREE.Group();
+    pelvis.position.y = 0.56;
+    // Xoay nhẹ 22 độ hướng về phía khán giả (3/4 view) để nhìn rõ cả khuôn mặt, khăn quàng đỏ và 2 tay nắm dây
+    pelvis.rotation.y = isBlue ? 0.36 : -0.36;
+    root.add(pelvis);
+
+    const hipMesh = new THREE.Mesh(new THREE.SphereGeometry(0.24, 18, 18), darkMat);
+    hipMesh.scale.set(1.05, 0.82, 0.95);
+    hipMesh.castShadow = true;
+    pelvis.add(hipMesh);
+
+    // HÀM DỰNG CHÂN 3D CÓ KHỚP ĐÙI - ĐẦU GỐI - CẲNG CHÂN - GIÀY THỂ THAO
+    const createLegRig = (zSide, isFrontLeg) => {
+      const hipJoint = new THREE.Group();
+      hipJoint.position.set(isFrontLeg ? dir * 0.08 : -dir * 0.08, -0.04, zSide * 0.14);
+
+      const thighGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.115, 0.22, 8, 16)
+        : new THREE.CylinderGeometry(0.115, 0.105, 0.34, 16);
+      const thigh = new THREE.Mesh(thighGeo, isFrontLeg ? suitMat : darkMat);
+      thigh.position.y = -0.15;
+      thigh.castShadow = true;
+      hipJoint.add(thigh);
+
+      // Sọc trắng dọc đùi
+      const thighStripe = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.26, 0.03), stripeMat);
+      thighStripe.position.set(dir * 0.04, -0.15, 0.11);
+      hipJoint.add(thighStripe);
+
+      const kneeJoint = new THREE.Group();
+      kneeJoint.position.set(0, -0.28, 0);
+      hipJoint.add(kneeJoint);
+
+      const shinGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.105, 0.20, 8, 16)
+        : new THREE.CylinderGeometry(0.105, 0.095, 0.32, 16);
+      const shin = new THREE.Mesh(shinGeo, isFrontLeg ? suitMat : darkMat);
+      shin.position.y = -0.14;
+      shin.castShadow = true;
+      kneeJoint.add(shin);
+
+      // Giày Sneaker 3D bo tròn
+      const shoeGroup = new THREE.Group();
+      shoeGroup.position.set(dir * 0.07, -0.28, 0);
+      const shoeBase = new THREE.Mesh(
+        new THREE.CapsuleGeometry
+          ? new THREE.CapsuleGeometry(0.11, 0.18, 8, 16)
+          : new THREE.BoxGeometry(0.34, 0.16, 0.20),
+        shoeMat
+      );
+      if (new THREE.CapsuleGeometry) shoeBase.rotation.z = Math.PI / 2;
+      shoeBase.scale.set(1, 0.78, 0.92);
+      shoeBase.castShadow = true;
+
+      const shoeAccent = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 0.22), suitMat);
+      shoeAccent.position.set(0, 0.01, 0);
+      shoeGroup.add(shoeBase, shoeAccent);
+      kneeJoint.add(shoeGroup);
+
+      return { hipJoint, kneeJoint, shoeGroup };
+    };
+
+    const backLeg = createLegRig(-1, false);
+    const frontLeg = createLegRig(1, true);
+    pelvis.add(backLeg.hipJoint, frontLeg.hipJoint);
+
+    // THÂN TRÊN (SPINE / TORSO) + KHĂN QUÀNG ĐỎ 3D
+    const spine = new THREE.Group();
+    spine.position.set(0, 0.04, 0);
+    pelvis.add(spine);
+
+    const torsoGeo = new THREE.CapsuleGeometry
+      ? new THREE.CapsuleGeometry(0.245, 0.30, 12, 20)
+      : new THREE.CylinderGeometry(0.24, 0.22, 0.52, 20);
+    const torso = new THREE.Mesh(torsoGeo, suitMat);
+    torso.position.y = 0.25;
+    torso.scale.set(1.0, 1.0, 0.88);
+    torso.castShadow = true;
+    spine.add(torso);
+
+    // Sọc thể thao ngang ngực
+    const chestBand = new THREE.Mesh(new THREE.CylinderGeometry(0.246, 0.246, 0.07, 20), stripeMat);
+    chestBand.position.y = 0.26;
+    chestBand.scale.set(1.01, 1, 0.89);
+    spine.add(chestBand);
+
+    // Khăn quàng đỏ học sinh Việt Nam quàng quanh cổ áo
+    const scarfRing = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.048, 10, 24), scarfMat);
+    scarfRing.rotation.x = Math.PI / 2;
+    scarfRing.position.y = 0.47;
+    const scarfTail1 = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.28, 12), scarfMat);
+    scarfTail1.position.set(dir * 0.14, 0.33, 0.18);
+    scarfTail1.rotation.x = Math.PI;
+    scarfTail1.rotation.z = -dir * 0.28;
+    const scarfTail2 = new THREE.Mesh(new THREE.ConeGeometry(0.068, 0.25, 12), scarfMat);
+    scarfTail2.position.set(dir * 0.05, 0.32, 0.20);
+    scarfTail2.rotation.x = Math.PI;
+    scarfTail2.rotation.z = dir * 0.18;
+    spine.add(scarfRing, scarfTail1, scarfTail2);
+
+    // ĐẦU CHIBI 3D TO TRÒN + TÓC 3D + MẮT LONG LANH + MÁ HỒNG
+    const headPivot = new THREE.Group();
+    headPivot.position.set(0, 0.56, 0);
+    spine.add(headPivot);
+
+    const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.33, 24, 24), skinMat);
+    headMesh.position.y = 0.22;
+    headMesh.scale.set(1.04, 0.96, 0.98);
+    headMesh.castShadow = true;
+    headPivot.add(headMesh);
+
+    // Hai tai 3D
+    const earGeo = new THREE.SphereGeometry(0.075, 12, 12);
+    const earL = new THREE.Mesh(earGeo, skinMat);
+    earL.position.set(0, 0.20, 0.31);
+    const earR = new THREE.Mesh(earGeo, skinMat);
+    earR.position.set(0, 0.20, -0.31);
+    headPivot.add(earL, earR);
+
+    // Mái tóc 3D dày dặn ôm đầu + Lọn tóc mái phía trước
+    const hairHelmet = new THREE.Mesh(
+      new THREE.SphereGeometry(0.348, 24, 20, 0, Math.PI * 2, 0, Math.PI * 0.58),
+      hairMat
+    );
+    hairHelmet.position.y = 0.24;
+    hairHelmet.rotation.z = -dir * 0.15;
+    hairHelmet.castShadow = true;
+    headPivot.add(hairHelmet);
+
+    // Các lọn tóc mái 3D phía trước trán
+    [-0.12, 0, 0.12].forEach((zOff, bIdx) => {
+      const bang = new THREE.Mesh(new THREE.ConeGeometry(0.085, 0.22, 10), hairMat);
+      bang.position.set(dir * 0.29, 0.36, zOff);
+      bang.rotation.z = dir * (2.65 + bIdx * 0.08);
+      headPivot.add(bang);
+    });
+
+    // Đuôi tóc buộc dây đỏ 3D cho bạn nữ đứng giữa
+    if (isFemale) {
+      const ponyGroup = new THREE.Group();
+      ponyGroup.position.set(-dir * 0.32, 0.28, 0);
+      const tie = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.025, 8, 16), scarfMat);
+      tie.rotation.y = Math.PI / 2;
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.38, 14), hairMat);
+      tail.position.set(-dir * 0.16, -0.06, 0);
+      tail.rotation.z = dir * 1.15;
+      ponyGroup.add(tie, tail);
+      headPivot.add(ponyGroup);
+      this.femalePony = ponyGroup;
     }
-    const img = new Image();
-    img.onload = () => { this.customCombinedImg = img; };
-    img.src = dataUrl;
+
+    // Khuôn mặt hướng về phía trước-khán giả (nhờ góc xoay pelvis 3/4)
+    const eyeWhiteMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const pupilMat    = new THREE.MeshBasicMaterial({ color: 0x1a120b });
+    const blushMat    = new THREE.MeshBasicMaterial({ color: 0xff8da1, transparent: true, opacity: 0.65 });
+
+    const makeEye = (zPos) => {
+      const eGroup = new THREE.Group();
+      eGroup.position.set(dir * 0.29, 0.22, zPos);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 12), pupilMat);
+      pupil.scale.set(0.6, 1.15, 1.0);
+      const catchLight = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 8), eyeWhiteMat);
+      catchLight.position.set(dir * 0.022, 0.018, 0.012);
+      eGroup.add(pupil, catchLight);
+      return eGroup;
+    };
+    headPivot.add(makeEye(0.11), makeEye(-0.07));
+
+    // Má hồng 3D
+    const blushL = new THREE.Mesh(new THREE.SphereGeometry(0.048, 10, 10), blushMat);
+    blushL.scale.set(0.5, 0.65, 1.2);
+    blushL.position.set(dir * 0.28, 0.14, 0.17);
+    const blushR = blushL.clone();
+    blushR.position.set(dir * 0.29, 0.14, -0.13);
+    headPivot.add(blushL, blushR);
+
+    // Miệng cười 3D
+    const mouth = new THREE.Mesh(
+      new THREE.TorusGeometry(0.048, 0.016, 8, 16, Math.PI),
+      new THREE.MeshBasicMaterial({ color: 0xd9383a })
+    );
+    mouth.position.set(dir * 0.31, 0.13, 0.02);
+    mouth.rotation.y = dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+    mouth.rotation.x = Math.PI;
+    headPivot.add(mouth);
+
+    // HAI CÁNH TAY 3D CÓ KHỚP VAI - KHUỶU TAY - BÀN TAY NẮM TRỰC TIẾP VÀO DÂY THỪNG
+    const createArmRig = (isFrontArm) => {
+      const shoulder = new THREE.Group();
+      shoulder.position.set(0, 0.42, isFrontArm ? 0.23 : -0.21);
+
+      const upperGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.078, 0.18, 8, 14)
+        : new THREE.CylinderGeometry(0.078, 0.07, 0.28, 14);
+      const upper = new THREE.Mesh(upperGeo, isFrontArm ? suitMat : darkMat);
+      upper.position.set(dir * 0.12, -0.08, 0);
+      upper.rotation.z = dir * 1.15;
+      upper.castShadow = true;
+
+      const forearmGeo = new THREE.CapsuleGeometry
+        ? new THREE.CapsuleGeometry(0.072, 0.18, 8, 14)
+        : new THREE.CylinderGeometry(0.072, 0.065, 0.26, 14);
+      const forearm = new THREE.Mesh(forearmGeo, isFrontArm ? suitMat : darkMat);
+      forearm.position.set(dir * 0.28, -0.14, isFrontArm ? 0.02 : 0.18);
+      forearm.rotation.z = dir * 1.38;
+      forearm.castShadow = true;
+
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.088, 14, 14), skinMat);
+      hand.position.set(dir * 0.42, -0.17, isFrontArm ? 0.04 : 0.28);
+      hand.castShadow = true;
+
+      shoulder.add(upper, forearm, hand);
+      return shoulder;
+    };
+
+    const frontArm = createArmRig(true);
+    const backArm  = createArmRig(false);
+    spine.add(frontArm, backArm);
+
+    return {
+      root,
+      pelvis,
+      spine,
+      headPivot,
+      frontArm,
+      backArm,
+      frontLeg,
+      backLeg,
+      isBlue,
+      index,
+      baseX: -dir * (GAME_3D_CONFIG.tug.startXOffset + index * GAME_3D_CONFIG.tug.memberSpacing),
+      phase: index * 1.15
+    };
   }
 
-  spawnFootDust(isBlue) {
-    const dir = isBlue ? -1 : 1;
-    const baseOffsets = isBlue ? [-160, -310, -460] : [160, 310, 460];
-    baseOffsets.forEach(off => {
+  buildArticulated3DTeams() {
+    this.blueTeam = [];
+    this.redTeam = [];
+    const count = GAME_3D_CONFIG.tug.teamCount;
+
+    for (let i = 0; i < count; i++) {
+      const bChar = this.createArticulatedChibi3D(true, i);
+      bChar.root.position.set(bChar.baseX, 0, 0);
+      this.movingAssembly.add(bChar.root);
+      this.blueTeam.push(bChar);
+
+      const rChar = this.createArticulatedChibi3D(false, i);
+      rChar.root.position.set(rChar.baseX, 0, 0);
+      this.movingAssembly.add(rChar.root);
+      this.redTeam.push(rChar);
+    }
+  }
+
+  // Tự động nạp file mô hình .GLB thật nếu có trong assets/models/ hoặc do giáo viên chọn
+  async tryLoadGLBModels() {
+    const loader = await ensureGLTFLoader();
+    if (!loader) return;
+
+    const blueUrl = customGlbUrls.tugBlue || GAME_3D_CONFIG.tug.models.blue;
+    const redUrl  = customGlbUrls.tugRed  || GAME_3D_CONFIG.tug.models.red;
+
+    const loadTeamGLB = (url, isBlue, teamArray) => {
+      loader.load(
+        url,
+        gltf => {
+          if (!gltf || !gltf.scene) return;
+          // Ẩn nhân vật Chibi mặc định và gắn mô hình .GLB vừa tải vào đúng vị trí từng thành viên
+          teamArray.forEach((member, idx) => {
+            member.pelvis.visible = false;
+            const clone = gltf.scene.clone(true);
+
+            // Tự động chuẩn hóa chiều cao model .GLB về khoảng 1.55 đơn vị
+            const box = new THREE.Box3().setFromObject(clone);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const scale = 1.55 / Math.max(0.1, size.y);
+            clone.scale.setScalar(scale);
+
+            const newBox = new THREE.Box3().setFromObject(clone);
+            clone.position.y = -newBox.min.y;
+            clone.rotation.y = isBlue ? Math.PI / 2 : -Math.PI / 2;
+
+            clone.traverse(node => {
+              if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+              }
+            });
+
+            member.glbRoot = clone;
+            member.root.add(clone);
+
+            if (gltf.animations && gltf.animations.length) {
+              const mixer = new THREE.AnimationMixer(clone);
+              const action = mixer.clipAction(gltf.animations[0]);
+              action.time = idx * 0.35;
+              action.play();
+              this.mixers.push(mixer);
+            }
+          });
+        },
+        undefined,
+        () => {} // Giữ nguyên mô hình Chibi 3D nếu không tìm thấy file .glb
+      );
+    };
+
+    loadTeamGLB(blueUrl, true, this.blueTeam);
+    loadTeamGLB(redUrl, false, this.redTeam);
+  }
+
+  spawnFootDust3D(isBlue) {
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+    if (this.particles.length >= qCfg.maxParticles) return;
+    const team = isBlue ? this.blueTeam : this.redTeam;
+    const dir = isBlue ? 1 : -1;
+
+    team.forEach(member => {
       for (let i = 0; i < 4; i++) {
+        const p = new THREE.Mesh(
+          new THREE.SphereGeometry(0.08 + Math.random() * 0.06, 10, 10),
+          new THREE.MeshBasicMaterial({ color: 0xcbd5e1, transparent: true, opacity: 0.78 })
+        );
+        const worldX = this.movingAssembly.position.x + member.root.position.x;
+        p.position.set(worldX + (Math.random() - 0.5) * 0.35, 0.12, (Math.random() - 0.5) * 0.3);
+        this.group.add(p);
         this.particles.push({
-          type: 'dust',
-          x: 720 + this.currentShiftRatio * 240 + off + (Math.random() - 0.5) * 36,
-          y: 590 + (Math.random() - 0.5) * 14,
-          vx: -dir * (45 + Math.random() * 60),
-          vy: -20 - Math.random() * 35,
-          r: 9 + Math.random() * 11,
-          life: 0.52,
-          maxLife: 0.52
+          mesh: p,
+          vx: dir * (0.7 + Math.random() * 0.9),
+          vy: 0.75 + Math.random() * 0.75,
+          vz: (Math.random() - 0.5) * 0.5,
+          life: 0.55,
+          maxLife: 0.55
         });
       }
     });
   }
 
-  spawnVictoryConfetti() {
-    const colors = ['#ffd859', '#2ecc71', '#3498db', '#ff4d6d', '#9b59b6', '#ff9f43'];
-    for (let i = 0; i < 85; i++) {
+  spawnVictoryConfetti3D(winnerTeam) {
+    const count = GAME_3D_CONFIG.animation.victoryConfettiCount;
+    const palette = [0xffd859, 0x2ecc71, 0x3b82f6, 0xef4444, 0xa855f7, 0xff9f43];
+    const centerX = winnerTeam === 'A' ? -1.8 : winnerTeam === 'B' ? 1.8 : 0;
+
+    for (let i = 0; i < count; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.15, 0.09),
+        new THREE.MeshBasicMaterial({ color: palette[i % palette.length], side: THREE.DoubleSide })
+      );
+      m.position.set(centerX + (Math.random() - 0.5) * 5.2, 3.2 + Math.random() * 2.2, (Math.random() - 0.5) * 2.2);
+      m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+      this.group.add(m);
       this.particles.push({
-        type: 'confetti',
-        x: 180 + Math.random() * 1080,
-        y: -20 - Math.random() * 260,
-        vx: (Math.random() - 0.5) * 140,
-        vy: 160 + Math.random() * 180,
-        w: 13 + Math.random() * 8,
-        h: 7 + Math.random() * 6,
-        rot: Math.random() * Math.PI * 2,
-        vRot: (Math.random() - 0.5) * 8,
-        color: colors[i % colors.length],
-        life: 3.2,
-        maxLife: 3.2
+        mesh: m,
+        vx: (Math.random() - 0.5) * 1.3,
+        vy: -1.4 - Math.random() * 1.2,
+        vz: (Math.random() - 0.5) * 1.2,
+        rotSpeed: 5 + Math.random() * 5,
+        life: 3.0,
+        maxLife: 3.0
       });
     }
   }
@@ -3731,7 +3933,7 @@ class TugOfWarScene {
   setScores(a, b, winScore = 5) {
     const maxS = Math.max(1, Number(winScore) || 5);
     const ratio = Math.max(-1, Math.min(1, (Number(b || 0) - Number(a || 0)) / maxS));
-    this.targetShiftRatio = ratio;
+    this.targetShiftX = ratio * GAME_3D_CONFIG.tug.maxShiftX;
 
     if (a > b) {
       this.stateA = 'pull';
@@ -3748,10 +3950,10 @@ class TugOfWarScene {
   onCorrect(team) {
     if (team === 'A') {
       this.pullPulseA = GAME_3D_CONFIG.tug.pullPulseDuration;
-      this.spawnFootDust(true);
+      this.spawnFootDust3D(true);
     } else if (team === 'B') {
       this.pullPulseB = GAME_3D_CONFIG.tug.pullPulseDuration;
-      this.spawnFootDust(false);
+      this.spawnFootDust3D(false);
     }
   }
 
@@ -3768,189 +3970,142 @@ class TugOfWarScene {
       this.stateA = 'victory';
       this.stateB = 'victory';
     }
-    this.spawnVictoryConfetti();
+    this.spawnVictoryConfetti3D(team);
   }
 
   reset() {
-    this.targetShiftRatio = 0;
-    this.currentShiftRatio = 0;
+    this.targetShiftX = 0;
+    this.currentShiftX = 0;
     this.pullPulseA = 0;
     this.pullPulseB = 0;
     this.stateA = 'idle';
     this.stateB = 'idle';
-    this.particles = [];
+    if (this.movingAssembly) this.movingAssembly.position.set(0, 0, 0);
+    this.clearParticles();
   }
 
-  drawStage2D(elapsed) {
-    const ctx = this.ctx;
-    const W = this.canvasW;
-    const H = this.canvasH;
-    const scale = W / 1440;
+  clearParticles() {
+    while (this.particles.length) {
+      const p = this.particles.pop();
+      this.group.remove(p.mesh);
+      p.mesh.geometry?.dispose?.();
+      p.mesh.material?.dispose?.();
+    }
+  }
 
-    ctx.save();
-    ctx.scale(scale, scale);
+  animateRiggedMember(char, state, pulse, elapsed) {
+    const dir = char.isBlue ? 1 : -1;
+    const t = elapsed * 5.4 + char.phase;
+    const pulseBoost = pulse > 0 ? Math.sin((pulse / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
 
-    // 1. Nền trắng tinh khiết giống hệt ảnh mẫu
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 1440, 840);
-
-    // 2. Vạch kẻ đứt nét màu xanh lá cây chính giữa sân (#2ecc71)
-    ctx.save();
-    ctx.setLineDash([16, 14]);
-    ctx.lineWidth = 7.5;
-    ctx.strokeStyle = '#2ecc71';
-    ctx.beginPath();
-    ctx.moveTo(720, 16);
-    ctx.lineTo(720, 824);
-    ctx.stroke();
-    ctx.restore();
-
-    const shiftPx = this.currentShiftRatio * 240;
-    const pulseA = this.pullPulseA > 0 ? Math.sin((this.pullPulseA / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
-    const pulseB = this.pullPulseB > 0 ? Math.sin((this.pullPulseB / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
-
-    if (this.customCombinedImg && this.customCombinedImg.complete) {
-      // HIỂN THỊ BỨC ẢNH TÁCH NỀN TỪ ẢNH MẪU (HOẶC ẢNH DO GIÁO VIÊN CHỌN)
-      const imgW = this.customCombinedImg.naturalWidth || 900;
-      const imgH = this.customCombinedImg.naturalHeight || 330;
-      const drawW = 1140;
-      const drawH = Math.min(540, Math.round(drawW * (imgH / imgW)));
-      const bob = (this.stateA === 'victory' || this.stateB === 'victory')
-        ? -Math.abs(Math.sin(elapsed * 8.5)) * 24
-        : Math.sin(elapsed * 5.2) * 3;
-      const skew = (pulseB - pulseA) * 0.055;
-
-      // Bóng đổ mềm bên dưới 2 đội
-      ctx.fillStyle = 'rgba(20, 35, 60, 0.11)';
-      ctx.beginPath();
-      ctx.ellipse(435 + shiftPx, 450 + drawH * 0.44, 240, 18, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(1005 + shiftPx, 450 + drawH * 0.44, 240, 18, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.save();
-      ctx.translate(720 + shiftPx, 445 + bob);
-      ctx.transform(1, 0, skew, 1, 0, 0);
-      ctx.drawImage(this.customCombinedImg, -drawW / 2, -drawH / 2, drawW, drawH);
-      ctx.restore();
-    } else {
-      // HIỂN THỊ CHIBI MẶC ĐỊNH KHI CHƯA CHỌN ẢNH MẪU
-      const ropeY = 478;
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = '#2b190e';
-      ctx.lineWidth = 12;
-      ctx.beginPath();
-      ctx.moveTo(145 + shiftPx, ropeY);
-      ctx.lineTo(1295 + shiftPx, ropeY);
-      ctx.stroke();
-
-      ctx.strokeStyle = '#a66c38';
-      ctx.lineWidth = 7.5;
-      ctx.beginPath();
-      ctx.moveTo(145 + shiftPx, ropeY);
-      ctx.lineTo(1295 + shiftPx, ropeY);
-      ctx.stroke();
-      ctx.restore();
-
-      if (this.blueTeamImg.complete) {
-        ctx.save();
-        const bobA = this.stateA === 'victory' ? -Math.abs(Math.sin(elapsed * 8.5)) * 24 : Math.sin(elapsed * 5.5) * 3;
-        const skewA = -pulseA * 0.07;
-        ctx.translate(410 + shiftPx, 480 + bobA);
-        ctx.transform(1, 0, skewA, 1, 0, 0);
-        ctx.drawImage(this.blueTeamImg, -315, -148, 630, 290);
-        ctx.restore();
+    if (char.glbRoot) {
+      // Nếu đang dùng mô hình .GLB ngoài: áp dụng độ nghiêng kéo và nhảy mừng chiến thắng
+      if (state === 'victory') {
+        char.glbRoot.position.y = Math.abs(Math.sin(elapsed * 8.5 + char.phase)) * 0.35;
+        char.glbRoot.rotation.z = Math.sin(elapsed * 6 + char.phase) * 0.1;
+      } else {
+        char.glbRoot.position.y = Math.abs(Math.cos(t)) * 0.04;
+        char.glbRoot.rotation.z = dir * (0.18 + pulseBoost * 0.16);
       }
-
-      if (this.redTeamImg.complete) {
-        ctx.save();
-        const bobB = this.stateB === 'victory' ? -Math.abs(Math.sin(elapsed * 8.5 + 1.2)) * 24 : Math.sin(elapsed * 5.5 + 1.5) * 3;
-        const skewB = pulseB * 0.07;
-        ctx.translate(1030 + shiftPx, 480 + bobB);
-        ctx.transform(1, 0, skewB, 1, 0, 0);
-        ctx.drawImage(this.redTeamImg, -315, -148, 630, 290);
-        ctx.restore();
-      }
-
-      // Nơ đỏ ở tâm dây
-      ctx.save();
-      ctx.translate(720 + shiftPx, ropeY);
-      ctx.fillStyle = '#e53935';
-      ctx.strokeStyle = '#1e120a';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.bezierCurveTo(-26, -20, -30, 14, 0, 4);
-      ctx.bezierCurveTo(30, 14, 26, -20, 0, 0);
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-3, 4); ctx.lineTo(-14, 34); ctx.lineTo(-4, 30); ctx.lineTo(0, 6);
-      ctx.moveTo(3, 4); ctx.lineTo(14, 34); ctx.lineTo(4, 30); ctx.lineTo(0, 6);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+      return;
     }
 
-    // 3. Hạt bụi dưới giày & Pháo giấy chiến thắng
-    this.particles.forEach(p => {
-      ctx.save();
-      const alpha = Math.max(0, p.life / p.maxLife);
-      if (p.type === 'dust') {
-        ctx.fillStyle = `rgba(175, 192, 210, ${alpha * 0.65})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (p.type === 'confetti') {
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = alpha;
-        ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
-      }
-      ctx.restore();
-    });
+    if (state === 'victory') {
+      char.pelvis.position.y = 0.56 + Math.abs(Math.sin(elapsed * 8.5 + char.phase)) * 0.36;
+      char.spine.rotation.z = Math.sin(elapsed * 6 + char.phase) * 0.12;
+      char.frontArm.rotation.z = dir * (0.95 + Math.sin(elapsed * 10 + char.phase) * 0.35);
+      char.backArm.rotation.z  = dir * (0.85 + Math.cos(elapsed * 10 + char.phase) * 0.35);
+      char.headPivot.rotation.y = Math.sin(elapsed * 5) * 0.25;
+      return;
+    }
 
-    ctx.restore();
-    this.stageTexture.needsUpdate = true;
+    if (state === 'defeat') {
+      char.pelvis.position.y = 0.52;
+      char.spine.rotation.z = -dir * 0.12;
+      char.headPivot.rotation.z = -dir * 0.22;
+      return;
+    }
+
+    // Tư thế ngả người ra sau, chân trước đạp trụ cong gối, 2 tay gồng kéo dây
+    let leanBack = dir * 0.32;
+    if (state === 'pull') leanBack = dir * (0.40 + pulseBoost * 0.22);
+    else if (state === 'resist') leanBack = dir * 0.25;
+    else if (state === 'loseBalance') leanBack = dir * (0.10 - Math.abs(Math.sin(t * 1.3)) * 0.16);
+
+    const heave = Math.sin(t) * 0.065 * dir;
+    char.spine.rotation.z = leanBack + heave;
+    char.pelvis.position.y = 0.56 + Math.abs(Math.cos(t)) * 0.04;
+
+    // Cử động khớp đùi và khớp gối tự nhiên
+    char.frontLeg.hipJoint.rotation.z = -dir * (0.36 + pulseBoost * 0.12);
+    char.frontLeg.kneeJoint.rotation.z = dir * (0.28 + Math.max(0, Math.sin(t)) * 0.12);
+    char.backLeg.hipJoint.rotation.z = dir * (0.30 + pulseBoost * 0.10);
+    char.backLeg.kneeJoint.rotation.z = dir * 0.14;
+
+    // Cử động khớp vai kéo dây về phía mình
+    const armPull = -dir * (pulseBoost * 0.18 + Math.max(0, Math.sin(t)) * 0.08);
+    char.frontArm.rotation.z = armPull;
+    char.backArm.rotation.z  = armPull;
+    char.headPivot.rotation.z = -heave * 0.5;
   }
 
   update(dt, elapsed) {
+    this.mixers.forEach(m => m.update(dt));
+
     const k = Math.min(1, dt * GAME_3D_CONFIG.animation.lerpSpeed);
-    const pulseShift = (this.pullPulseB > 0 ? 0.055 : 0) - (this.pullPulseA > 0 ? 0.055 : 0);
-    this.currentShiftRatio += ((this.targetShiftRatio + pulseShift) - this.currentShiftRatio) * k;
+    const pulseOffset = (this.pullPulseB > 0 ? 0.15 : 0) - (this.pullPulseA > 0 ? 0.15 : 0);
+    this.currentShiftX += ((this.targetShiftX + pulseOffset) - this.currentShiftX) * k;
+
+    if (this.movingAssembly) {
+      this.movingAssembly.position.x = this.currentShiftX;
+    }
+    if (this.centerBow) {
+      this.centerBow.rotation.z = Math.sin(elapsed * 5) * 0.08;
+    }
 
     if (this.pullPulseA > 0) this.pullPulseA = Math.max(0, this.pullPulseA - dt);
     if (this.pullPulseB > 0) this.pullPulseB = Math.max(0, this.pullPulseB - dt);
+
+    this.blueTeam.forEach(c => this.animateRiggedMember(c, this.stateA, this.pullPulseA, elapsed));
+    this.redTeam.forEach(c => this.animateRiggedMember(c, this.stateB, this.pullPulseB, elapsed));
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.life -= dt;
       if (p.life <= 0) {
+        this.group.remove(p.mesh);
+        p.mesh.geometry?.dispose?.();
+        p.mesh.material?.dispose?.();
         this.particles.splice(i, 1);
         continue;
       }
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-      if (p.vRot) p.rot += p.vRot * dt;
+      p.mesh.position.x += p.vx * dt;
+      p.mesh.position.y += p.vy * dt;
+      p.mesh.position.z += p.vz * dt;
+      if (p.rotSpeed) {
+        p.mesh.rotation.x += p.rotSpeed * dt;
+        p.mesh.rotation.y += p.rotSpeed * dt;
+      }
+      if (p.mesh.material && p.mesh.material.transparent) {
+        p.mesh.material.opacity = Math.max(0, p.life / p.maxLife);
+      }
     }
-
-    this.drawStage2D(elapsed);
   }
 
   dispose() {
-    this.particles = [];
-    this.stageTexture?.dispose?.();
-    this.stageMesh?.geometry?.dispose?.();
-    this.stageMesh?.material?.dispose?.();
+    this.mixers = [];
+    this.clearParticles();
+    this.group.traverse(obj => {
+      obj.geometry?.dispose?.();
+      if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose?.());
+      else obj.material?.dispose?.();
+    });
     this.parent.remove(this.group);
   }
 }
 
 // ============================================================================
-// CLASS 2: RaceScene – ĐƯỜNG ĐUA 2 LÀN & XE KART 3D HOẠT HÌNH
+// CLASS 2: RaceScene – ĐƯỜNG ĐUA 2 LÀN & XE KART 3D (HỖ TRỢ CẢ .GLB)
 // ============================================================================
 class RaceScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3975,6 +4130,35 @@ class RaceScene {
     this.kartA.root.position.set(this.curX_A, 0.03, GAME_3D_CONFIG.race.laneZ[0]);
     this.kartB.root.position.set(this.curX_B, 0.03, GAME_3D_CONFIG.race.laneZ[1]);
     this.group.add(this.kartA.root, this.kartB.root);
+    this.tryLoadKartGLB();
+  }
+
+  async tryLoadKartGLB() {
+    const loader = await ensureGLTFLoader();
+    if (!loader) return;
+
+    const loadOne = (url, kartObj) => {
+      loader.load(
+        url,
+        gltf => {
+          if (!gltf?.scene) return;
+          kartObj.chassis.visible = false;
+          kartObj.wheels.forEach(w => w.visible = false);
+          const model = gltf.scene.clone(true);
+          const box = new THREE.Box3().setFromObject(model);
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const scale = 1.65 / Math.max(0.1, Math.max(size.x, size.z));
+          model.scale.setScalar(scale);
+          kartObj.root.add(model);
+        },
+        undefined,
+        () => {}
+      );
+    };
+
+    loadOne(customGlbUrls.kartBlue || GAME_3D_CONFIG.race.models.blue, this.kartA);
+    loadOne(customGlbUrls.kartRed  || GAME_3D_CONFIG.race.models.red,  this.kartB);
   }
 
   buildTrack() {
@@ -4386,6 +4570,10 @@ class Game3D {
       if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) {
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
       }
+      if (THREE.ACESFilmicToneMapping) {
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.06;
+      }
 
       this.setupLights();
       this.worldRoot = new THREE.Group();
@@ -4402,12 +4590,24 @@ class Game3D {
   }
 
   setupLights() {
-    const hemi = new THREE.HemisphereLight(0xd8f3ff, 0x0b1d33, 0.95);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.15);
-    dir.position.set(6, 12, 8);
-    dir.castShadow = true;
-    this.dirLight = dir;
-    this.scene.add(hemi, dir);
+    // Ánh sáng Studio 3 điểm giúp nhân vật 3D Chibi và model .GLB nổi khối mềm mại
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xdbeafe, 1.05);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.15);
+    keyLight.position.set(5, 11, 9);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    const d = 7.5;
+    keyLight.shadow.camera.left = -d;
+    keyLight.shadow.camera.right = d;
+    keyLight.shadow.camera.top = d;
+    keyLight.shadow.camera.bottom = -d;
+
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.45);
+    rimLight.position.set(-6, 6, -5);
+
+    this.dirLight = keyLight;
+    this.scene.add(hemi, keyLight, rimLight);
   }
 
   setupResizeObserver() {
@@ -4435,7 +4635,7 @@ class Game3D {
       $('#arenaCaption') && ($('#arenaCaption').textContent = '🏎️ Đường đua Kart 3D • Đội trả lời đúng sẽ tăng tốc về vạch đích');
     } else {
       this.activeScene = new TugOfWarScene(this.worldRoot, this.quality);
-      $('#arenaCaption') && ($('#arenaCaption').textContent = '🪢 Kéo co Kiến thức • Kéo nơ đỏ qua vạch đội mình để chiến thắng');
+      $('#arenaCaption') && ($('#arenaCaption').textContent = '🪢 Đấu trường Kéo co 3D • Kéo nơ đỏ qua vạch đội mình để chiến thắng');
     }
     this.setScores(this.scoreA, this.scoreB, this.winScore);
     this.resize();
@@ -4449,6 +4649,7 @@ class Game3D {
     const pr = Math.min(window.devicePixelRatio || 1, qCfg.pixelRatio);
     this.renderer.setPixelRatio(pr);
     this.renderer.shadowMap.enabled = Boolean(qCfg.shadows);
+    if (THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     if (this.dirLight) this.dirLight.castShadow = Boolean(qCfg.shadows);
     this.resize();
   }
@@ -4500,22 +4701,11 @@ class Game3D {
     const aspect = w / h;
 
     this.camera.aspect = aspect;
-
-    if (this.mode === 'tug') {
-      const planeW = 12.8;
-      const planeH = 7.45;
-      const vFovRad = (this.camera.fov * Math.PI) / 180;
-      const distH = (planeH / 2) / Math.tan(vFovRad / 2);
-      const distW = (planeW / (2 * aspect)) / Math.tan(vFovRad / 2);
-      const zDist = Math.max(distH * 0.96, distW * 0.98);
-      this.baseCamPos = new THREE.Vector3(0, 0, zDist);
-      this.baseLookAt = new THREE.Vector3(0, 0, 0);
-    } else {
-      const narrowFactor = aspect < 1.35 ? (1.35 / Math.max(0.65, aspect)) : 1.0;
-      const [cx, cy, cz] = GAME_3D_CONFIG.race.cameraPos;
-      this.baseCamPos = new THREE.Vector3(cx, cy * (0.92 + narrowFactor * 0.08), cz * narrowFactor);
-      this.baseLookAt = new THREE.Vector3(...GAME_3D_CONFIG.race.cameraLookAt);
-    }
+    const cfg = this.mode === 'race' ? GAME_3D_CONFIG.race : GAME_3D_CONFIG.tug;
+    const narrowFactor = aspect < 1.55 ? (1.55 / Math.max(0.75, aspect)) : 1.0;
+    const [cx, cy, cz] = cfg.cameraPos;
+    this.baseCamPos = new THREE.Vector3(cx, cy * (0.9 + narrowFactor * 0.1), cz * narrowFactor);
+    this.baseLookAt = new THREE.Vector3(...cfg.cameraLookAt);
 
     this.camera.position.copy(this.baseCamPos);
     this.camera.lookAt(this.baseLookAt);
@@ -4638,7 +4828,7 @@ function startSelectedGame() {
   $('#panelBName') && ($('#panelBName').textContent = bName);
   $('#hudAName') && ($('#hudAName').textContent = aName);
   $('#hudBName') && ($('#hudBName').textContent = bName);
-  $('#gameTitleHead') && ($('#gameTitleHead').textContent = type === 'race' ? '🏎️ Đua Xe Kiến Thức 3D' : '🪢 Kéo Co Kiến Thức');
+  $('#gameTitleHead') && ($('#gameTitleHead').textContent = type === 'race' ? '🏎️ Đua Xe Kiến Thức 3D' : '🪢 Kéo Co Kiến Thức 3D');
 
   $('#gameHub')?.classList.add('hide');
   $('#gamePlay')?.classList.remove('hide');
@@ -5434,6 +5624,7 @@ window.addEventListener('resize', () => {
 async function init() {
   unlockApiUrlInputUI();
   upgradeGamePlayLayoutV21();
+  ensureGLTFLoader();
   if ($('#qualitySelect')) $('#qualitySelect').value = GRAPHICS_QUALITY;
   if ($('#teacherPasscodeInput')) $('#teacherPasscodeInput').value = localStorage.getItem(LS.passcode) || '';
 
@@ -5443,10 +5634,6 @@ async function init() {
     if (!historyData.length && Array.isArray(snap.historyData)) historyData = snap.historyData;
     if (!scoresData.length && Array.isArray(snap.scoresData)) scoresData = snap.scoresData;
     if (!questionBank.length && Array.isArray(snap.questionBank)) questionBank = snap.questionBank;
-    if (!customTugSpriteDataUrl && snap.customTugSpriteDataUrl) {
-      customTugSpriteDataUrl = snap.customTugSpriteDataUrl;
-      $('#downloadTugSpriteBtn')?.classList.remove('hide');
-    }
   }
 
   populateClasses();

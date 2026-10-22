@@ -2642,15 +2642,1714 @@ async function syncQuestionBank() {
 // ============================================================================
 // TRÒ CHƠI 2 ĐỘI 3D (KÉO CO & ĐUA XE)
 // ============================================================================
+// ============================================================================
+// CẤU HÌNH ĐỒ HỌA 3D TẬP TRUNG (GAME_3D_CONFIG)
+// ============================================================================
+const GAME_3D_CONFIG = {
+  common: {
+    targetFPS: 60,
+    maxDeltaSec: 0.08,
+    fov: 38,
+    near: 0.1,
+    far: 140
+  },
+  quality: {
+    low:      { pixelRatio: 1.0, antialias: false, shadows: false, maxParticles: 18, ropeSegments: 32, wheelSegments: 12 },
+    balanced: { pixelRatio: 1.35, antialias: true,  shadows: true,  maxParticles: 48, ropeSegments: 48, wheelSegments: 18 },
+    high:     { pixelRatio: 1.85, antialias: true,  shadows: true,  maxParticles: 90, ropeSegments: 64, wheelSegments: 24 }
+  },
+  tug: {
+    cameraPos: [0, 4.35, 9.6],
+    cameraLookAt: [0, 0.85, 0],
+    teamCount: 3,
+    memberSpacing: 1.05,
+    startXOffset: 1.55,
+    ropeLength: 10.5,
+    ropeRadius: 0.068,
+    maxShiftX: 2.35,
+    pullPulseDuration: 0.65,
+    colors: {
+      floor: 0x102a46,
+      floorInner: 0x16385c,
+      blueUniform: 0x19b5fe,
+      blueShorts: 0x0b3954,
+      redUniform: 0xff4d6d,
+      redShorts: 0x590d22,
+      skin: 0xffdfc4,
+      rope: 0xd9a45b,
+      winLineBlue: 0x3ee6a3,
+      winLineRed: 0xff6e91
+    },
+    models: {
+      blue: 'assets/models/tug_team_blue.glb',
+      red: 'assets/models/tug_team_red.glb'
+    }
+  },
+  race: {
+    cameraPos: [0, 5.2, 8.9],
+    cameraLookAt: [0, 0.35, -0.4],
+    laneZ: [-1.05, 1.05],
+    trackLength: 13.6,
+    startX: -4.6,
+    finishX: 4.5,
+    boostDuration: 0.75,
+    baseWheelSpin: 2.2,
+    boostWheelSpin: 16.0,
+    colors: {
+      asphalt: 0x1b2636,
+      grass: 0x0d3b2e,
+      blueKart: 0x18b8f5,
+      redKart: 0xff4769
+    },
+    models: {
+      blue: 'assets/models/kart_blue.glb',
+      red: 'assets/models/kart_red.glb'
+    }
+  },
+  animation: {
+    lerpSpeed: 5.2,
+    cameraEase: 3.5,
+    victoryConfettiCount: 70
+  }
+};
+
+// ============================================================================
+// NÂNG CẤP GIAO DIỆN #gamePlay THÀNH BỐ CỤC 3 CỘT (31% - 38% - 31%) & HUD 70-88PX
+// ============================================================================
+function upgradeGamePlayLayoutV21() {
+  if (!$('#v21GameShowStyles')) {
+    const st = document.createElement('style');
+    st.id = 'v21GameShowStyles';
+    st.textContent = `
+      #gamePlay {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        height: calc(100dvh - 82px);
+        min-height: 540px;
+        overflow: hidden;
+      }
+      body.game-presentation #gamePlay {
+        height: calc(100dvh - 12px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+      /* THANH HUD 70-88PX CHUẨN GAME SHOW */
+      #gamePlay .game-tv-head {
+        height: clamp(68px, 8.2dvh, 86px);
+        min-height: 68px;
+        padding: 8px 14px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, rgba(10, 32, 58, .98), rgba(6, 19, 36, .98));
+        border: 1px solid rgba(145, 226, 255, .25);
+        display: grid;
+        grid-template-columns: auto minmax(170px, 1.15fr) minmax(175px, 1fr) auto minmax(175px, 1fr) auto auto;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, .38);
+      }
+      .hud-title-box {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+      }
+      .hud-title-box h2 {
+        margin: 0;
+        font-size: clamp(16px, 1.35vw, 22px);
+        font-weight: 1000;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: #fff;
+      }
+      .hud-sub-pills {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        flex-wrap: nowrap;
+      }
+      .hud-sub-pills .pill {
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      #gamePlay .tv-score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 6px 14px;
+        border-radius: 15px;
+        height: 100%;
+      }
+      #gamePlay .tv-score.a {
+        background: linear-gradient(135deg, rgba(22, 118, 196, .38), rgba(11, 46, 86, .75));
+        border: 1px solid rgba(72, 229, 255, .45);
+      }
+      #gamePlay .tv-score.b {
+        background: linear-gradient(135deg, rgba(110, 22, 48, .75), rgba(214, 48, 88, .38));
+        border: 1px solid rgba(255, 110, 145, .45);
+      }
+      #gamePlay .tv-score-name {
+        font-size: clamp(15px, 1.25vw, 21px);
+        font-weight: 950;
+        letter-spacing: -.3px;
+      }
+      #gamePlay .tv-score-number {
+        font-size: clamp(32px, 2.7vw, 48px);
+        font-weight: 1000;
+        line-height: 1;
+        color: var(--gold);
+        text-shadow: 0 4px 16px rgba(255, 216, 89, .35);
+      }
+      #gamePlay .tv-timer {
+        min-width: 116px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 16px;
+        border-radius: 16px;
+        background: #040d1a;
+        border: 2px solid rgba(72, 229, 255, .45);
+        transition: .2s;
+      }
+      #gamePlay .tv-timer.warn {
+        border-color: #ffd859;
+        background: rgba(68, 48, 6, .88);
+      }
+      #gamePlay .tv-timer.warn b { color: #ffd859; }
+      #gamePlay .tv-timer.danger {
+        border-color: #ff5c82;
+        background: rgba(88, 14, 32, .92);
+        animation: pulseFast .45s infinite alternate;
+      }
+      #gamePlay .tv-timer.danger b { color: #ff6e91; }
+      #gamePlay .tv-timer b {
+        font-size: clamp(28px, 2.4vw, 42px);
+        line-height: 1.02;
+      }
+
+      /* ẨN KHỐI CÂU HỎI TRUNG TÂM CŨ & HUD TRÙNG LẶP TRONG SÂN 3D */
+      #gamePlay > .central-question,
+      #gamePlay > .arena-progress-bar,
+      #gamePlay .tv-arena .hud {
+        display: none !important;
+      }
+
+      /* BỐ CỤC 3 CỘT NGANG: 31% (ĐỘI XANH) - 38% (SÂN 3D) - 31% (ĐỘI ĐỎ) */
+      #gamePlay .tv-game-grid {
+        flex: 1;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 31fr 38fr 31fr;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      /* CỘT ĐỘI XANH & ĐỘI ĐỎ */
+      #gamePlay .team-answer-panel {
+        height: 100%;
+        min-height: 0;
+        padding: 12px;
+        border-radius: 22px;
+        display: grid;
+        grid-template-rows: auto minmax(120px, 43%) minmax(0, 1fr);
+        gap: 10px;
+        overflow: hidden;
+        transition: box-shadow .22s, border-color .22s;
+      }
+      #gamePlay .team-answer-panel.a {
+        background: linear-gradient(180deg, rgba(16, 62, 108, .97), rgba(7, 24, 46, .99));
+        border: 2px solid rgba(72, 229, 255, .28);
+      }
+      #gamePlay .team-answer-panel.b {
+        background: linear-gradient(180deg, rgba(92, 22, 44, .97), rgba(34, 9, 20, .99));
+        border: 2px solid rgba(255, 110, 145, .28);
+      }
+      #gamePlay .team-answer-panel.a.active {
+        border-color: #48e5ff;
+        box-shadow: 0 0 0 2px rgba(72, 229, 255, .45), 0 0 28px rgba(72, 229, 255, .25);
+      }
+      #gamePlay .team-answer-panel.b.active {
+        border-color: #ff6e91;
+        box-shadow: 0 0 0 2px rgba(255, 110, 145, .45), 0 0 28px rgba(255, 110, 145, .25);
+      }
+      .team-question-card {
+        background: rgba(4, 15, 29, .62);
+        border: 1px solid rgba(255, 255, 255, .14);
+        border-radius: 16px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 0;
+        overflow-y: auto;
+      }
+      .team-q-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: #9be8ff;
+        font-weight: 850;
+      }
+      .team-q-media {
+        background: #fff;
+        border-radius: 12px;
+        padding: 6px;
+        display: grid;
+        place-items: center;
+        max-height: 135px;
+      }
+      .team-q-media img {
+        max-width: 100%;
+        max-height: 122px;
+        object-fit: contain;
+        cursor: zoom-in;
+      }
+      .team-q-text {
+        font-size: clamp(18px, 1.45vw, 27px);
+        font-weight: 900;
+        line-height: 1.26;
+        color: #fff;
+        word-break: break-word;
+      }
+
+      /* LƯỚI ĐÁP ÁN 2x2 TRONG MỖI CỘT */
+      #gamePlay .team-answer-grid {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: 1fr;
+        gap: 8px;
+      }
+      #gamePlay .team-answer-grid .answer {
+        min-height: 0;
+        height: 100%;
+        padding: 8px 10px;
+        border-radius: 16px;
+        font-size: clamp(17px, 1.35vw, 26px);
+        font-weight: 950;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: transform .14s, filter .14s;
+      }
+      #gamePlay .team-answer-grid .answer .opt-key {
+        min-width: 34px;
+        height: 30px;
+        font-size: 14px;
+        border-radius: 9px;
+      }
+      #gamePlay .team-answer-panel.b .team-answer-grid .answer .opt-key {
+        background: #7a1c38;
+      }
+
+      /* CỘT GIỮA: ĐẤU TRƯỜNG 3D (38%) */
+      .tv-arena-col {
+        height: 100%;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: 24px minmax(0, 1fr) auto auto;
+        gap: 6px;
+      }
+      .tv-arena-col .arena-progress-bar {
+        display: flex !important;
+        height: 24px;
+      }
+      #gamePlay .tv-arena {
+        height: 100%;
+        min-height: 260px;
+        border-radius: 22px;
+        position: relative;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 18%, #163b63, #071423 78%);
+        border: 1.5px solid rgba(135, 224, 255, .28);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, .45);
+      }
+      #gamePlay #gameCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 260px !important;
+        display: block;
+      }
+      .tv-arena-col .game-feedback {
+        padding: 7px 12px;
+        font-size: clamp(14px, 1.05vw, 17px);
+        text-align: center;
+        border-radius: 13px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tv-arena-col .game-bottom-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .tv-arena-col .game-bottom-actions .btn {
+        padding: 8px 11px;
+        font-size: 13px;
+        border-radius: 12px;
+      }
+      .tv-arena-col .game-bottom-actions .next-question-btn {
+        flex: 1 1 150px;
+        font-size: 15px !important;
+        padding: 9px 14px !important;
+      }
+
+      @media (max-width: 1220px) {
+        #gamePlay { height: auto; overflow: visible; }
+        #gamePlay .game-tv-head { grid-template-columns: repeat(4, 1fr); height: auto; }
+        #gamePlay .tv-game-grid { grid-template-columns: 1fr; }
+        #gamePlay .tv-arena { min-height: 320px; }
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
+  const gp = $('#gamePlay');
+  if (!gp || gp.dataset.upgradedV21 === '1') return;
+  gp.dataset.upgradedV21 = '1';
+
+  // 1. Nâng cấp Thanh HUD theo đúng thứ tự: THOÁT | TÊN TRÒ CHƠI | ĐỘI XANH + ĐIỂM | ĐỒNG HỒ | ĐỘI ĐỎ + ĐIỂM | ÂM THANH | TOÀN MÀN HÌNH
+  const head = gp.querySelector('.game-tv-head');
+  if (head) {
+    head.innerHTML = `
+      <button class="btn ghost sm" onclick="exitGame()" title="Thoát về cấu hình trò chơi">← THOÁT</button>
+      <div class="hud-title-box">
+        <h2 id="gameTitleHead">🪢 KÉO CO KIẾN THỨC 3D</h2>
+        <div class="hud-sub-pills">
+          <span id="qCounter" class="pill">Câu 0</span>
+          <span id="qMeta" class="pill hide"></span>
+          <span id="duelResponderBadge" class="pill">2 đội sẵn sàng</span>
+        </div>
+      </div>
+      <div class="tv-score a">
+        <div>
+          <div class="muted" style="font-size:10px;font-weight:900">ĐỘI XANH (A)</div>
+          <div id="tvAName" class="tv-score-name">ĐỘI XANH</div>
+        </div>
+        <div id="tvAScore" class="tv-score-number">0</div>
+      </div>
+      <div id="gameTimerBox" class="tv-timer">
+        <small>ĐỒNG HỒ</small>
+        <b id="gameTimer">15</b>
+      </div>
+      <div class="tv-score b">
+        <div id="tvBScore" class="tv-score-number">0</div>
+        <div style="text-align:right">
+          <div class="muted" style="font-size:10px;font-weight:900">ĐỘI ĐỎ (B)</div>
+          <div id="tvBName" class="tv-score-name">ĐỘI ĐỎ</div>
+        </div>
+      </div>
+      <button id="hudSoundBtn" class="btn ghost sm" onclick="toggleGameSoundFromHud()" title="Bật / Tắt âm thanh">🔊 Âm thanh</button>
+      <button class="btn ghost sm" onclick="toggleGamePresentation()" title="Chế độ trình chiếu TV toàn màn hình (F)">⛶ Toàn màn hình</button>
+    `;
+  }
+
+  // 2. Nâng cấp Cột Đội Xanh (Trái) và Cột Đội Đỏ (Phải) có vùng hiển thị câu hỏi riêng ở phía trên đáp án
+  const panelA = $('#teamPanelA');
+  if (panelA && !$('#teamQuestionBoxA')) {
+    const ansA = $('#answersA');
+    const qBoxA = document.createElement('div');
+    qBoxA.id = 'teamQuestionBoxA';
+    qBoxA.className = 'team-question-card';
+    qBoxA.innerHTML = `
+      <div class="team-q-meta">
+        <span id="qMetaA">Câu hỏi Đội Xanh</span>
+        <button class="btn ghost sm" style="padding:2px 7px;font-size:11px" onclick="zoomCurrentQuestionImage()">🔍 Ảnh</button>
+      </div>
+      <div id="qMediaA" class="team-q-media hide"></div>
+      <div id="qTextA" class="team-q-text">Bấm “CÂU TIẾP THEO” để bắt đầu.</div>
+    `;
+    panelA.insertBefore(qBoxA, ansA);
+  }
+
+  const panelB = $('#teamPanelB');
+  if (panelB && !$('#teamQuestionBoxB')) {
+    const ansB = $('#answersB');
+    const qBoxB = document.createElement('div');
+    qBoxB.id = 'teamQuestionBoxB';
+    qBoxB.className = 'team-question-card';
+    qBoxB.innerHTML = `
+      <div class="team-q-meta">
+        <span id="qMetaB">Câu hỏi Đội Đỏ</span>
+        <button class="btn ghost sm" style="padding:2px 7px;font-size:11px" onclick="zoomCurrentQuestionImage()">🔍 Ảnh</button>
+      </div>
+      <div id="qMediaB" class="team-q-media hide"></div>
+      <div id="qTextB" class="team-q-text">Bấm “CÂU TIẾP THEO” để bắt đầu.</div>
+    `;
+    panelB.insertBefore(qBoxB, ansB);
+  }
+
+  // 3. Gom Sân 3D, Thanh tiến độ, Thanh phản hồi và Nút điều khiển vào cột giữa (.tv-arena-col)
+  const grid = gp.querySelector('.tv-game-grid');
+  const arena = gp.querySelector('.tv-arena');
+  const progBar = gp.querySelector('.arena-progress-bar');
+  const feedback = $('#qExplain');
+  const actions = gp.querySelector('.game-bottom-actions');
+
+  if (grid && arena && !grid.querySelector('.tv-arena-col')) {
+    const centerCol = document.createElement('div');
+    centerCol.className = 'tv-arena-col';
+    grid.insertBefore(centerCol, panelB);
+    if (progBar) centerCol.appendChild(progBar);
+    centerCol.appendChild(arena);
+    if (feedback) centerCol.appendChild(feedback);
+    if (actions) centerCol.appendChild(actions);
+  }
+
+  // Bổ sung nút Thoát trên màn hình Chiến thắng
+  const winCard = $('#winner .winner-card');
+  if (winCard && !winCard.querySelector('.exit-win-btn')) {
+    const btnRow = document.createElement('div');
+    btnRow.className = 'row';
+    btnRow.style.justifyContent = 'center';
+    btnRow.style.marginTop = '12px';
+    btnRow.innerHTML = `
+      <button class="btn gold" onclick="resetGame()">↻ Chơi lại</button>
+      <button class="btn ghost exit-win-btn" onclick="exitGame()">← Thoát trò chơi</button>
+    `;
+    const oldBtn = winCard.querySelector('button');
+    if (oldBtn) oldBtn.replaceWith(btnRow);
+  }
+}
+
+function toggleGameSoundFromHud() {
+  const s1 = $('#soundMode'), s2 = $('#v201AudioEnabled');
+  const next = !(s1?.checked && s2?.checked);
+  if (s1) s1.checked = next;
+  if (s2) s2.checked = next;
+  const btn = $('#hudSoundBtn');
+  if (btn) btn.textContent = next ? '🔊 Âm thanh' : '🔇 Đã tắt âm';
+  toast(next ? 'Đã bật âm thanh trò chơi.' : 'Đã tắt âm thanh trò chơi.');
+}
+
+// ============================================================================
+// CLASS 1: TugOfWarScene – ĐẤU TRƯỜNG & 6 NHÂN VẬT KÉO CO 3D HOẠT HÌNH
+// ============================================================================
+class TugOfWarScene {
+  constructor(parentGroup, quality = 'balanced') {
+    this.parent = parentGroup;
+    this.quality = quality;
+    this.group = new THREE.Group();
+    this.parent.add(this.group);
+
+    this.targetShiftX = 0;
+    this.currentShiftX = 0;
+    this.pullPulseA = 0;
+    this.pullPulseB = 0;
+    this.stateA = 'idle'; // idle | pull | resist | loseBalance | victory | defeat
+    this.stateB = 'idle';
+    this.blueTeam = [];
+    this.redTeam = [];
+    this.particles = [];
+
+    this.buildArena();
+    this.buildRopeAndFlag();
+    this.buildTeams();
+    this.tryLoadOptionalGLB();
+  }
+
+  buildArena() {
+    const cfg = GAME_3D_CONFIG.tug;
+    // Mặt sàn đấu trường thể thao
+    const floorGeo = new THREE.PlaneGeometry(18, 10.5);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: cfg.colors.floor,
+      roughness: 0.78,
+      metalness: 0.08
+    });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    this.group.add(floor);
+
+    // Thảm đấu trung tâm
+    const matGeo = new THREE.PlaneGeometry(11.6, 4.4);
+    const matMesh = new THREE.Mesh(
+      matGeo,
+      new THREE.MeshStandardMaterial({ color: cfg.colors.floorInner, roughness: 0.65 })
+    );
+    matMesh.rotation.x = -Math.PI / 2;
+    matMesh.position.y = 0.01;
+    matMesh.receiveShadow = true;
+    this.group.add(matMesh);
+
+    // Vạch kẻ trung tâm & 2 vạch chiến thắng Xanh / Đỏ
+    const makeLine = (x, color, width = 0.12) => {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(width, 4.4),
+        new THREE.MeshBasicMaterial({ color })
+      );
+      m.rotation.x = -Math.PI / 2;
+      m.position.set(x, 0.022, 0);
+      this.group.add(m);
+    };
+    makeLine(0, 0xffffff, 0.14);
+    makeLine(-cfg.maxShiftX, cfg.colors.winLineBlue, 0.16);
+    makeLine(cfg.maxShiftX, cfg.colors.winLineRed, 0.16);
+
+    // Vùng màu nhận diện 2 sân
+    const zoneBlue = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.4, 4.2),
+      new THREE.MeshBasicMaterial({ color: 0x18b8f5, transparent: true, opacity: 0.12 })
+    );
+    zoneBlue.rotation.x = -Math.PI / 2;
+    zoneBlue.position.set(-2.8, 0.015, 0);
+
+    const zoneRed = new THREE.Mesh(
+      new THREE.PlaneGeometry(5.4, 4.2),
+      new THREE.MeshBasicMaterial({ color: 0xff4d6d, transparent: true, opacity: 0.12 })
+    );
+    zoneRed.rotation.x = -Math.PI / 2;
+    zoneRed.position.set(2.8, 0.015, 0);
+    this.group.add(zoneBlue, zoneRed);
+
+    // Hàng cột rào sân khấu phía xa tạo chiều sâu
+    const barrierGroup = new THREE.Group();
+    const postGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.9, 12);
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x2c4c72, metalness: 0.4, roughness: 0.4 });
+    for (let x = -5.5; x <= 5.5; x += 2.2) {
+      const p = new THREE.Mesh(postGeo, postMat);
+      p.position.set(x, 0.45, -2.55);
+      barrierGroup.add(p);
+    }
+    const rail = new THREE.Mesh(
+      new THREE.BoxGeometry(11.4, 0.1, 0.1),
+      new THREE.MeshStandardMaterial({ color: 0x48e5ff, emissive: 0x0b3954 })
+    );
+    rail.position.set(0, 0.78, -2.55);
+    barrierGroup.add(rail);
+    this.group.add(barrierGroup);
+  }
+
+  createRopeTexture() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#d7a15c';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.strokeStyle = '#8c5a20';
+    ctx.lineWidth = 6;
+    for (let x = -64; x < 320; x += 20) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 48, 64);
+      ctx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(18, 2);
+    return tex;
+  }
+
+  buildRopeAndFlag() {
+    this.movingAssembly = new THREE.Group();
+    this.group.add(this.movingAssembly);
+
+    const cfg = GAME_3D_CONFIG.tug;
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+
+    // Đường cong CatmullRomCurve3 tạo độ võng tự nhiên cho dây thừng
+    const pts = [
+      new THREE.Vector3(-cfg.ropeLength / 2, 0.72, 0),
+      new THREE.Vector3(-cfg.ropeLength * 0.25, 0.76, 0.04),
+      new THREE.Vector3(0, 0.73, 0),
+      new THREE.Vector3(cfg.ropeLength * 0.25, 0.76, -0.04),
+      new THREE.Vector3(cfg.ropeLength / 2, 0.72, 0)
+    ];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    const ropeGeo = new THREE.TubeGeometry(curve, qCfg.ropeSegments, cfg.ropeRadius, 12, false);
+    const ropeMat = new THREE.MeshStandardMaterial({
+      map: this.createRopeTexture(),
+      roughness: 0.75,
+      metalness: 0.05
+    });
+    this.ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
+    this.ropeMesh.castShadow = true;
+    this.movingAssembly.add(this.ropeMesh);
+
+    // Nơ & Cờ đỏ-vàng ở chính giữa dây
+    this.centerFlag = new THREE.Group();
+    const knot = new THREE.Mesh(
+      new THREE.TorusGeometry(0.11, 0.045, 12, 24),
+      new THREE.MeshStandardMaterial({ color: 0xff2a55, roughness: 0.4 })
+    );
+    knot.rotation.y = Math.PI / 2;
+
+    const ribbon = new THREE.Mesh(
+      new THREE.ConeGeometry(0.28, 0.68, 4),
+      new THREE.MeshStandardMaterial({ color: 0xffd859, emissive: 0x442800, roughness: 0.35 })
+    );
+    ribbon.position.y = -0.34;
+    ribbon.rotation.x = Math.PI;
+
+    const topArrow = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.18, 0),
+      new THREE.MeshStandardMaterial({ color: 0xff3b6b, emissive: 0x550018 })
+    );
+    topArrow.position.y = 0.32;
+
+    this.centerFlag.position.set(0, 0.73, 0);
+    this.centerFlag.add(knot, ribbon, topArrow);
+    this.movingAssembly.add(this.centerFlag);
+  }
+
+  createStylizedStudent(isBlue, index) {
+    const cfg = GAME_3D_CONFIG.tug.colors;
+    const primaryColor = isBlue ? cfg.blueUniform : cfg.redUniform;
+    const shortsColor = isBlue ? cfg.blueShorts : cfg.redShorts;
+    const dir = isBlue ? 1 : -1; // Đội Xanh đứng bên trái quay mặt sang phải (+1), Đội Đỏ đứng bên phải quay sang trái (-1)
+
+    const root = new THREE.Group();
+
+    // Bóng đổ mềm (Contact Shadow) dưới chân nhân vật
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.46, 20),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.36 })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.02;
+    root.add(shadow);
+
+    // Nhóm cơ thể nghiêng khi kéo dây
+    const bodyPivot = new THREE.Group();
+    bodyPivot.position.y = 0.05;
+    root.add(bodyPivot);
+
+    const skinMat = new THREE.MeshStandardMaterial({ color: cfg.skin, roughness: 0.55 });
+    const shirtMat = new THREE.MeshStandardMaterial({ color: primaryColor, roughness: 0.4, metalness: 0.08 });
+    const shortsMat = new THREE.MeshStandardMaterial({ color: shortsColor, roughness: 0.5 });
+    const shoeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35 });
+    const hairMat = new THREE.MeshStandardMaterial({ color: index === 1 ? 0x2c1b10 : 0x161a24, roughness: 0.7 });
+
+    // Hai chân & Giày thể thao
+    const makeLeg = (zOffset, stepX) => {
+      const legGroup = new THREE.Group();
+      legGroup.position.set(stepX, 0.48, zOffset);
+      const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.095, 0.48, 12), shortsMat);
+      thigh.position.y = -0.18;
+      const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.14, 0.18), shoeMat);
+      shoe.position.set(dir * 0.06, -0.42, 0);
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(0.16, 0.06, 0.19),
+        new THREE.MeshBasicMaterial({ color: primaryColor })
+      );
+      stripe.position.set(dir * 0.04, -0.41, 0);
+      legGroup.add(thigh, shoe, stripe);
+      return legGroup;
+    };
+    const leftLeg = makeLeg(0.16, -dir * 0.12);
+    const rightLeg = makeLeg(-0.16, dir * 0.16);
+    bodyPivot.add(leftLeg, rightLeg);
+
+    // Thân áo thể thao
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.21, 0.62, 16), shirtMat);
+    torso.position.y = 0.78;
+    torso.castShadow = true;
+    bodyPivot.add(torso);
+
+    // Cổ áo trắng năng động
+    const collar = new THREE.Mesh(
+      new THREE.TorusGeometry(0.16, 0.032, 8, 18),
+      new THREE.MeshStandardMaterial({ color: 0xffffff })
+    );
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = 1.08;
+    bodyPivot.add(collar);
+
+    // Đầu, Tóc / Mũ thể thao & Khuôn mặt biểu cảm
+    const headGroup = new THREE.Group();
+    headGroup.position.set(0, 1.34, 0);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 20, 20), skinMat);
+    head.castShadow = true;
+
+    // Tóc & Băng đô thể thao theo màu đội
+    const hairCap = new THREE.Mesh(
+      new THREE.SphereGeometry(0.252, 18, 18, 0, Math.PI * 2, 0, Math.PI * 0.56),
+      hairMat
+    );
+    hairCap.rotation.z = -dir * 0.18;
+    const headband = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.248, 0.248, 0.065, 20),
+      new THREE.MeshStandardMaterial({ color: primaryColor, emissive: primaryColor, emissiveIntensity: 0.15 })
+    );
+    headband.position.y = 0.06;
+
+    // Hai mắt & Miệng
+    const eyeGeo = new THREE.SphereGeometry(0.032, 10, 10);
+    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
+    const eyeR = new THREE.Mesh(eyeGeo, eyeMat);
+    eyeL.position.set(dir * 0.21, 0.02, 0.08);
+    eyeR.position.set(dir * 0.21, 0.02, -0.08);
+
+    const smile = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.03, 0.1),
+      new THREE.MeshBasicMaterial({ color: 0x8f2d2d })
+    );
+    smile.position.set(dir * 0.22, -0.07, 0);
+
+    headGroup.add(head, hairCap, headband, eyeL, eyeR, smile);
+    bodyPivot.add(headGroup);
+
+    // Hai cánh tay vươn ra nắm vào dây thừng (ở độ cao y ~ 0.72)
+    const armGroup = new THREE.Group();
+    armGroup.position.set(0, 0.96, 0);
+    const makeArm = (sideZ) => {
+      const a = new THREE.Group();
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.062, 0.44, 12), shirtMat);
+      upper.rotation.z = -dir * 1.15;
+      upper.position.set(dir * 0.18, -0.1, sideZ);
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 12), skinMat);
+      hand.position.set(dir * 0.36, -0.21, sideZ * 0.35);
+      a.add(upper, hand);
+      return a;
+    };
+    armGroup.add(makeArm(0.22), makeArm(-0.22));
+    bodyPivot.add(armGroup);
+
+    return {
+      root,
+      bodyPivot,
+      headGroup,
+      armGroup,
+      leftLeg,
+      rightLeg,
+      isBlue,
+      index,
+      baseX: -dir * (GAME_3D_CONFIG.tug.startXOffset + index * GAME_3D_CONFIG.tug.memberSpacing),
+      phase: index * 1.15
+    };
+  }
+
+  buildTeams() {
+    this.blueTeam = [];
+    this.redTeam = [];
+    const count = GAME_3D_CONFIG.tug.teamCount;
+
+    for (let i = 0; i < count; i++) {
+      const blueChar = this.createStylizedStudent(true, i);
+      blueChar.root.position.set(blueChar.baseX, 0, (i % 2 === 0 ? 0.12 : -0.12));
+      this.movingAssembly.add(blueChar.root);
+      this.blueTeam.push(blueChar);
+
+      const redChar = this.createStylizedStudent(false, i);
+      redChar.root.position.set(redChar.baseX, 0, (i % 2 === 0 ? -0.12 : 0.12));
+      this.movingAssembly.add(redChar.root);
+      this.redTeam.push(redChar);
+    }
+  }
+
+  tryLoadOptionalGLB() {
+    if (!window.THREE || !THREE.GLTFLoader) return;
+    // Tự động giữ mô hình hoạt hình 3D Three.js nếu không có GLTFLoader hoặc file .glb
+  }
+
+  spawnFootDust(isBlue) {
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+    if (this.particles.length >= qCfg.maxParticles) return;
+    const team = isBlue ? this.blueTeam : this.redTeam;
+    team.forEach(member => {
+      for (let i = 0; i < 3; i++) {
+        const p = new THREE.Mesh(
+          new THREE.SphereGeometry(0.08 + Math.random() * 0.06, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xd8e6f5, transparent: true, opacity: 0.75 })
+        );
+        const worldX = this.movingAssembly.position.x + member.root.position.x;
+        p.position.set(worldX + (Math.random() - 0.5) * 0.3, 0.1, (Math.random() - 0.5) * 0.3);
+        this.group.add(p);
+        this.particles.push({
+          mesh: p,
+          vx: (isBlue ? 1 : -1) * (0.6 + Math.random() * 0.8),
+          vy: 0.8 + Math.random() * 0.8,
+          vz: (Math.random() - 0.5) * 0.5,
+          life: 0.55,
+          maxLife: 0.55
+        });
+      }
+    });
+  }
+
+  spawnVictoryConfetti(winnerTeam) {
+    const count = GAME_3D_CONFIG.animation.victoryConfettiCount;
+    const palette = [0xffd859, 0x48e5ff, 0xff6e91, 0x3ee6a3, 0xffffff];
+    const centerX = winnerTeam === 'A' ? -2.0 : winnerTeam === 'B' ? 2.0 : 0;
+    for (let i = 0; i < count; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.14, 0.09),
+        new THREE.MeshBasicMaterial({ color: palette[i % palette.length], side: THREE.DoubleSide })
+      );
+      m.position.set(centerX + (Math.random() - 0.5) * 4.5, 3.2 + Math.random() * 2.2, (Math.random() - 0.5) * 2.5);
+      m.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+      this.group.add(m);
+      this.particles.push({
+        mesh: m,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: -1.4 - Math.random() * 1.2,
+        vz: (Math.random() - 0.5) * 1.2,
+        rotSpeed: 4 + Math.random() * 5,
+        life: 2.8,
+        maxLife: 2.8
+      });
+    }
+  }
+
+  setScores(a, b, winScore = 5) {
+    const maxS = Math.max(1, Number(winScore) || 5);
+    // Đội A (Xanh) kéo về bên trái (-X), Đội B (Đỏ) kéo về bên phải (+X)
+    const ratio = Math.max(-1, Math.min(1, (Number(b || 0) - Number(a || 0)) / maxS));
+    this.targetShiftX = ratio * GAME_3D_CONFIG.tug.maxShiftX;
+
+    if (a > b) {
+      this.stateA = 'pull';
+      this.stateB = (a - b >= 2) ? 'loseBalance' : 'resist';
+    } else if (b > a) {
+      this.stateB = 'pull';
+      this.stateA = (b - a >= 2) ? 'loseBalance' : 'resist';
+    } else {
+      this.stateA = 'idle';
+      this.stateB = 'idle';
+    }
+  }
+
+  onCorrect(team) {
+    if (team === 'A') {
+      this.pullPulseA = GAME_3D_CONFIG.tug.pullPulseDuration;
+      this.spawnFootDust(true);
+    } else if (team === 'B') {
+      this.pullPulseB = GAME_3D_CONFIG.tug.pullPulseDuration;
+      this.spawnFootDust(false);
+    }
+  }
+
+  onWrong() {}
+
+  onVictory(team) {
+    if (team === 'A') {
+      this.stateA = 'victory';
+      this.stateB = 'defeat';
+    } else if (team === 'B') {
+      this.stateB = 'victory';
+      this.stateA = 'defeat';
+    } else {
+      this.stateA = 'victory';
+      this.stateB = 'victory';
+    }
+    this.spawnVictoryConfetti(team);
+  }
+
+  reset() {
+    this.targetShiftX = 0;
+    this.currentShiftX = 0;
+    this.pullPulseA = 0;
+    this.pullPulseB = 0;
+    this.stateA = 'idle';
+    this.stateB = 'idle';
+    if (this.movingAssembly) this.movingAssembly.position.set(0, 0, 0);
+    this.clearParticles();
+  }
+
+  clearParticles() {
+    while (this.particles.length) {
+      const p = this.particles.pop();
+      this.group.remove(p.mesh);
+      p.mesh.geometry?.dispose?.();
+      p.mesh.material?.dispose?.();
+    }
+  }
+
+  animateCharacter(char, state, pulse, elapsed) {
+    const dir = char.isBlue ? 1 : -1;
+    const t = elapsed * 5.2 + char.phase;
+    const pulseBoost = pulse > 0 ? Math.sin((pulse / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
+
+    if (state === 'victory') {
+      // Nhảy mừng chiến thắng & vẫy tay
+      char.bodyPivot.position.y = 0.05 + Math.abs(Math.sin(elapsed * 8 + char.phase)) * 0.34;
+      char.bodyPivot.rotation.z = Math.sin(elapsed * 6 + char.phase) * 0.12;
+      char.armGroup.rotation.z = dir * (0.85 + Math.sin(elapsed * 10 + char.phase) * 0.35);
+      char.headGroup.rotation.y = Math.sin(elapsed * 5) * 0.25;
+      return;
+    }
+
+    if (state === 'defeat') {
+      // Thất vọng nhẹ nhàng
+      char.bodyPivot.position.y = 0.03;
+      char.bodyPivot.rotation.z = -dir * 0.14;
+      char.headGroup.rotation.z = -dir * 0.25;
+      char.armGroup.rotation.z = -dir * 0.2;
+      return;
+    }
+
+    // Tư thế kéo dây: Đội Xanh (dir=1) ngả về bên trái (+rotation.z), Đội Đỏ (dir=-1) ngả về bên phải (-rotation.z)
+    let baseLean = dir * 0.32;
+    if (state === 'pull') baseLean = dir * (0.42 + pulseBoost * 0.22);
+    else if (state === 'resist') baseLean = dir * 0.24;
+    else if (state === 'loseBalance') baseLean = dir * (0.08 - Math.abs(Math.sin(t * 1.4)) * 0.18);
+
+    const rhythmicPull = Math.sin(t) * 0.07 * dir;
+    char.bodyPivot.rotation.z = baseLean + rhythmicPull;
+    char.bodyPivot.position.y = 0.05 + Math.abs(Math.cos(t)) * 0.045;
+    char.armGroup.position.x = -dir * (pulseBoost * 0.08 + Math.max(0, Math.sin(t)) * 0.04);
+    char.headGroup.rotation.z = -rhythmicPull * 0.6;
+    char.leftLeg.rotation.z = -baseLean * 0.55;
+    char.rightLeg.rotation.z = -baseLean * 0.45;
+  }
+
+  update(dt, elapsed) {
+    // Nội suy vị trí dây thừng & 2 đội theo điểm số với easing mượt mà
+    const k = Math.min(1, dt * GAME_3D_CONFIG.animation.lerpSpeed);
+    const pulseOffset = (this.pullPulseB > 0 ? 0.16 : 0) - (this.pullPulseA > 0 ? 0.16 : 0);
+    this.currentShiftX += ((this.targetShiftX + pulseOffset) - this.currentShiftX) * k;
+
+    if (this.movingAssembly) {
+      this.movingAssembly.position.x = this.currentShiftX;
+    }
+    if (this.centerFlag) {
+      this.centerFlag.rotation.z = Math.sin(elapsed * 4.5) * 0.1;
+    }
+
+    if (this.pullPulseA > 0) this.pullPulseA = Math.max(0, this.pullPulseA - dt);
+    if (this.pullPulseB > 0) this.pullPulseB = Math.max(0, this.pullPulseB - dt);
+
+    this.blueTeam.forEach(c => this.animateCharacter(c, this.stateA, this.pullPulseA, elapsed));
+    this.redTeam.forEach(c => this.animateCharacter(c, this.stateB, this.pullPulseB, elapsed));
+
+    // Cập nhật hạt bụi & pháo giấy
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) {
+        this.group.remove(p.mesh);
+        p.mesh.geometry?.dispose?.();
+        p.mesh.material?.dispose?.();
+        this.particles.splice(i, 1);
+        continue;
+      }
+      p.mesh.position.x += p.vx * dt;
+      p.mesh.position.y += p.vy * dt;
+      p.mesh.position.z += p.vz * dt;
+      if (p.rotSpeed) {
+        p.mesh.rotation.x += p.rotSpeed * dt;
+        p.mesh.rotation.y += p.rotSpeed * dt;
+      }
+      if (p.mesh.material && p.mesh.material.transparent) {
+        p.mesh.material.opacity = Math.max(0, p.life / p.maxLife);
+      }
+    }
+  }
+
+  dispose() {
+    this.clearParticles();
+    this.group.traverse(obj => {
+      obj.geometry?.dispose?.();
+      if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose?.());
+      else obj.material?.dispose?.();
+    });
+    this.parent.remove(this.group);
+  }
+}
+
+// ============================================================================
+// CLASS 2: RaceScene – ĐƯỜNG ĐUA 2 LÀN & XE KART 3D HOẠT HÌNH
+// ============================================================================
+class RaceScene {
+  constructor(parentGroup, quality = 'balanced') {
+    this.parent = parentGroup;
+    this.quality = quality;
+    this.group = new THREE.Group();
+    this.parent.add(this.group);
+
+    this.targetX_A = GAME_3D_CONFIG.race.startX;
+    this.targetX_B = GAME_3D_CONFIG.race.startX;
+    this.curX_A = GAME_3D_CONFIG.race.startX;
+    this.curX_B = GAME_3D_CONFIG.race.startX;
+    this.boostTimerA = 0;
+    this.boostTimerB = 0;
+    this.winnerTeam = null;
+    this.particles = [];
+    this.finishLights = [];
+
+    this.buildTrack();
+    this.kartA = this.createKart(true);
+    this.kartB = this.createKart(false);
+    this.kartA.root.position.set(this.curX_A, 0.03, GAME_3D_CONFIG.race.laneZ[0]);
+    this.kartB.root.position.set(this.curX_B, 0.03, GAME_3D_CONFIG.race.laneZ[1]);
+    this.group.add(this.kartA.root, this.kartB.root);
+  }
+
+  buildTrack() {
+    const cfg = GAME_3D_CONFIG.race;
+
+    // Thảm cỏ hai bên đường đua
+    const grass = new THREE.Mesh(
+      new THREE.PlaneGeometry(20, 12),
+      new THREE.MeshStandardMaterial({ color: cfg.colors.grass, roughness: 0.9 })
+    );
+    grass.rotation.x = -Math.PI / 2;
+    grass.receiveShadow = true;
+    this.group.add(grass);
+
+    // Mặt đường nhựa 2 làn
+    const road = new THREE.Mesh(
+      new THREE.PlaneGeometry(cfg.trackLength, 4.3),
+      new THREE.MeshStandardMaterial({ color: cfg.colors.asphalt, roughness: 0.72, metalness: 0.1 })
+    );
+    road.rotation.x = -Math.PI / 2;
+    road.position.y = 0.015;
+    road.receiveShadow = true;
+    this.group.add(road);
+
+    // Lề đường (Kerbs) Đỏ - Trắng hai bên
+    for (let i = 0; i < 18; i++) {
+      const x = -6.0 + i * 0.72;
+      const color = i % 2 === 0 ? 0xff4d6d : 0xffffff;
+      const kerbTop = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.06, 0.24), new THREE.MeshStandardMaterial({ color }));
+      kerbTop.position.set(x, 0.04, -2.22);
+      const kerbBot = kerbTop.clone();
+      kerbBot.position.set(x, 0.04, 2.22);
+      this.group.add(kerbTop, kerbBot);
+    }
+
+    // Dải phân cách giữa 2 làn & Mũi tên chỉ hướng phát sáng
+    for (let x = -5.2; x <= 4.2; x += 1.05) {
+      const dash = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.55, 0.09),
+        new THREE.MeshBasicMaterial({ color: 0xd8ecff })
+      );
+      dash.rotation.x = -Math.PI / 2;
+      dash.position.set(x, 0.026, 0);
+      this.group.add(dash);
+    }
+
+    // Vạch xuất phát & Cổng vạch đích Caro 3D
+    const startLine = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.22, 4.1),
+      new THREE.MeshBasicMaterial({ color: 0x48e5ff })
+    );
+    startLine.rotation.x = -Math.PI / 2;
+    startLine.position.set(cfg.startX + 0.65, 0.028, 0);
+    this.group.add(startLine);
+
+    // Vạch đích Caro
+    const finishGroup = new THREE.Group();
+    finishGroup.position.set(cfg.finishX, 0, 0);
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 10; c++) {
+        const sq = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.24, 0.41),
+          new THREE.MeshBasicMaterial({ color: (r + c) % 2 === 0 ? 0xffffff : 0x111111 })
+        );
+        sq.rotation.x = -Math.PI / 2;
+        sq.position.set(r * 0.24, 0.03, -1.84 + c * 0.41);
+        finishGroup.add(sq);
+      }
+    }
+
+    // Cổng chào Vạch đích (Finish Arch) + Đèn báo chiến thắng
+    const pillarGeo = new THREE.CylinderGeometry(0.12, 0.14, 2.5, 14);
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x223b5e, metalness: 0.45, roughness: 0.35 });
+    const pLeft = new THREE.Mesh(pillarGeo, pillarMat);
+    pLeft.position.set(0.12, 1.25, -2.25);
+    const pRight = new THREE.Mesh(pillarGeo, pillarMat);
+    pRight.position.set(0.12, 1.25, 2.25);
+
+    const banner = new THREE.Mesh(
+      new THREE.BoxGeometry(0.32, 0.46, 4.7),
+      new THREE.MeshStandardMaterial({ color: 0xffd859, roughness: 0.3 })
+    );
+    banner.position.set(0.12, 2.45, 0);
+
+    this.finishLights = [];
+    [-1.4, -0.5, 0.5, 1.4].forEach(zPos => {
+      const lamp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.14, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0x48e5ff, emissive: 0x0b3954, emissiveIntensity: 0.5 })
+      );
+      lamp.position.set(-0.08, 2.45, zPos);
+      finishGroup.add(lamp);
+      this.finishLights.push(lamp);
+    });
+
+    finishGroup.add(pLeft, pRight, banner);
+    this.group.add(finishGroup);
+  }
+
+  createKart(isBlue) {
+    const cfg = GAME_3D_CONFIG.race;
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+    const mainColor = isBlue ? cfg.colors.blueKart : cfg.colors.redKart;
+
+    const root = new THREE.Group();
+
+    // Bóng đổ gầm xe
+    const shadow = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.9, 1.15),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.42 })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.01;
+    root.add(shadow);
+
+    // Nhóm thân xe nghiêng khi tăng tốc (Chassis Pivot)
+    const chassis = new THREE.Group();
+    root.add(chassis);
+
+    const paintMat = new THREE.MeshStandardMaterial({ color: mainColor, metalness: 0.38, roughness: 0.26 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x101c2e, roughness: 0.45 });
+    const glassMat = new THREE.MeshStandardMaterial({ color: 0x9be8ff, transparent: true, opacity: 0.65, roughness: 0.1 });
+
+    // Thân chính + Mũi xe khí động học bo tròn
+    const baseBody = new THREE.Mesh(new THREE.BoxGeometry(1.52, 0.34, 0.88), paintMat);
+    baseBody.position.set(0, 0.34, 0);
+    baseBody.castShadow = true;
+
+    const nose = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 0.55, 16), paintMat);
+    nose.rotation.z = -Math.PI / 2;
+    nose.position.set(0.82, 0.28, 0);
+
+    // Kính chắn gió & Ghế lái
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.26, 0.66), glassMat);
+    windshield.position.set(0.28, 0.58, 0);
+    windshield.rotation.z = 0.38;
+
+    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.45, 0.56), darkMat);
+    seat.position.set(-0.22, 0.56, 0);
+
+    // Nhân vật tay đua đội mũ bảo hiểm
+    const driverGroup = new THREE.Group();
+    driverGroup.position.set(-0.14, 0.78, 0);
+    const helmet = new THREE.Mesh(
+      new THREE.SphereGeometry(0.23, 18, 18),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2, metalness: 0.2 })
+    );
+    const visor = new THREE.Mesh(
+      new THREE.SphereGeometry(0.235, 14, 14, -0.6, 1.2, 0.9, 0.75),
+      new THREE.MeshBasicMaterial({ color: 0x111111 })
+    );
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(0.36, 0.08, 0.12),
+      new THREE.MeshBasicMaterial({ color: mainColor })
+    );
+    stripe.position.y = 0.16;
+    driverGroup.add(helmet, visor, stripe);
+
+    // Cánh gió thể thao phía sau & 2 ống xả
+    const spoilerWing = new THREE.Mesh(
+      new THREE.BoxGeometry(0.24, 0.07, 0.96),
+      new THREE.MeshStandardMaterial({ color: 0xffd859, roughness: 0.3 })
+    );
+    spoilerWing.position.set(-0.76, 0.76, 0);
+    const spoilerStrutL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.28, 0.06), darkMat);
+    spoilerStrutL.position.set(-0.72, 0.6, 0.32);
+    const spoilerStrutR = spoilerStrutL.clone();
+    spoilerStrutR.position.z = -0.32;
+
+    // 2 Đèn pha trước phát sáng
+    const lampGeo = new THREE.SphereGeometry(0.07, 10, 10);
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0xfff5b8 });
+    const lampL = new THREE.Mesh(lampGeo, lampMat);
+    lampL.position.set(1.04, 0.32, 0.24);
+    const lampR = lampL.clone();
+    lampR.position.z = -0.24;
+
+    // Vệt lửa Nitơ phía sau khi tăng tốc (ẩn khi đứng chờ)
+    const flame = new THREE.Mesh(
+      new THREE.ConeGeometry(0.18, 0.65, 12),
+      new THREE.MeshBasicMaterial({ color: 0xffa822, transparent: true, opacity: 0.0 })
+    );
+    flame.rotation.z = Math.PI / 2;
+    flame.position.set(-1.05, 0.32, 0);
+
+    chassis.add(
+      baseBody, nose, windshield, seat, driverGroup,
+      spoilerWing, spoilerStrutL, spoilerStrutR, lampL, lampR, flame
+    );
+
+    // 4 Bánh xe độc lập có mâm hợp kim để thấy rõ chuyển động quay
+    const wheels = [];
+    const tireGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.2, qCfg.wheelSegments);
+    tireGeo.rotateX(Math.PI / 2);
+    const tireMat = new THREE.MeshStandardMaterial({ color: 0x15181f, roughness: 0.75 });
+    const spokeGeo = new THREE.BoxGeometry(0.34, 0.06, 0.22);
+    const spokeMat = new THREE.MeshStandardMaterial({ color: 0xffd859, metalness: 0.6, roughness: 0.3 });
+
+    [
+      [0.54, 0.25, 0.52],
+      [0.54, 0.25, -0.52],
+      [-0.54, 0.25, 0.52],
+      [-0.54, 0.25, -0.52]
+    ].forEach(([x, y, z]) => {
+      const wGroup = new THREE.Group();
+      wGroup.position.set(x, y, z);
+      const tire = new THREE.Mesh(tireGeo, tireMat);
+      const spoke1 = new THREE.Mesh(spokeGeo, spokeMat);
+      const spoke2 = new THREE.Mesh(spokeGeo, spokeMat);
+      spoke2.rotation.z = Math.PI / 2;
+      wGroup.add(tire, spoke1, spoke2);
+      root.add(wGroup);
+      wheels.push(wGroup);
+    });
+
+    return { root, chassis, driverGroup, wheels, flame, isBlue };
+  }
+
+  spawnBoostTrail(kart) {
+    const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
+    if (this.particles.length >= qCfg.maxParticles) return;
+    const color = kart.isBlue ? 0x48e5ff : 0xff6e91;
+    for (let i = 0; i < 5; i++) {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(0.09 + Math.random() * 0.07, 8, 8),
+        new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? color : 0xffe28a, transparent: true, opacity: 0.85 })
+      );
+      m.position.set(
+        kart.root.position.x - 0.88 + (Math.random() - 0.5) * 0.2,
+        0.25 + Math.random() * 0.16,
+        kart.root.position.z + (Math.random() - 0.5) * 0.35
+      );
+      this.group.add(m);
+      this.particles.push({
+        mesh: m,
+        vx: -2.6 - Math.random() * 1.8,
+        vy: 0.35 + Math.random() * 0.45,
+        vz: (Math.random() - 0.5) * 0.4,
+        life: 0.48,
+        maxLife: 0.48
+      });
+    }
+  }
+
+  spawnFinishConfetti() {
+    const cfg = GAME_3D_CONFIG.race;
+    const palette = [0xffd859, 0x48e5ff, 0xff6e91, 0x3ee6a3, 0xffffff];
+    for (let i = 0; i < 65; i++) {
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.14, 0.09),
+        new THREE.MeshBasicMaterial({ color: palette[i % palette.length], side: THREE.DoubleSide })
+      );
+      m.position.set(cfg.finishX + (Math.random() - 0.5) * 2.5, 3.0 + Math.random() * 2.0, (Math.random() - 0.5) * 3.8);
+      this.group.add(m);
+      this.particles.push({
+        mesh: m,
+        vx: (Math.random() - 0.5) * 1.4,
+        vy: -1.5 - Math.random() * 1.2,
+        vz: (Math.random() - 0.5) * 1.4,
+        rotSpeed: 5 + Math.random() * 4,
+        life: 2.8,
+        maxLife: 2.8
+      });
+    }
+  }
+
+  setScores(a, b, winScore = 5) {
+    const cfg = GAME_3D_CONFIG.race;
+    const maxS = Math.max(1, Number(winScore) || 5);
+    const span = cfg.finishX - cfg.startX;
+
+    // Không để xe vượt qua vạch đích trước khi đạt điểm chiến thắng
+    const ratioA = Math.min(1, Math.max(0, Number(a || 0) / maxS));
+    const ratioB = Math.min(1, Math.max(0, Number(b || 0) / maxS));
+    this.targetX_A = cfg.startX + ratioA * span;
+    this.targetX_B = cfg.startX + ratioB * span;
+  }
+
+  onCorrect(team) {
+    if (team === 'A') {
+      this.boostTimerA = GAME_3D_CONFIG.race.boostDuration;
+      this.spawnBoostTrail(this.kartA);
+    } else if (team === 'B') {
+      this.boostTimerB = GAME_3D_CONFIG.race.boostDuration;
+      this.spawnBoostTrail(this.kartB);
+    }
+  }
+
+  onWrong() {}
+
+  onVictory(team) {
+    this.winnerTeam = team;
+    if (team === 'A') this.targetX_A = GAME_3D_CONFIG.race.finishX + 0.65;
+    else if (team === 'B') this.targetX_B = GAME_3D_CONFIG.race.finishX + 0.65;
+    this.spawnFinishConfetti();
+  }
+
+  reset() {
+    const cfg = GAME_3D_CONFIG.race;
+    this.targetX_A = cfg.startX;
+    this.targetX_B = cfg.startX;
+    this.curX_A = cfg.startX;
+    this.curX_B = cfg.startX;
+    this.boostTimerA = 0;
+    this.boostTimerB = 0;
+    this.winnerTeam = null;
+    if (this.kartA) this.kartA.root.position.x = cfg.startX;
+    if (this.kartB) this.kartB.root.position.x = cfg.startX;
+    this.clearParticles();
+  }
+
+  clearParticles() {
+    while (this.particles.length) {
+      const p = this.particles.pop();
+      this.group.remove(p.mesh);
+      p.mesh.geometry?.dispose?.();
+      p.mesh.material?.dispose?.();
+    }
+  }
+
+  updateKart(kart, curX, targetX, boostTimer, dt, elapsed) {
+    const speedX = (targetX - curX) / Math.max(0.016, dt);
+    const isBoosting = boostTimer > 0;
+
+    kart.root.position.x = curX;
+    // Độ rung động cơ tự nhiên
+    kart.chassis.position.y = Math.sin(elapsed * 18 + (kart.isBlue ? 0 : 2)) * 0.012;
+    // Nghiêng thân xe về sau nhẹ khi tăng tốc
+    const targetPitch = isBoosting ? 0.11 : Math.min(0.06, speedX * 0.015);
+    kart.chassis.rotation.z += (targetPitch - kart.chassis.rotation.z) * Math.min(1, dt * 10);
+
+    // Lửa ống xả khi boost
+    if (kart.flame?.material) {
+      kart.flame.material.opacity = isBoosting ? (0.65 + Math.sin(elapsed * 40) * 0.25) : 0;
+      kart.flame.scale.setScalar(isBoosting ? (0.9 + Math.sin(elapsed * 35) * 0.2) : 0.5);
+    }
+
+    // Quay 4 bánh xe thực tế theo vận tốc
+    const spinRate = isBoosting
+      ? GAME_3D_CONFIG.race.boostWheelSpin
+      : GAME_3D_CONFIG.race.baseWheelSpin + Math.max(0, speedX * 2.4);
+    kart.wheels.forEach(w => { w.rotation.z -= spinRate * dt; });
+
+    if (isBoosting && Math.random() < 0.45) {
+      this.spawnBoostTrail(kart);
+    }
+  }
+
+  update(dt, elapsed) {
+    const k = Math.min(1, dt * GAME_3D_CONFIG.animation.lerpSpeed);
+    this.curX_A += (this.targetX_A - this.curX_A) * k;
+    this.curX_B += (this.targetX_B - this.curX_B) * k;
+
+    if (this.boostTimerA > 0) this.boostTimerA = Math.max(0, this.boostTimerA - dt);
+    if (this.boostTimerB > 0) this.boostTimerB = Math.max(0, this.boostTimerB - dt);
+
+    this.updateKart(this.kartA, this.curX_A, this.targetX_A, this.boostTimerA, dt, elapsed);
+    this.updateKart(this.kartB, this.curX_B, this.targetX_B, this.boostTimerB, dt, elapsed);
+
+    // Nhấp nháy đèn vạch đích khi có đội chiến thắng
+    if (this.winnerTeam && this.finishLights.length) {
+      this.finishLights.forEach((lamp, idx) => {
+        lamp.material.emissive.setHex((Math.floor(elapsed * 8) + idx) % 2 === 0 ? 0xffd859 : 0x3ee6a3);
+      });
+    }
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) {
+        this.group.remove(p.mesh);
+        p.mesh.geometry?.dispose?.();
+        p.mesh.material?.dispose?.();
+        this.particles.splice(i, 1);
+        continue;
+      }
+      p.mesh.position.x += p.vx * dt;
+      p.mesh.position.y += p.vy * dt;
+      p.mesh.position.z += p.vz * dt;
+      if (p.rotSpeed) {
+        p.mesh.rotation.x += p.rotSpeed * dt;
+        p.mesh.rotation.y += p.rotSpeed * dt;
+      }
+      if (p.mesh.material && p.mesh.material.transparent) {
+        p.mesh.material.opacity = Math.max(0, p.life / p.maxLife);
+      }
+    }
+  }
+
+  dispose() {
+    this.clearParticles();
+    this.group.traverse(obj => {
+      obj.geometry?.dispose?.();
+      if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose?.());
+      else obj.material?.dispose?.();
+    });
+    this.parent.remove(this.group);
+  }
+}
+
+// ============================================================================
+// CLASS 3: Game3D – BỘ ĐIỀU PHỐI TRUNG TÂM (QUẢN LÝ SCENE, CAMERA, RENDER LOOP)
+// ============================================================================
+class Game3D {
+  constructor(canvas, type = 'tug') {
+    this.canvas = canvas;
+    this.mode = type || 'tug';
+    this.quality = GRAPHICS_QUALITY || 'balanced';
+    this.disposed = false;
+    this.rafId = null;
+    this.lastTime = performance.now();
+    this.elapsed = 0;
+    this.scoreA = 0;
+    this.scoreB = 0;
+    this.winScore = 5;
+    this.cameraShake = 0;
+    this.activeScene = null;
+    this.webglSupported = true;
+
+    try {
+      this.scene = new THREE.Scene();
+      this.camera = new THREE.PerspectiveCamera(
+        GAME_3D_CONFIG.common.fov,
+        1.5,
+        GAME_3D_CONFIG.common.near,
+        GAME_3D_CONFIG.common.far
+      );
+
+      this.renderer = new THREE.WebGLRenderer({
+        canvas: this.canvas,
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance'
+      });
+      if ('outputColorSpace' in this.renderer && THREE.SRGBColorSpace) {
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+      }
+      if (THREE.ACESFilmicToneMapping) {
+        this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        this.renderer.toneMappingExposure = 1.08;
+      }
+
+      this.setupLights();
+      this.worldRoot = new THREE.Group();
+      this.scene.add(this.worldRoot);
+
+      this.applyQuality(this.quality);
+      this.setMode(this.mode);
+      this.setupResizeObserver();
+      this.startLoop();
+    } catch (err) {
+      this.webglSupported = false;
+      this.renderFallback2D();
+    }
+  }
+
+  setupLights() {
+    const hemi = new THREE.HemisphereLight(0xd8f3ff, 0x0b1d33, 0.92);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.15);
+    dir.position.set(6, 12, 8);
+    dir.castShadow = true;
+    dir.shadow.mapSize.width = 1024;
+    dir.shadow.mapSize.height = 1024;
+    dir.shadow.camera.near = 1;
+    dir.shadow.camera.far = 30;
+    const d = 8;
+    dir.shadow.camera.left = -d;
+    dir.shadow.camera.right = d;
+    dir.shadow.camera.top = d;
+    dir.shadow.camera.bottom = -d;
+
+    const fill = new THREE.DirectionalLight(0x48e5ff, 0.35);
+    fill.position.set(-6, 5, 4);
+
+    this.dirLight = dir;
+    this.scene.add(hemi, dir, fill);
+  }
+
+  setupResizeObserver() {
+    if (window.ResizeObserver && this.canvas?.parentElement) {
+      this.ro = new ResizeObserver(() => this.resize());
+      this.ro.observe(this.canvas.parentElement);
+    }
+  }
+
+  setMode(mode) {
+    this.mode = mode === 'race' ? 'race' : 'tug';
+    if (!this.webglSupported) {
+      this.renderFallback2D();
+      return;
+    }
+    if (this.activeScene) {
+      this.activeScene.dispose();
+      this.activeScene = null;
+    }
+    if (this.mode === 'race') {
+      this.activeScene = new RaceScene(this.worldRoot, this.quality);
+      $('#arenaCaption') && ($('#arenaCaption').textContent = '🏎️ Đường đua Kart 3D • Đội trả lời đúng sẽ tăng tốc về vạch đích');
+    } else {
+      this.activeScene = new TugOfWarScene(this.worldRoot, this.quality);
+      $('#arenaCaption') && ($('#arenaCaption').textContent = '🪢 Đấu trường Kéo co 3D • Kéo cờ giữa dây về vạch chiến thắng');
+    }
+    this.setScores(this.scoreA, this.scoreB, this.winScore);
+    this.resize();
+    this.requestRender();
+  }
+
+  applyQuality(q) {
+    this.quality = GAME_3D_CONFIG.quality[q] ? q : 'balanced';
+    if (!this.webglSupported || !this.renderer) return;
+    const qCfg = GAME_3D_CONFIG.quality[this.quality];
+    const pr = Math.min(window.devicePixelRatio || 1, qCfg.pixelRatio);
+    this.renderer.setPixelRatio(pr);
+    this.renderer.shadowMap.enabled = Boolean(qCfg.shadows);
+    if (THREE.PCFSoftShadowMap) this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    if (this.dirLight) this.dirLight.castShadow = Boolean(qCfg.shadows);
+    this.resize();
+  }
+
+  setScores(a, b, winScore = null) {
+    this.scoreA = Number(a || 0);
+    this.scoreB = Number(b || 0);
+    if (winScore !== null) this.winScore = Math.max(1, Number(winScore) || 5);
+    if (!this.webglSupported) {
+      this.renderFallback2D();
+      return;
+    }
+    this.activeScene?.setScores(this.scoreA, this.scoreB, this.winScore);
+    this.requestRender();
+  }
+
+  updateProgress(diff, winScore = 5) {
+    this.setScores(game.a, game.b, winScore);
+  }
+
+  onCorrect(team) {
+    this.cameraShake = 0.25;
+    this.activeScene?.onCorrect(team);
+  }
+
+  onWrong(team) {
+    this.activeScene?.onWrong(team);
+  }
+
+  onVictory(team) {
+    this.cameraShake = 0.35;
+    this.activeScene?.onVictory(team);
+  }
+
+  reset() {
+    this.scoreA = 0;
+    this.scoreB = 0;
+    this.cameraShake = 0;
+    this.activeScene?.reset();
+    this.setScores(0, 0, this.winScore);
+  }
+
+  resize() {
+    if (!this.canvas || !this.webglSupported || !this.renderer) return;
+    const host = this.canvas.parentElement;
+    const rect = host?.getBoundingClientRect() || { width: 520, height: 340 };
+    const w = Math.max(260, Math.floor(rect.width));
+    const h = Math.max(220, Math.floor(rect.height));
+    const aspect = w / h;
+
+    this.camera.aspect = aspect;
+    // Tự động lùi camera khi cột giữa hẹp để toàn bộ 6 nhân vật hoặc cả đường đua luôn nằm trọn trong khung hình
+    const narrowFactor = aspect < 1.35 ? (1.35 / Math.max(0.65, aspect)) : 1.0;
+    const cfg = this.mode === 'race' ? GAME_3D_CONFIG.race : GAME_3D_CONFIG.tug;
+    const [cx, cy, cz] = cfg.cameraPos;
+    this.baseCamPos = new THREE.Vector3(cx, cy * (0.92 + narrowFactor * 0.08), cz * narrowFactor);
+    this.baseLookAt = new THREE.Vector3(...cfg.cameraLookAt);
+
+    this.camera.position.copy(this.baseCamPos);
+    this.camera.lookAt(this.baseLookAt);
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h, false);
+  }
+
+  isGameVisible() {
+    return Boolean(!document.hidden && $('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide'));
+  }
+
+  startLoop() {
+    if (this.rafId) cancelAnimationFrame(this.rafId);
+    this.lastTime = performance.now();
+    const tick = now => {
+      if (this.disposed) return;
+      this.rafId = requestAnimationFrame(tick);
+      const rawDt = (now - this.lastTime) / 1000;
+      this.lastTime = now;
+      if (!this.isGameVisible()) return;
+
+      const dt = Math.min(GAME_3D_CONFIG.common.maxDeltaSec, Math.max(0.001, rawDt));
+      this.elapsed += dt;
+      this.update(dt);
+      this.renderer.render(this.scene, this.camera);
+    };
+    this.rafId = requestAnimationFrame(tick);
+  }
+
+  update(dt) {
+    this.activeScene?.update(dt, this.elapsed);
+    if (this.baseCamPos && this.camera) {
+      if (this.cameraShake > 0) {
+        this.cameraShake = Math.max(0, this.cameraShake - dt);
+        const s = this.cameraShake * 0.18;
+        this.camera.position.set(
+          this.baseCamPos.x + Math.sin(this.elapsed * 45) * s,
+          this.baseCamPos.y + Math.cos(this.elapsed * 38) * s * 0.6,
+          this.baseCamPos.z
+        );
+      } else {
+        this.camera.position.lerp(this.baseCamPos, Math.min(1, dt * GAME_3D_CONFIG.animation.cameraEase));
+      }
+      this.camera.lookAt(this.baseLookAt);
+    }
+  }
+
+  requestRender() {
+    if (this.webglSupported && this.renderer && this.scene && this.camera) {
+      this.renderer.render(this.scene, this.camera);
+    }
+  }
+
+  renderFallback2D() {
+    const ctx = this.canvas?.getContext?.('2d');
+    if (!ctx) return;
+    const w = this.canvas.width = 480, h = this.canvas.height = 280;
+    ctx.fillStyle = '#091d34';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${this.mode === 'race' ? '🏎️ Đua xe' : '🪢 Kéo co'}: Đội Xanh ${this.scoreA} - ${this.scoreB} Đội Đỏ`, w / 2, h / 2);
+  }
+
+  dispose() {
+    this.disposed = true;
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    this.ro?.disconnect?.();
+    this.activeScene?.dispose?.();
+    this.renderer?.dispose?.();
+  }
+}
+
+// ============================================================================
+// ĐIỀU KHIỂN LOGIC TRÒ CHƠI 2 ĐỘI KẾT NỐI VỚI GAME3D MỚI
+// ============================================================================
 let gameTimerInterval = null;
 let gameTimeRemaining = 15;
 let gameTimerPaused = false;
+let victoryTriggered = false;
 
 function gameTimeLimit() {
   return Number($('#gameTimeLimit')?.value ?? 15);
 }
 
 function startSelectedGame() {
+  upgradeGamePlayLayoutV21();
   const pool = selectedQuestions.length ? selectedQuestions : questionBank;
   if (!pool.length) {
     toast('Chưa có câu hỏi! Hãy nhập file JSON hoặc tải câu hỏi từ Sheet trước.');
@@ -2659,7 +4358,9 @@ function startSelectedGame() {
   const type = $('#gameTypeSelect')?.value || 'tug';
   const aName = ($('#teamAName')?.value || 'ĐỘI XANH').trim();
   const bName = ($('#teamBName')?.value || 'ĐỘI ĐỎ').trim();
+  const winTarget = Math.max(1, Number($('#winScore')?.value || 5));
 
+  victoryTriggered = false;
   game = {
     type,
     a: 0,
@@ -2669,42 +4370,44 @@ function startSelectedGame() {
     current: null,
     locked: false,
     readMode: !$('#autoRevealAnswers')?.checked,
+    answeredBy: { A: false, B: false },
     wrongHistory: []
   };
 
-  $('#tvAName').textContent = aName;
-  $('#tvBName').textContent = bName;
-  $('#panelAName').textContent = aName;
-  $('#panelBName').textContent = bName;
-  $('#hudAName').textContent = aName;
-  $('#hudBName').textContent = bName;
-  $('#gameTitleHead').textContent = type === 'race' ? '🏎️ ĐUA XE KIẾN THỨC 3D' : '🪢 KÉO CO KIẾN THỨC 3D';
+  $('#tvAName') && ($('#tvAName').textContent = aName);
+  $('#tvBName') && ($('#tvBName').textContent = bName);
+  $('#panelAName') && ($('#panelAName').textContent = aName);
+  $('#panelBName') && ($('#panelBName').textContent = bName);
+  $('#hudAName') && ($('#hudAName').textContent = aName);
+  $('#hudBName') && ($('#hudBName').textContent = bName);
+  $('#gameTitleHead') && ($('#gameTitleHead').textContent = type === 'race' ? '🏎️ ĐUA XE KIẾN THỨC 3D' : '🪢 KÉO CO KIẾN THỨC 3D');
 
   $('#gameHub')?.classList.add('hide');
   $('#gamePlay')?.classList.remove('hide');
   $('#winner')?.classList.remove('show');
 
-  if (!game3d && typeof THREE !== 'undefined' && $('#gameCanvas')) {
-    game3d = new Game3D($('#gameCanvas'));
-  }
-  if (game3d) {
-    game3d.setMode(type);
-    game3d.resize();
-    game3d.updateProgress(0, Number($('#winScore')?.value || 5));
-  }
-
-  updateGameScoreHUD();
-  nextQuestion();
+  requestAnimationFrame(() => {
+    if ((!game3d || game3d.disposed) && typeof THREE !== 'undefined' && $('#gameCanvas')) {
+      game3d = new Game3D($('#gameCanvas'), type);
+    } else if (game3d) {
+      game3d.setMode(type);
+      game3d.reset();
+    }
+    game3d?.setScores(0, 0, winTarget);
+    game3d?.resize();
+    renderGameScores();
+    nextQuestion();
+  });
 }
 
-function updateGameScoreHUD() {
+function renderGameScores() {
   const winTarget = Math.max(1, Number($('#winScore')?.value || 5));
-  $('#tvAScore').textContent = game.a;
-  $('#tvBScore').textContent = game.b;
-  $('#hudAScore').textContent = game.a;
-  $('#hudBScore').textContent = game.b;
+  $('#tvAScore') && ($('#tvAScore').textContent = game.a);
+  $('#tvBScore') && ($('#tvBScore').textContent = game.b);
+  $('#hudAScore') && ($('#hudAScore').textContent = game.a);
+  $('#hudBScore') && ($('#hudBScore').textContent = game.b);
 
-  const diff = game.b - game.a; // âm: A dẫn, dương: B dẫn
+  const diff = game.b - game.a;
   const ratio = Math.max(-1, Math.min(1, diff / winTarget));
   const pct = 50 + ratio * 44;
   const marker = $('#arenaProgressMarker');
@@ -2712,14 +4415,25 @@ function updateGameScoreHUD() {
     marker.style.left = `${pct}%`;
     marker.textContent = game.type === 'race' ? '🏎️' : '🪢';
   }
-  game3d?.updateProgress(diff, winTarget);
+  const lbl = $('#arenaProgressLabel');
+  if (lbl) {
+    lbl.textContent = game.a === game.b
+      ? `Cân bằng (${game.a} - ${game.b}) • Mục tiêu: ${winTarget} điểm`
+      : game.a > game.b
+        ? `${$('#tvAName')?.textContent || 'Đội Xanh'} dẫn trước (${game.a} - ${game.b})`
+        : `${$('#tvBName')?.textContent || 'Đội Đỏ'} dẫn trước (${game.b} - ${game.a})`;
+  }
 
-  if (game.a >= winTarget || game.b >= winTarget) {
+  game3d?.setScores(game.a, game.b, winTarget);
+
+  if (!victoryTriggered && (game.a >= winTarget || game.b >= winTarget)) {
     finishGameWithWinner(game.a >= winTarget ? 'A' : 'B');
   }
 }
+const updateGameScoreHUD = renderGameScores;
 
 function nextQuestion() {
+  if (victoryTriggered) return;
   stopGameTimer();
   const pool = selectedQuestions.length ? selectedQuestions : questionBank;
   const maxQ = Math.max(1, Number($('#gameQuestionCount')?.value || 10));
@@ -2737,27 +4451,51 @@ function nextQuestion() {
   game.locked = false;
   game.answeredBy = { A: false, B: false };
 
-  $('#qCounter').textContent = `Câu ${game.used.length} / ${maxQ}`;
-  $('#qMeta').textContent = [questionTypeLabel(q), q.subject, q.level].filter(Boolean).join(' • ');
-  $('#duelResponderBadge').textContent = 'Quyền trả lời: Cả hai đội';
-  $('#qExplain').innerHTML = 'Học sinh hai đội chọn đáp án trên bảng tương ứng.';
+  const qNumText = `Câu ${game.used.length}/${maxQ}`;
+  const metaText = [questionTypeLabel(q), q.subject, q.level].filter(Boolean).join(' • ');
+
+  $('#qCounter') && ($('#qCounter').textContent = qNumText);
+  $('#qMeta') && ($('#qMeta').textContent = metaText);
+  $('#duelResponderBadge') && ($('#duelResponderBadge').textContent = 'Quyền trả lời: Cả 2 đội');
+  $('#qExplain') && ($('#qExplain').innerHTML = 'Học sinh hai đội đọc câu hỏi và chọn đáp án trên cột của đội mình.');
   $('#revealAnswerBtn')?.classList.add('hide');
 
-  const imgs = questionImageUrls(q);
-  const media = $('#qCentralMedia');
-  const body = $('#centralQuestionBody');
-  if (imgs.length) {
-    media.innerHTML = `<img src="${esc(imgs[0])}" alt="Hình câu hỏi" onclick="openQuestionImage(this.src)">`;
-    media.classList.remove('hide');
-    body.classList.remove('no-image');
-  } else {
-    media.innerHTML = '';
-    media.classList.add('hide');
-    body.classList.add('no-image');
-  }
+  $('#teamPanelA')?.classList.add('active');
+  $('#teamPanelB')?.classList.add('active');
 
-  $('#qCentralText').innerHTML = renderQuestionOnlyText(q.question);
-  $('#qCentralFoot').textContent = q.topic ? `Chủ đề: ${q.topic}` : '';
+  const imgs = questionImageUrls(q);
+  const qHtml = renderQuestionOnlyText(q.question);
+
+  // Đồng bộ câu hỏi & hình ảnh cho cả 2 cột Đội Xanh và Đội Đỏ từ một nguồn game.current duy nhất
+  ['A', 'B'].forEach(team => {
+    const metaEl = $(`#qMeta${team}`);
+    const textEl = $(`#qText${team}`);
+    const mediaEl = $(`#qMedia${team}`);
+    if (metaEl) metaEl.textContent = `${qNumText} • ${metaText}`;
+    if (textEl) textEl.innerHTML = qHtml;
+    if (mediaEl) {
+      if (imgs.length) {
+        mediaEl.innerHTML = `<img src="${esc(imgs[0])}" alt="Hình minh họa" onclick="openQuestionImage(this.src)">`;
+        mediaEl.classList.remove('hide');
+      } else {
+        mediaEl.innerHTML = '';
+        mediaEl.classList.add('hide');
+      }
+    }
+  });
+
+  // Giữ tương thích với các phần tử câu hỏi trung tâm nếu có hàm gọi tới
+  const media = $('#qCentralMedia');
+  if (media) {
+    if (imgs.length) {
+      media.innerHTML = `<img src="${esc(imgs[0])}" alt="Hình câu hỏi" onclick="openQuestionImage(this.src)">`;
+      media.classList.remove('hide');
+    } else {
+      media.innerHTML = '';
+      media.classList.add('hide');
+    }
+  }
+  $('#qCentralText') && ($('#qCentralText').innerHTML = qHtml);
 
   renderTeamAnswerOptions('A', q);
   renderTeamAnswerOptions('B', q);
@@ -2778,7 +4516,7 @@ function renderTeamAnswerOptions(team, q) {
     host.innerHTML = `
       <div class="special-answer-panel" style="grid-column:1/-1">
         <input id="saInput_${team}" class="input sa-answer-input" placeholder="Nhập đáp số...">
-        <button class="btn primary" onclick="submitTeamSAAnswer('${team}')">GỬI ĐÁP ÁN ĐỘI ${team}</button>
+        <button class="btn primary" onclick="submitTeamSAAnswer('${team}')">✔ XÁC NHẬN ĐÁP ÁN ĐỘI ${team}</button>
       </div>`;
     return;
   }
@@ -2787,13 +4525,13 @@ function renderTeamAnswerOptions(team, q) {
       <div class="special-answer-panel" style="grid-column:1/-1">
         <div class="tf-answer-grid">
           ${(q.options || []).slice(0, 4).map((o, idx) => `
-            <div class="tf-answer-row" data-idx="${idx}">
+            <div class="tf-answer-row" data-idx="${idx}" title="${esc(o.text)}">
               <span class="tf-key">${String.fromCharCode(97 + idx)}</span>
               <button class="tf-choice" onclick="pickTeamTF('${team}', ${idx}, 'D', this)">Đúng</button>
               <button class="tf-choice" onclick="pickTeamTF('${team}', ${idx}, 'S', this)">Sai</button>
             </div>`).join('')}
         </div>
-        <button class="btn primary sm" onclick="submitTeamTFAnswer('${team}')">CHỐT ĐÁP ÁN ĐỘI ${team}</button>
+        <button class="btn primary sm" onclick="submitTeamTFAnswer('${team}')">✔ CHỐT ĐÁP ÁN ĐỘI ${team}</button>
       </div>`;
     return;
   }
@@ -2804,39 +4542,41 @@ function renderTeamAnswerOptions(team, q) {
       <span class="rich">${renderRich(o.text)}</span>
     </button>`).join('');
 }
+const renderGameAnswers = renderTeamAnswerOptions;
 
-function submitTeamMCAnswer(team, idx) {
+function evaluateTeamAnswer(team, isCorrect, clickedBtn = null) {
   if (game.locked || !game.current || game.answeredBy?.[team]) return;
-  const q = game.current;
-  const right = correctIndex(q);
   const host = $(team === 'A' ? '#answersA' : '#answersB');
-  const buttons = [...host.querySelectorAll('.answer')];
 
-  if (idx === right) {
+  if (isCorrect) {
     game.locked = true;
     stopGameTimer();
-    buttons[idx]?.classList.add('correct');
+    if (clickedBtn) clickedBtn.classList.add('correct');
     handleTeamCorrect(team);
   } else {
     game.answeredBy[team] = true;
-    buttons[idx]?.classList.add('wrong');
-    buttons.forEach(b => b.disabled = true);
+    if (clickedBtn) clickedBtn.classList.add('wrong');
+    host?.querySelectorAll('button, input').forEach(el => el.disabled = true);
+    $(team === 'A' ? '#teamPanelA' : '#teamPanelB')?.classList.remove('active');
     handleTeamWrong(team);
   }
 }
+
+function submitTeamMCAnswer(team, idx) {
+  if (game.locked || !game.current || game.answeredBy?.[team]) return;
+  const right = correctIndex(game.current);
+  const host = $(team === 'A' ? '#answersA' : '#answersB');
+  const buttons = [...(host?.querySelectorAll('.answer') || [])];
+  evaluateTeamAnswer(team, idx === right, buttons[idx]);
+}
+const submitTeamMC = submitTeamMCAnswer;
 
 function submitTeamSAAnswer(team) {
   if (game.locked || !game.current || game.answeredBy?.[team]) return;
   const val = $(`#saInput_${team}`)?.value || '';
-  if (normalizeSAValue(val) === normalizeSAValue(game.current.answer)) {
-    game.locked = true;
-    stopGameTimer();
-    handleTeamCorrect(team);
-  } else {
-    game.answeredBy[team] = true;
-    handleTeamWrong(team);
-  }
+  evaluateTeamAnswer(team, normalizeSAValue(val) === normalizeSAValue(game.current.answer));
 }
+const submitTeamSA = submitTeamSAAnswer;
 
 function pickTeamTF(team, idx, val, btn) {
   const row = btn.closest('.tf-answer-row');
@@ -2848,39 +4588,38 @@ function pickTeamTF(team, idx, val, btn) {
 function submitTeamTFAnswer(team) {
   if (game.locked || !game.current || game.answeredBy?.[team]) return;
   const host = $(team === 'A' ? '#answersA' : '#answersB');
-  const rows = [...host.querySelectorAll('.tf-answer-row')];
+  const rows = [...(host?.querySelectorAll('.tf-answer-row') || [])];
   const expected = parseTfExpected(game.current);
   const allMatch = rows.length === expected.length && rows.every((r, i) => (r.dataset.choice || '') === expected[i]);
-  if (allMatch) {
-    game.locked = true;
-    stopGameTimer();
-    handleTeamCorrect(team);
-  } else {
-    game.answeredBy[team] = true;
-    handleTeamWrong(team);
-  }
+  evaluateTeamAnswer(team, allMatch);
 }
+const submitTeamTF = submitTeamTFAnswer;
 
 function handleTeamCorrect(team) {
   const teamName = $(team === 'A' ? '#tvAName' : '#tvBName')?.textContent || `Đội ${team}`;
   if (team === 'A') game.a++; else game.b++;
+
   $(team === 'A' ? '#teamStatusA' : '#teamStatusB').textContent = '🎉 Chính xác (+1)';
   $('#qExplain').innerHTML = `✅ <b>${esc(teamName)}</b> trả lời ĐÚNG và ghi được 1 điểm!`;
   $('#revealAnswerBtn')?.classList.remove('hide');
+
   playGameSound('correct');
   showAnswerBanner('good', `🎉 ${teamName} TRẢ LỜI CHÍNH XÁC! (+1 ĐIỂM)`);
-  updateGameScoreHUD();
+  renderGameScores();
+  game3d?.onCorrect(team);
 }
 
 function handleTeamWrong(team) {
   const other = team === 'A' ? 'B' : 'A';
   $(team === 'A' ? '#teamStatusA' : '#teamStatusB').textContent = '❌ Sai lượt này';
   playGameSound('wrong');
+  game3d?.onWrong(team);
+
   if (game.answeredBy.A && game.answeredBy.B) {
     game.locked = true;
     stopGameTimer();
     game.wrongHistory.push(game.current);
-    $('#qExplain').innerHTML = '❌ Cả hai đội đều trả lời chưa đúng. Giáo viên có thể bấm <b>HIỆN GIẢI THÍCH</b>.';
+    $('#qExplain').innerHTML = '❌ Cả hai đội đều trả lời chưa đúng. Giáo viên bấm <b>💡 HIỆN GIẢI THÍCH</b> để chữa bài.';
     $('#revealAnswerBtn')?.classList.remove('hide');
     showAnswerBanner('bad', '❌ CẢ HAI ĐỘI CHƯA CHÍNH XÁC!');
   } else {
@@ -2890,9 +4629,7 @@ function handleTeamWrong(team) {
   }
 }
 
-function revealGameAnswers() {
-  setGameReadMode(false);
-}
+function revealGameAnswers() { setGameReadMode(false); }
 
 function setGameReadMode(flag) {
   game.readMode = Boolean(flag);
@@ -2904,15 +4641,17 @@ function setGameReadMode(flag) {
 function revealTeacherAnswer() {
   const q = game.current; if (!q) return;
   const exp = $('#qExplain');
-  exp.innerHTML = `🎯 <b>Đáp án đúng:</b> ${answerSummaryHtml(q)}${q.explanation ? `<br>💡 <b>Giải thích:</b> ${renderRich(q.explanation)}` : ''}`;
+  exp.innerHTML = `🎯 <b>Đáp án đúng:</b> ${answerSummaryHtml(q)}${q.explanation ? ` • 💡 <b>Giải thích:</b> ${renderRich(q.explanation)}` : ''}`;
   typeset(exp);
   playGameSound('reveal');
 }
 
 function manualPoint(team) {
+  if (victoryTriggered) return;
   if (team === 'A') game.a++; else game.b++;
   playGameSound('score');
-  updateGameScoreHUD();
+  renderGameScores();
+  game3d?.onCorrect(team);
 }
 
 function startGameTimer() {
@@ -2920,13 +4659,19 @@ function startGameTimer() {
   const limit = gameTimeLimit();
   gameTimeRemaining = limit;
   gameTimerPaused = false;
-  $('#gameTimer').textContent = limit > 0 ? limit : '∞';
+  const box = $('#gameTimerBox'), txt = $('#gameTimer');
+  if (txt) txt.textContent = limit > 0 ? limit : '∞';
+  if (box) box.classList.remove('warn', 'danger');
   if (limit <= 0) return;
 
   gameTimerInterval = setInterval(() => {
     if (gameTimerPaused || game.locked) return;
     gameTimeRemaining--;
-    $('#gameTimer').textContent = Math.max(0, gameTimeRemaining);
+    if (txt) txt.textContent = Math.max(0, gameTimeRemaining);
+    if (box) {
+      box.classList.toggle('warn', gameTimeRemaining <= 10 && gameTimeRemaining > 5);
+      box.classList.toggle('danger', gameTimeRemaining <= 5);
+    }
     if (gameTimeRemaining <= 5 && gameTimeRemaining > 0) playGameSound('tick', { sec: gameTimeRemaining });
     if (gameTimeRemaining <= 0) {
       stopGameTimer();
@@ -2948,30 +4693,44 @@ function toggleGameTimerPause() {
 }
 
 function finishGameWithWinner(winnerTeam) {
+  if (victoryTriggered) return;
+  victoryTriggered = true;
   stopGameTimer();
   game.locked = true;
+
   const aName = $('#tvAName')?.textContent || 'ĐỘI XANH';
   const bName = $('#tvBName')?.textContent || 'ĐỘI ĐỎ';
   const msg = winnerTeam === 'A'
     ? `🏆 ${aName} CHIẾN THẮNG (${game.a} - ${game.b})!`
     : winnerTeam === 'B'
       ? `🏆 ${bName} CHIẾN THẮNG (${game.b} - ${game.a})!`
-      : `🤝 HÒA NHAU (${game.a} - ${game.b})!`;
-  $('#winnerText').textContent = msg;
+      : `🤝 KẾT QUẢ HÒA (${game.a} - ${game.b})!`;
+
+  $('#winnerText') && ($('#winnerText').textContent = msg);
   $('#winner')?.classList.add('show');
+  game3d?.onVictory(winnerTeam);
   playGameSound('victory');
 }
+const finishGame = finishGameWithWinner;
 
 function resetGame() {
   stopGameTimer();
+  victoryTriggered = false;
+  game3d?.reset();
   startSelectedGame();
 }
 
 function exitGame() {
   stopGameTimer();
+  victoryTriggered = false;
   document.body.classList.remove('game-presentation', 'v20-hide-answers');
+  $('#winner')?.classList.remove('show');
   $('#gamePlay')?.classList.add('hide');
   $('#gameHub')?.classList.remove('hide');
+  if (game3d) {
+    game3d.dispose();
+    game3d = null;
+  }
 }
 
 // ============================================================================
@@ -3060,7 +4819,7 @@ function previewGameSound(type) { playGameSound(type); }
 });
 
 // ============================================================================
-// VÒNG QUAY 3D (THREE.JS WHEEL3D) & SÂN ĐẤU 3D (GAME3D)
+// VÒNG QUAY 3D GỌI TÊN HỌC SINH (GIỮ NGUYÊN 100% CHỨC NĂNG WHEEL3D)
 // ============================================================================
 const WHEEL_PALETTE = [
   '#16a085', '#2980b9', '#8e44ad', '#d35400',
@@ -3105,7 +4864,6 @@ class Wheel3D {
     const arc = (Math.PI * 2) / n;
 
     for (let i = 0; i < n; i++) {
-      // Đặt lát cắt thứ 0 ở góc -PI/2 (hướng 12 giờ ngay dưới mũi tên chỉ)
       const start = -Math.PI / 2 - arc / 2 + i * arc;
       const end = start + arc;
       ctx.beginPath();
@@ -3134,7 +4892,6 @@ class Wheel3D {
       ctx.restore();
     }
 
-    // Viền vàng và tâm vòng quay
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.lineWidth = size * 0.022;
@@ -3237,97 +4994,15 @@ class Wheel3D {
   }
 }
 
-class Game3D {
-  constructor(canvas) {
-    this.canvas = canvas;
-    this.mode = 'tug';
-    this.targetOffset = 0;
-    this.currentOffset = 0;
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(42, 1.6, 0.1, 100);
-    this.camera.position.set(0, 4.2, 8.8);
-    this.camera.lookAt(0, 0.5, 0);
-
-    this.renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    const amb = new THREE.AmbientLight(0xffffff, 0.9);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
-    dir.position.set(5, 10, 7);
-    this.scene.add(amb, dir);
-
-    this.group = new THREE.Group();
-    this.scene.add(this.group);
-    this.buildScene();
-    this.resize();
-    this.animate();
-  }
-
-  buildScene() {
-    while (this.group.children.length) this.group.remove(this.group.children[0]);
-    const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(16, 8),
-      new THREE.MeshStandardMaterial({ color: 0x0d2744, roughness: 0.8 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    this.group.add(floor);
-
-    this.movingGroup = new THREE.Group();
-    const rope = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.08, 0.08, 9, 16),
-      new THREE.MeshStandardMaterial({ color: 0xe6b85c })
-    );
-    rope.rotation.z = Math.PI / 2;
-    rope.position.y = 0.7;
-
-    const flag = new THREE.Mesh(
-      new THREE.ConeGeometry(0.35, 0.75, 16),
-      new THREE.MeshStandardMaterial({ color: 0xffd859, emissive: 0x553300 })
-    );
-    flag.position.y = 1.25;
-
-    const blueBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1.3, 1.1, 1.1),
-      new THREE.MeshStandardMaterial({ color: 0x1fc5ec })
-    );
-    blueBox.position.set(-2.6, 0.65, 0);
-
-    const redBox = new THREE.Mesh(
-      new THREE.BoxGeometry(1.3, 1.1, 1.1),
-      new THREE.MeshStandardMaterial({ color: 0xff5e84 })
-    );
-    redBox.position.set(2.6, 0.65, 0);
-
-    this.movingGroup.add(rope, flag, blueBox, redBox);
-    this.group.add(this.movingGroup);
-  }
-
-  setMode(mode) { this.mode = mode || 'tug'; }
-  applyQuality() { this.resize(); }
-  updateProgress(diff, winScore = 5) {
-    const ratio = Math.max(-1, Math.min(1, diff / Math.max(1, winScore)));
-    this.targetOffset = ratio * 2.6;
-  }
-  resize() {
-    if (!this.canvas) return;
-    const rect = this.canvas.parentElement?.getBoundingClientRect() || { width: 420, height: 310 };
-    const w = Math.max(260, rect.width), h = Math.max(240, rect.height);
-    this.camera.aspect = w / h;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h, false);
-  }
-  animate() {
-    requestAnimationFrame(() => this.animate());
-    this.currentOffset += (this.targetOffset - this.currentOffset) * 0.08;
-    if (this.movingGroup) this.movingGroup.position.x = this.currentOffset;
-    if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) {
-      this.renderer.render(this.scene, this.camera);
-    }
-  }
-}
-
 // ============================================================================
 // TIỆN ÍCH TRÌNH CHIẾU TV, MODAL, KIỂM TRA KẾT NỐI & PHÍM TẮT
 // ============================================================================
-function syncActiveRenderLoops() {}
+function syncActiveRenderLoops() {
+  if (game3d && !game3d.disposed) {
+    game3d.resize();
+    game3d.requestRender();
+  }
+}
 
 function toggleCallPanel() {
   $('#callPanel')?.classList.toggle('open');
@@ -3340,6 +5015,9 @@ function toggleWheelPresentation() {
 
 function toggleGamePresentation() {
   document.body.classList.toggle('game-presentation');
+  if (document.body.classList.contains('game-presentation') && !document.fullscreenElement) {
+    document.documentElement.requestFullscreen?.().catch(() => {});
+  }
   setTimeout(() => game3d?.resize(), 120);
 }
 
@@ -3384,7 +5062,7 @@ function openQuestionImage(src) {
 }
 
 function zoomCurrentQuestionImage() {
-  const img = $('#qCentralMedia img');
+  const img = $('#qMediaA img') || $('#qCentralMedia img');
   if (img?.src) openQuestionImage(img.src);
   else toast('Câu hỏi này không có hình minh họa.');
 }
@@ -3490,10 +5168,11 @@ window.addEventListener('resize', () => {
 });
 
 // ============================================================================
-// KHỞI CHẠY ỨNG DỤNG LẦN ĐẦU
+// KHỞI CHẠY ỨNG DỤNG LẦN ĐẦU (init / initApp)
 // ============================================================================
-(async function initApp() {
+async function init() {
   unlockApiUrlInputUI();
+  upgradeGamePlayLayoutV21();
   if ($('#qualitySelect')) $('#qualitySelect').value = GRAPHICS_QUALITY;
   if ($('#teacherPasscodeInput')) $('#teacherPasscodeInput').value = localStorage.getItem(LS.passcode) || '';
 
@@ -3509,7 +5188,6 @@ window.addEventListener('resize', () => {
   renderAll();
   rebuildWheel();
 
-  // Tự động đồng bộ dữ liệu từ Google Sheet khi mở trang
   await loadStudentsFromSheet(true);
   await loadQuestionBankFromSheet(true);
   flushSyncQueue(false);
@@ -3517,7 +5195,8 @@ window.addEventListener('resize', () => {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }
-})();
+}
+init();
 </script>
 </body>
 </html>

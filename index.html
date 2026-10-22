@@ -2660,7 +2660,8 @@ const GAME_3D_CONFIG = {
   },
   tug: {
     maxShiftRatio: 0.28,
-    pullPulseDuration: 0.68
+    pullPulseDuration: 0.72,
+    customSpriteUrl: 'assets/tug_teams.png'
   },
   race: {
     cameraPos: [0, 5.2, 8.9],
@@ -2687,7 +2688,7 @@ const GAME_3D_CONFIG = {
 };
 
 // ============================================================================
-// BỐ CỤC TRÌNH CHIẾU TV: 1 CÂU HỎI LỚN Ở TRUNG TÂM + 3 CỘT ĐÁP ÁN & SÂN ĐẤU BÊN DƯỚI
+// GIAO DIỆN TRÌNH CHIẾU TV + BẢNG ĐÁP ÁN TRUNG TÂM CỠ LỚN (CÁCH B)
 // ============================================================================
 function upgradeGamePlayLayoutV21() {
   let st = $('#v21GameShowStyles');
@@ -2712,7 +2713,7 @@ function upgradeGamePlayLayoutV21() {
       gap: 8px !important;
     }
 
-    /* 1. THANH HUD PHÍA TRÊN (60-76PX) */
+    /* 1. THANH HUD PHÍA TRÊN */
     #gamePlay .game-tv-head {
       padding: 6px 14px;
       border-radius: 18px;
@@ -2783,7 +2784,7 @@ function upgradeGamePlayLayoutV21() {
     #gamePlay .tv-timer.danger b { color: #ff6e91; }
     #gamePlay .tv-timer b { font-size: clamp(26px, 2.2vw, 38px); line-height: 1; }
 
-    /* 2. KHUNG CÂU HỎI TRUNG TÂM HIỂN THỊ 1 LẦN DUY NHẤT – TO, RÕ CHO CẢ LỚP */
+    /* 2. KHUNG CÂU HỎI TRUNG TÂM HIỂN THỊ 1 LẦN DUY NHẤT */
     #gamePlay > .central-question {
       display: flex !important;
       flex-direction: column;
@@ -2797,9 +2798,7 @@ function upgradeGamePlayLayoutV21() {
       min-height: 0;
       overflow: hidden;
     }
-    #gamePlay .central-question-head {
-      display: none !important; /* Đã đưa thông tin lên thanh HUD để nhường 100% chỗ cho câu hỏi */
-    }
+    #gamePlay .central-question-head { display: none !important; }
     #gamePlay .central-question-body {
       flex: 1;
       min-height: 0;
@@ -2809,9 +2808,7 @@ function upgradeGamePlayLayoutV21() {
       gap: 20px;
       align-items: center;
     }
-    #gamePlay .central-question-body.no-image {
-      grid-template-columns: 1fr;
-    }
+    #gamePlay .central-question-body.no-image { grid-template-columns: 1fr; }
     #gamePlay .central-media {
       height: 100%;
       max-height: 34dvh;
@@ -2849,18 +2846,15 @@ function upgradeGamePlayLayoutV21() {
       text-shadow: 0 4px 16px rgba(0, 0, 0, .35);
       word-break: break-word;
     }
-    #gamePlay .central-question-body:not(.no-image) .central-q-text {
-      text-align: left;
-    }
+    #gamePlay .central-question-body:not(.no-image) .central-q-text { text-align: left; }
 
-    /* ẨN CÂU HỎI LẶP LẠI TRONG CỘT 2 ĐỘI & HUD TRÙNG LẶP */
     #teamQuestionBoxA, #teamQuestionBoxB,
     #gamePlay > .arena-progress-bar,
     #gamePlay .tv-arena .hud {
       display: none !important;
     }
 
-    /* 3. KHU VỰC 3 CỘT BÊN DƯỚI: ĐÁP ÁN ĐỘI XANH (30%) | SÂN ĐẤU (40%) | ĐÁP ÁN ĐỘI ĐỎ (30%) */
+    /* 3. KHU VỰC 3 CỘT BÊN DƯỚI */
     #gamePlay .tv-game-grid {
       min-height: 0;
       height: 100%;
@@ -2919,10 +2913,14 @@ function upgradeGamePlayLayoutV21() {
       justify-content: center;
       gap: 5px;
       box-shadow: 0 6px 0 rgba(0, 0, 0, .18);
-      transition: transform .14s;
+      transition: transform .14s, box-shadow .18s;
     }
-    #gamePlay .team-answer-grid .answer:hover:not(:disabled) {
-      transform: translateY(-2px);
+    #gamePlay .team-answer-grid .answer.correct {
+      background: linear-gradient(180deg, #b8ffdf, #48e5a0) !important;
+      color: #052e1c !important;
+      border: 3px solid #ffffff !important;
+      box-shadow: 0 0 28px rgba(62, 230, 163, .85) !important;
+      transform: scale(1.03);
     }
     #gamePlay .team-answer-grid .answer .opt-key {
       min-width: 34px;
@@ -2950,8 +2948,8 @@ function upgradeGamePlayLayoutV21() {
       border-radius: 22px;
       position: relative;
       overflow: hidden;
-      background: #f5f8fc;
-      border: 2px solid rgba(190, 225, 255, .45);
+      background: #ffffff;
+      border: 2px solid rgba(190, 225, 255, .55);
       box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
     }
     #gamePlay .tv-arena.race-mode {
@@ -2989,6 +2987,126 @@ function upgradeGamePlayLayoutV21() {
       padding: 8px 14px !important;
     }
 
+    /* =========================================================================
+       4. BẢNG TUYÊN BỐ ĐÁP ÁN & GIẢI THÍCH CỠ LỚN GIỮA MÀN HÌNH (CÁCH B)
+       ========================================================================= */
+    .center-answer-spotlight {
+      position: fixed;
+      inset: 0;
+      z-index: 10800;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(3, 11, 24, 0.76);
+      backdrop-filter: blur(10px);
+      animation: spotlightFadeIn .22s cubic-bezier(.16, 1, .3, 1);
+    }
+    .center-answer-spotlight.show {
+      display: grid;
+    }
+    @keyframes spotlightFadeIn {
+      from { opacity: 0; transform: scale(.94); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .center-answer-card {
+      width: min(1080px, 94vw);
+      max-height: 88dvh;
+      overflow-y: auto;
+      padding: 26px 34px;
+      border-radius: 28px;
+      background: radial-gradient(circle at 50% 0%, rgba(72, 229, 255, .22), transparent 48%),
+                  linear-gradient(180deg, #123258 0%, #081a30 100%);
+      border: 3px solid var(--gold);
+      box-shadow: 0 32px 90px rgba(0, 0, 0, .75), 0 0 60px rgba(255, 216, 89, .22);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .center-answer-card.good-theme {
+      border-color: #3ee6a3;
+      box-shadow: 0 32px 90px rgba(0, 0, 0, .75), 0 0 65px rgba(62, 230, 163, .28);
+    }
+    .center-answer-card.bad-theme {
+      border-color: #ff6e91;
+    }
+    .center-answer-status {
+      display: inline-flex;
+      align-self: center;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 22px;
+      border-radius: 999px;
+      font-size: clamp(20px, 1.8vw, 30px);
+      font-weight: 1000;
+      background: rgba(255, 255, 255, .1);
+      color: #ffe799;
+      border: 1.5px solid rgba(255, 216, 89, .45);
+    }
+    .center-answer-card.good-theme .center-answer-status {
+      background: rgba(62, 230, 163, .18);
+      color: #98f8d1;
+      border-color: rgba(62, 230, 163, .55);
+    }
+    .center-answer-q-preview {
+      font-size: clamp(20px, 1.65vw, 28px);
+      color: #d6e8ff;
+      font-weight: 800;
+      line-height: 1.32;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, .14);
+    }
+    .center-answer-main-box {
+      padding: 20px 26px;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #ffffff, #eef5fc);
+      color: #0d213a;
+      border: 3px solid #3ee6a3;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .28);
+    }
+    .center-answer-label {
+      font-size: clamp(15px, 1.2vw, 20px);
+      font-weight: 950;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #168055;
+      margin-bottom: 6px;
+    }
+    .center-answer-value {
+      font-size: clamp(42px, 4.2vw, 72px);
+      font-weight: 1000;
+      line-height: 1.18;
+      color: #09223c;
+      word-break: break-word;
+    }
+    .center-answer-value mjx-container {
+      font-size: 1.08em !important;
+    }
+    .center-answer-explain {
+      padding: 16px 22px;
+      border-radius: 18px;
+      background: rgba(6, 20, 38, .88);
+      border: 1.5px solid rgba(255, 216, 89, .45);
+      color: #fff6d1;
+      font-size: clamp(22px, 1.9vw, 34px);
+      font-weight: 850;
+      line-height: 1.38;
+      text-align: left;
+    }
+    .center-answer-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+    .center-answer-actions .btn {
+      font-size: clamp(18px, 1.4vw, 24px);
+      padding: 13px 24px;
+      border-radius: 16px;
+    }
+
     @media (max-width: 1220px) {
       #gamePlay { height: auto; grid-template-rows: auto auto auto; overflow: visible; }
       #gamePlay .game-tv-head { grid-template-columns: repeat(4, 1fr); height: auto; }
@@ -3001,7 +3119,6 @@ function upgradeGamePlayLayoutV21() {
   const gp = $('#gamePlay');
   if (!gp) return;
 
-  // Cập nhật thanh HUD trên cùng
   const head = gp.querySelector('.game-tv-head');
   if (head && !head.querySelector('#hudSoundBtn')) {
     head.innerHTML = `
@@ -3037,11 +3154,9 @@ function upgradeGamePlayLayoutV21() {
     `;
   }
 
-  // Xóa các hộp câu hỏi phụ trong 2 cột đội nếu có từ phiên bản trước
   $('#teamQuestionBoxA')?.remove();
   $('#teamQuestionBoxB')?.remove();
 
-  // Đảm bảo Sân 3D, Thanh phản hồi và Nút điều khiển nằm gọn trong cột giữa (.tv-arena-col)
   const grid = gp.querySelector('.tv-game-grid');
   const arena = gp.querySelector('.tv-arena');
   const panelB = $('#teamPanelB');
@@ -3056,6 +3171,110 @@ function upgradeGamePlayLayoutV21() {
     if (feedback) centerCol.appendChild(feedback);
     if (actions) centerCol.appendChild(actions);
   }
+
+  // Đổi nhãn nút #revealAnswerBtn để giáo viên mở bảng đáp án trung tâm bất cứ lúc nào
+  const revBtn = $('#revealAnswerBtn');
+  if (revBtn) {
+    revBtn.textContent = '🎯 ĐÁP ÁN & GIẢI THÍCH (E)';
+    revBtn.classList.remove('hide');
+  }
+
+  // Khởi tạo Modal Bảng Tuyên Bố Đáp Án Giữa Màn Hình (Cách B)
+  if (!$('#centerAnswerSpotlight')) {
+    const spot = document.createElement('div');
+    spot.id = 'centerAnswerSpotlight';
+    spot.className = 'center-answer-spotlight';
+    spot.innerHTML = `
+      <div id="centerAnswerCard" class="center-answer-card good-theme">
+        <div id="centerAnswerStatus" class="center-answer-status">🎯 ĐÁP ÁN CHÍNH THỨC</div>
+        <div id="centerAnswerQPreview" class="center-answer-q-preview"></div>
+        <div class="center-answer-main-box">
+          <div class="center-answer-label">ĐÁP ÁN ĐÚNG</div>
+          <div id="centerAnswerValue" class="center-answer-value">A</div>
+        </div>
+        <div id="centerAnswerExplain" class="center-answer-explain hide"></div>
+        <div class="center-answer-actions">
+          <button id="centerToggleExpBtn" class="btn gold" onclick="toggleCenterExplanation()">💡 HIỆN GIẢI THÍCH (E)</button>
+          <button class="btn primary" onclick="closeCenterAnswerSpotlight(); nextQuestion();">❓ CÂU TIẾP THEO (N)</button>
+          <button class="btn ghost" onclick="closeCenterAnswerSpotlight()">✕ Thu gọn (Xem sân đấu)</button>
+        </div>
+      </div>
+    `;
+    spot.addEventListener('click', e => {
+      if (e.target === spot) closeCenterAnswerSpotlight();
+    });
+    document.body.appendChild(spot);
+  }
+}
+
+function showCenterAnswerSpotlight(opts = {}) {
+  const q = game.current;
+  if (!q) return;
+  upgradeGamePlayLayoutV21();
+
+  const spot = $('#centerAnswerSpotlight');
+  const card = $('#centerAnswerCard');
+  const statusEl = $('#centerAnswerStatus');
+  const qPrevEl = $('#centerAnswerQPreview');
+  const valEl = $('#centerAnswerValue');
+  const expEl = $('#centerAnswerExplain');
+  const expBtn = $('#centerToggleExpBtn');
+  if (!spot || !card) return;
+
+  const theme = opts.theme || 'good';
+  card.className = `center-answer-card ${theme === 'bad' ? 'bad-theme' : 'good-theme'}`;
+  statusEl.textContent = opts.title || '🎯 ĐÁP ÁN CHÍNH THỨC';
+  qPrevEl.innerHTML = renderQuestionOnlyText(q.question || '');
+  valEl.innerHTML = answerSummaryHtml(q);
+
+  const hasExp = Boolean(String(q.explanation || '').trim());
+  const showExp = Boolean(opts.showExplanation && hasExp);
+  if (hasExp) {
+    expEl.innerHTML = `💡 <b>Giải thích chi tiết:</b><br>${renderRich(q.explanation)}`;
+    expEl.classList.toggle('hide', !showExp);
+    expBtn.textContent = showExp ? '🙈 ẨN GIẢI THÍCH (E)' : '💡 HIỆN GIẢI THÍCH (E)';
+  } else {
+    expEl.innerHTML = `🎯 <b>Đáp án đúng:</b> ${answerSummaryHtml(q)}`;
+    expEl.classList.toggle('hide', !opts.showExplanation);
+    expBtn.textContent = opts.showExplanation ? '🙈 ẨN CHI TIẾT (E)' : '💡 HIỆN GIẢI THÍCH (E)';
+  }
+
+  spot.classList.add('show');
+  typeset(card);
+
+  // Đồng thời tô sáng ô đáp án đúng ở cả 2 cột Đội Xanh và Đội Đỏ bên dưới
+  highlightCorrectChoicesOnBothTeams(q);
+}
+
+function closeCenterAnswerSpotlight() {
+  $('#centerAnswerSpotlight')?.classList.remove('show');
+}
+
+function toggleCenterExplanation() {
+  const spot = $('#centerAnswerSpotlight');
+  const expEl = $('#centerAnswerExplain');
+  const expBtn = $('#centerToggleExpBtn');
+  if (!spot?.classList.contains('show')) {
+    showCenterAnswerSpotlight({ title: '🎯 ĐÁP ÁN & LỜI GIẢI CHI TIẾT', theme: 'good', showExplanation: true });
+    return;
+  }
+  if (!expEl) return;
+  const willShow = expEl.classList.contains('hide');
+  expEl.classList.toggle('hide', !willShow);
+  if (expBtn) expBtn.textContent = willShow ? '🙈 ẨN GIẢI THÍCH (E)' : '💡 HIỆN GIẢI THÍCH (E)';
+  if (willShow) typeset(expEl);
+}
+
+function highlightCorrectChoicesOnBothTeams(q) {
+  if (!q || String(q.type || 'MC').toUpperCase() !== 'MC') return;
+  const right = correctIndex(q);
+  ['#answersA', '#answersB'].forEach(sel => {
+    const host = $(sel);
+    if (!host) return;
+    host.querySelectorAll('.answer').forEach((btn, idx) => {
+      if (idx === right) btn.classList.add('correct');
+    });
+  });
 }
 
 function toggleGameSoundFromHud() {
@@ -3069,9 +3288,156 @@ function toggleGameSoundFromHud() {
 }
 
 // ============================================================================
-// CLASS 1: TugOfWarScene – ĐẤU TRƯỜNG KÉO CO HOẠT HÌNH GIỐNG HỆT ẢNH MẪU
-// (Sân trắng sáng, vạch đứt nét xanh lá giữa sân, nơ đỏ tâm dây, 6 học sinh
-// đeo khăn quàng đỏ, đồng phục thể thao Xanh/Đỏ kẻ sọc trắng, cử động khớp)
+// TẠO SPRITE VECTOR MINH HỌA HỌC SINH KÉO CO CHẤT LƯỢNG CAO (PHƯƠNG ÁN 1)
+// (Thiết kế theo đúng mẫu 6 học sinh đeo khăn quàng đỏ, đồng phục thể thao
+// Xanh/Đỏ kẻ sọc trắng, tóc tỉa lớp anime/chibi, tư thế bám dây tự nhiên)
+// ============================================================================
+function buildChibiStudentSVGGroup(isBlue, isFemale, isSmile) {
+  const jacket = isBlue ? '#3b73b9' : '#c83e37';
+  const jacketShadow = isBlue ? '#2a5691' : '#9e2a25';
+  const pants = isBlue ? '#2f5f9e' : '#a8322d';
+  const pantsShadow = isBlue ? '#214678' : '#7d201c';
+  const stripe = '#e8f1fa';
+  const shoeBand = isBlue ? '#3b73b9' : '#c83e37';
+
+  // Vẽ nhân vật gốc hướng mặt sang phải (+X), khi là Đội Đỏ sẽ được lật đối xứng qua trục X
+  return `
+    <g>
+      <!-- Bóng đổ dưới chân -->
+      <ellipse cx="4" cy="212" rx="46" ry="11" fill="rgba(30,45,65,0.18)"/>
+
+      <!-- Đuôi tóc buộc dây đỏ (nếu là học sinh nữ ở giữa) -->
+      ${isFemale ? `
+        <g transform="translate(-34, -52)">
+          <path d="M 4 2 C -18 -14, -44 -2, -46 22 C -32 24, -14 14, 2 6 Z" fill="#3a2314" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M -6 0 C -22 -4, -34 6, -36 16" stroke="#593822" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <circle cx="2" cy="3" r="6.5" fill="#e53935" stroke="#1e120a" stroke-width="2.8"/>
+        </g>
+      ` : ''}
+
+      <!-- CÁNH TAY SAU & BÀN TAY NẮM DÂY -->
+      <path d="M -2 -18 C 14 -12, 32 -4, 48 2" stroke="#1e120a" stroke-width="27" stroke-linecap="round" fill="none"/>
+      <path d="M -2 -18 C 14 -12, 32 -4, 48 2" stroke="${jacketShadow}" stroke-width="20" stroke-linecap="round" fill="none"/>
+
+      <!-- CHÂN SAU (Đạp trụ phía sau) -->
+      <path d="M -18 58 L -38 122 L -52 192" stroke="#1e120a" stroke-width="33" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M -18 58 L -38 122 L -52 192" stroke="${pantsShadow}" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M -22 64 L -40 122 L -53 186" stroke="${stripe}" stroke-width="4.5" stroke-linecap="round" fill="none" opacity="0.85"/>
+
+      <!-- Giày chân sau -->
+      <g transform="translate(-50, 198) rotate(-4)">
+        <rect x="-22" y="-12" width="50" height="24" rx="11" fill="#ffffff" stroke="#1e120a" stroke-width="3.5"/>
+        <path d="M -10 -4 L 14 -4" stroke="${shoeBand}" stroke-width="6" stroke-linecap="round"/>
+        <rect x="-22" y="7" width="50" height="6" rx="3" fill="#cfd8e3"/>
+      </g>
+
+      <!-- CHÂN TRƯỚC (Cong gối chống lực kéo phía trước) -->
+      <path d="M 4 56 L 26 120 L 48 192" stroke="#1e120a" stroke-width="34" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M 4 56 L 26 120 L 48 192" stroke="${pants}" stroke-width="27" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M 6 62 L 27 120 L 47 186" stroke="${stripe}" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M 11 64 L 31 120 L 51 184" stroke="${stripe}" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+      <!-- Giày chân trước -->
+      <g transform="translate(50, 198) rotate(-14)">
+        <rect x="-20" y="-12" width="52" height="24" rx="11" fill="#ffffff" stroke="#1e120a" stroke-width="3.5"/>
+        <path d="M -8 -4 L 16 -4" stroke="${shoeBand}" stroke-width="6.5" stroke-linecap="round"/>
+        <rect x="-20" y="7" width="52" height="6" rx="3" fill="#cfd8e3"/>
+      </g>
+
+      <!-- THÂN ÁO KHOÁC THỂ THAO (Nghiêng người về sau kéo dây) -->
+      <g transform="rotate(-17)">
+        <path d="M -28 -32 C -32 4, -28 42, -24 64 L 26 64 C 30 40, 28 2, 24 -32 Z" fill="${jacket}" stroke="#1e120a" stroke-width="3.8" stroke-linejoin="round"/>
+        <!-- Nếp gấp áo & khóa kéo giữa ngực -->
+        <path d="M 4 -28 L 6 60" stroke="${jacketShadow}" stroke-width="3" stroke-linecap="round"/>
+        <path d="M -24 48 L 24 48" stroke="#1e120a" stroke-width="3"/>
+
+        <!-- KHĂN QUÀNG ĐỎ HỌC SINH VIỆT NAM -->
+        <path d="M -24 -33 Q 0 -24 24 -33 L 14 -4 L -4 -14 Z" fill="#e53935" stroke="#1e120a" stroke-width="3" stroke-linejoin="round"/>
+        <!-- Đuôi khăn quàng đỏ tung bay -->
+        <path d="M 8 -14 L 24 14 L 10 18 L 0 -10 Z" fill="#d32f2f" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
+        <path d="M 2 -12 L -14 12 L -24 6 L -6 -14 Z" fill="#f44336" stroke="#1e120a" stroke-width="2.8" stroke-linejoin="round"/>
+        <circle cx="4" cy="-14" r="5.5" fill="#e53935" stroke="#1e120a" stroke-width="2.6"/>
+      </g>
+
+      <!-- ĐẦU, TÓC HOẠT HÌNH TỈA LỚP & KHUÔN MẶT -->
+      <g transform="translate(-12, -68) rotate(-8)">
+        <!-- Cổ -->
+        <rect x="-9" y="24" width="18" height="16" rx="6" fill="#f7cdb0" stroke="#1e120a" stroke-width="3"/>
+
+        <!-- Khuôn mặt bầu bĩnh -->
+        <ellipse cx="2" cy="0" rx="34" ry="31" fill="#fde0c8" stroke="#1e120a" stroke-width="3.6"/>
+
+        <!-- Tai trái -->
+        <circle cx="-30" cy="4" r="8" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
+        <path d="M -31 2 Q -28 4 -30 7" stroke="#d49b78" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+        <!-- Má hồng -->
+        <ellipse cx="-2" cy="10" rx="6.5" ry="3.6" fill="#ff8da1" opacity="0.55"/>
+        <ellipse cx="24" cy="9" rx="5.5" ry="3.2" fill="#ff8da1" opacity="0.55"/>
+
+        <!-- Đôi mắt to biểu cảm & lông mày -->
+        <path d="M -2 -10 Q 5 -14 11 -10" stroke="#2b190e" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+        <path d="M 19 -11 Q 25 -14 29 -9" stroke="#2b190e" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="5" cy="-2" rx="4.2" ry="4.8" fill="#1e120a"/>
+        <circle cx="3.5" cy="-4" r="1.6" fill="#ffffff"/>
+        <ellipse cx="24" cy="-2" rx="3.8" ry="4.5" fill="#1e120a"/>
+        <circle cx="22.8" cy="-4" r="1.4" fill="#ffffff"/>
+
+        <!-- Mũi & Miệng tươi tắn -->
+        <path d="M 15 3 Q 17 5 15 7" stroke="#c98a67" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+        ${isSmile
+          ? `<path d="M 7 13 Q 15 21 22 13 Z" fill="#e55353" stroke="#1e120a" stroke-width="2.5" stroke-linejoin="round"/>`
+          : `<path d="M 8 14 Q 15 19 21 13" stroke="#1e120a" stroke-width="2.8" fill="none" stroke-linecap="round"/>`
+        }
+
+        <!-- Mái tóc nâu hạt dẻ tỉa nhọn kiểu hoạt hình học sinh -->
+        <path d="M -33 2
+                 C -38 -22, -18 -38, 4 -36
+                 C 24 -36, 38 -22, 35 -2
+                 C 31 -8, 25 -14, 20 -8
+                 C 16 -16, 8 -18, 2 -8
+                 C -4 -17, -14 -16, -18 -6
+                 C -23 -12, -29 -8, -33 2 Z"
+              fill="#3d2516" stroke="#1e120a" stroke-width="3.5" stroke-linejoin="round"/>
+        <!-- Ánh sáng bóng trên tóc -->
+        <path d="M -14 -24 Q 4 -30 20 -22" stroke="#63402a" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.7"/>
+      </g>
+
+      <!-- CÁNH TAY TRƯỚC (Kẻ 2 sọc trắng thể thao) & BÀN TAY NẮM DÂY THỪNG -->
+      <path d="M -10 -12 L 10 4 L 34 2" stroke="#1e120a" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M -10 -12 L 10 4 L 34 2" stroke="${jacket}" stroke-width="21" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M -8 -14 L 10 1 L 31 -1" stroke="${stripe}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <path d="M -11 -9 L 8 6 L 30 4" stroke="${stripe}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+      <!-- Hai bàn tay nắm chặt quanh sợi dây thừng (ở y = 2) -->
+      <circle cx="50" cy="2" r="10.5" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
+      <circle cx="35" cy="3" r="11" fill="#fde0c8" stroke="#1e120a" stroke-width="3.2"/>
+      <!-- Ngón tay nắm dây -->
+      <path d="M 31 -2 Q 35 2 39 -2 M 46 -2 Q 50 2 54 -2" stroke="#c98a67" stroke-width="2" fill="none" stroke-linecap="round"/>
+    </g>
+  `;
+}
+
+function createTeamSpriteDataUrl(isBlue) {
+  const positions = [150, 320, 490];
+  let membersSvg = '';
+  positions.forEach((x, idx) => {
+    const isFemale = idx === 1;
+    const isSmile = idx !== 2;
+    membersSvg += `<g transform="translate(${x}, 145)">${buildChibiStudentSVGGroup(isBlue, isFemale, isSmile)}</g>`;
+  });
+
+  // Nếu là Đội Đỏ (bên phải), lật đối xứng toàn đội để hướng mặt sang trái kéo về bên phải
+  const wrapper = isBlue
+    ? `<g>${membersSvg}</g>`
+    : `<g transform="translate(640, 0) scale(-1, 1)">${membersSvg}</g>`;
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="390" viewBox="0 0 640 390">${wrapper}</svg>`;
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+}
+
+// ============================================================================
+// CLASS 1: TugOfWarScene – SÂN KÉO CO SPRITE 2.5D GIỐNG ẢNH MẪU
 // ============================================================================
 class TugOfWarScene {
   constructor(parentGroup, quality = 'balanced') {
@@ -3080,15 +3446,26 @@ class TugOfWarScene {
     this.group = new THREE.Group();
     this.parent.add(this.group);
 
-    this.targetShiftRatio = 0; // -1 (Xanh thắng) .. 0 (Giữa sân) .. +1 (Đỏ thắng)
+    this.targetShiftRatio = 0;
     this.currentShiftRatio = 0;
     this.pullPulseA = 0;
     this.pullPulseB = 0;
-    this.stateA = 'idle'; // idle | pull | resist | loseBalance | victory | defeat
+    this.stateA = 'idle';
     this.stateB = 'idle';
     this.particles = [];
 
-    // Khởi tạo Canvas 2D độ phân giải cao gắn vào Plane 3D để vẽ nhân vật học sinh sắc nét như ảnh mẫu
+    // Khởi tạo Sprite Đội Xanh, Đội Đỏ và hỗ trợ ảnh tùy chỉnh assets/tug_teams.png nếu có
+    this.blueTeamImg = new Image();
+    this.redTeamImg = new Image();
+    this.blueTeamImg.src = createTeamSpriteDataUrl(true);
+    this.redTeamImg.src = createTeamSpriteDataUrl(false);
+
+    this.customCombinedImg = null;
+    const customImg = new Image();
+    customImg.onload = () => { this.customCombinedImg = customImg; };
+    customImg.onerror = () => {};
+    customImg.src = GAME_3D_CONFIG.tug.customSpriteUrl;
+
     const qCfg = GAME_3D_CONFIG.quality[this.quality] || GAME_3D_CONFIG.quality.balanced;
     this.canvasW = Math.round(1440 * qCfg.canvasScale);
     this.canvasH = Math.round(840 * qCfg.canvasScale);
@@ -3112,15 +3489,15 @@ class TugOfWarScene {
 
   spawnFootDust(isBlue) {
     const dir = isBlue ? -1 : 1;
-    const baseOffsets = isBlue ? [-165, -310, -455] : [165, 310, 455];
+    const baseOffsets = isBlue ? [-165, -315, -465] : [165, 315, 465];
     baseOffsets.forEach(off => {
       for (let i = 0; i < 4; i++) {
         this.particles.push({
           type: 'dust',
-          x: 720 + this.currentShiftRatio * 260 + off + (Math.random() - 0.5) * 40,
-          y: 625 + (Math.random() - 0.5) * 18,
-          vx: -dir * (45 + Math.random() * 65),
-          vy: -25 - Math.random() * 40,
+          x: 720 + this.currentShiftRatio * 250 + off + (Math.random() - 0.5) * 40,
+          y: 638 + (Math.random() - 0.5) * 16,
+          vx: -dir * (48 + Math.random() * 68),
+          vy: -22 - Math.random() * 38,
           r: 10 + Math.random() * 12,
           life: 0.55,
           maxLife: 0.55
@@ -3134,11 +3511,11 @@ class TugOfWarScene {
     for (let i = 0; i < 85; i++) {
       this.particles.push({
         type: 'confetti',
-        x: 200 + Math.random() * 1040,
+        x: 180 + Math.random() * 1080,
         y: -20 - Math.random() * 260,
         vx: (Math.random() - 0.5) * 140,
         vy: 160 + Math.random() * 180,
-        w: 12 + Math.random() * 8,
+        w: 13 + Math.random() * 8,
         h: 7 + Math.random() * 6,
         rot: Math.random() * Math.PI * 2,
         vRot: (Math.random() - 0.5) * 8,
@@ -3202,351 +3579,6 @@ class TugOfWarScene {
     this.particles = [];
   }
 
-  // Vẽ 1 học sinh hoạt hình chi tiết (Tóc, Mắt, Miệng, Khăn quàng đỏ, Đồ thể thao sọc trắng, Giày, Tay nắm dây)
-  drawCartoonStudent(ctx, opts) {
-    const {
-      x, y, isBlue, isFemale, index, state, pulse, elapsed
-    } = opts;
-
-    // Đội Xanh đứng bên trái hướng mặt sang phải (dir = +1), Đội Đỏ đứng bên phải hướng mặt sang trái (dir = -1)
-    const dir = isBlue ? 1 : -1;
-    const phase = index * 1.15;
-    const t = elapsed * 5.6 + phase;
-    const heave = Math.sin(t);
-    const pulseWave = pulse > 0 ? Math.sin((pulse / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
-
-    // Bảng màu đồng phục giống ảnh mẫu
-    const shirtColor = isBlue ? '#2b6cb0' : '#c53030';
-    const shirtDark  = isBlue ? '#1e4e8c' : '#9b2c2c';
-    const pantsColor = isBlue ? '#2c5282' : '#9b2c2c';
-    const stripeColor = isBlue ? '#90cdf4' : '#feb2b2';
-    const shoeAccent  = isBlue ? '#3182ce' : '#e53e3e';
-    const outlineColor = '#231f20';
-
-    ctx.save();
-    ctx.translate(x, y);
-
-    // 1. Bóng đổ elip mềm dưới mặt đất
-    ctx.fillStyle = 'rgba(20, 35, 60, 0.16)';
-    ctx.beginPath();
-    ctx.ellipse(0, 128, 62, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Tính góc nghiêng người và độ nhún nhảy theo trạng thái
-    let leanAngle = -dir * 0.28; // Nghiêng người về phía sau để kéo dây
-    let bounceY = Math.abs(Math.cos(t)) * 5;
-    let victoryJump = 0;
-
-    if (state === 'pull') {
-      leanAngle = -dir * (0.35 + pulseWave * 0.14 + heave * 0.05);
-      bounceY = Math.abs(heave) * 7;
-    } else if (state === 'resist') {
-      leanAngle = -dir * (0.22 + heave * 0.04);
-    } else if (state === 'loseBalance') {
-      leanAngle = -dir * (0.06 - Math.abs(Math.sin(t * 1.3)) * 0.14);
-    } else if (state === 'victory') {
-      leanAngle = Math.sin(elapsed * 7 + phase) * 0.08;
-      victoryJump = -Math.abs(Math.sin(elapsed * 8.5 + phase)) * 34;
-      bounceY = 0;
-    } else if (state === 'defeat') {
-      leanAngle = dir * 0.12;
-      bounceY = 6;
-    }
-
-    ctx.translate(0, bounceY + victoryJump);
-
-    // Hàm vẽ đoạn tay/chân bo tròn có viền hoạt hình và sọc thể thao
-    const drawLimb = (x1, y1, x2, y2, width, fill, stripe = null) => {
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      // Viền ngoài
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = width + 6;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      // Màu chính
-      ctx.strokeStyle = fill;
-      ctx.lineWidth = width;
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-      // Sọc thể thao dọc ống quần/tay áo
-      if (stripe) {
-        ctx.strokeStyle = stripe;
-        ctx.lineWidth = 4.5;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-      }
-    };
-
-    // Hàm vẽ giày thể thao học sinh
-    const drawSneaker = (fx, fy, angle) => {
-      ctx.save();
-      ctx.translate(fx, fy);
-      ctx.rotate(angle);
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 3.2;
-      ctx.beginPath();
-      ctx.roundRect(-18, -10, 42, 20, 9);
-      ctx.fill();
-      ctx.stroke();
-      // Sọc màu trên giày
-      ctx.fillStyle = shoeAccent;
-      ctx.beginPath();
-      ctx.roundRect(-6, -5, 18, 8, 3);
-      ctx.fill();
-      // Đế giày
-      ctx.fillStyle = '#cbd5e1';
-      ctx.beginPath();
-      ctx.roundRect(-18, 6, 42, 5, 2);
-      ctx.fill();
-      ctx.restore();
-    };
-
-    // Tọa độ hông (Hip) dịch theo độ nghiêng người
-    const hipX = Math.sin(leanAngle) * 28;
-    const hipY = 38;
-
-    // 2. HAI CHÂN BƯỚC VỮNG TRÊN SÂN (Chân sau & Chân trước cong gối)
-    const stepShift = state === 'victory' ? 0 : Math.sin(t) * 6;
-    const backKneeX = hipX - dir * 24;
-    const backKneeY = 78;
-    const backFootX = -dir * (42 - stepShift);
-    const backFootY = 118 - victoryJump * 0.4;
-
-    const frontKneeX = hipX + dir * 26;
-    const frontKneeY = 74;
-    const frontFootX = dir * (44 + stepShift);
-    const frontFootY = 118 - victoryJump * 0.4;
-
-    // Vẽ chân sau
-    drawLimb(hipX - dir * 6, hipY, backKneeX, backKneeY, 22, pantsColor);
-    drawLimb(backKneeX, backKneeY, backFootX, backFootY, 20, pantsColor, stripeColor);
-    drawSneaker(backFootX, backFootY, -dir * 0.08);
-
-    // Vẽ chân trước
-    drawLimb(hipX + dir * 6, hipY, frontKneeX, frontKneeY, 23, pantsColor, stripeColor);
-    drawLimb(frontKneeX, frontKneeY, frontFootX, frontFootY, 21, pantsColor, stripeColor);
-    drawSneaker(frontFootX, frontFootY, -dir * 0.18);
-
-    // 3. THÂN ÁO THỂ THAO & KHĂN QUÀNG ĐỎ
-    const shoulderX = hipX + Math.sin(leanAngle) * 58;
-    const shoulderY = hipY - Math.cos(leanAngle) * 58;
-
-    // Tay sau (nằm phía sau thân người)
-    const ropeGrabY = -2 - (bounceY + victoryJump); // Giữ đúng cao độ dây thừng
-    if (state === 'victory') {
-      drawLimb(shoulderX, shoulderY + 6, shoulderX - dir * 32, shoulderY - 46, 17, shirtDark, stripeColor);
-    } else {
-      const backElbowX = shoulderX + dir * 18;
-      const backElbowY = shoulderY + 22;
-      const backHandX = dir * (38 - pulseWave * 10);
-      drawLimb(shoulderX, shoulderY + 6, backElbowX, backElbowY, 17, shirtDark);
-      drawLimb(backElbowX, backElbowY, backHandX, ropeGrabY, 16, shirtDark, stripeColor);
-      // Bàn tay nắm dây
-      ctx.fillStyle = '#ffdfc4';
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(backHandX, ropeGrabY, 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    // Vẽ thân áo (Torso)
-    ctx.save();
-    ctx.translate((hipX + shoulderX) / 2, (hipY + shoulderY) / 2);
-    ctx.rotate(leanAngle);
-    ctx.fillStyle = shirtColor;
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 3.5;
-    ctx.beginPath();
-    ctx.roundRect(-24, -34, 48, 66, 18);
-    ctx.fill();
-    ctx.stroke();
-
-    // Sọc thể thao trước ngực
-    ctx.fillStyle = stripeColor;
-    ctx.fillRect(-22, -8, 44, 8);
-
-    // Khăn quàng đỏ học sinh Việt Nam trên cổ áo
-    ctx.fillStyle = '#e53e3e';
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 2.6;
-    ctx.beginPath();
-    ctx.moveTo(-18, -32);
-    ctx.lineTo(18, -32);
-    ctx.lineTo(dir * 10, -8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Đuôi khăn quàng đỏ bay nhẹ
-    const scarfWave = Math.sin(elapsed * 7 + phase) * 5;
-    ctx.beginPath();
-    ctx.moveTo(dir * 4, -22);
-    ctx.lineTo(-dir * 26, -12 + scarfWave);
-    ctx.lineTo(-dir * 18, -2 + scarfWave);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // 4. ĐẦU, TÓC HOẠT HÌNH & BIỂU CẢM KHUÔN MẶT
-    const headX = shoulderX + Math.sin(leanAngle * 0.6) * 28;
-    const headY = shoulderY - 30;
-
-    ctx.save();
-    ctx.translate(headX, headY);
-    ctx.rotate(leanAngle * 0.35);
-
-    // Nếu là bạn nữ ở giữa: vẽ đuôi tóc buộc dây đỏ phía sau đầu
-    if (isFemale) {
-      const ponyWave = Math.sin(elapsed * 8 + phase) * 0.18;
-      ctx.save();
-      ctx.translate(-dir * 26, -6);
-      ctx.rotate(-dir * (0.4 + ponyWave));
-      // Dây cột tóc đỏ
-      ctx.fillStyle = '#e53e3e';
-      ctx.beginPath();
-      ctx.arc(0, 0, 6, 0, Math.PI * 2);
-      ctx.fill();
-      // Đuôi tóc
-      ctx.fillStyle = '#2d1e18';
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, -4);
-      ctx.quadraticCurveTo(-dir * 28, -14, -dir * 38, 12);
-      ctx.quadraticCurveTo(-dir * 18, 22, 0, 5);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    // Khuôn mặt tròn bầu bĩnh
-    ctx.fillStyle = '#ffe0c4';
-    ctx.strokeStyle = outlineColor;
-    ctx.lineWidth = 3.4;
-    ctx.beginPath();
-    ctx.arc(0, 0, 27, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Tai
-    ctx.beginPath();
-    ctx.arc(-dir * 18, 3, 6.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // Tóc mái học sinh màu nâu đen ấm áp
-    ctx.fillStyle = '#362317';
-    ctx.beginPath();
-    ctx.arc(0, -3, 28.5, Math.PI * 0.92, Math.PI * 2.08);
-    ctx.quadraticCurveTo(dir * 14, -8, dir * 4, -14);
-    ctx.quadraticCurveTo(-dir * 8, -6, -dir * 26, -2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // Má hồng dễ thương
-    ctx.fillStyle = 'rgba(255, 105, 135, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(dir * 12, 7, 5.5, 3.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Mắt & Lông mày theo trạng thái (Gồng kéo / Vui mừng / Mệt)
-    const eyeX = dir * 13;
-    const eyeY = -2;
-    ctx.strokeStyle = outlineColor;
-    ctx.fillStyle = outlineColor;
-    ctx.lineWidth = 2.8;
-
-    if (state === 'victory') {
-      // Mắt cười cong hình vòng cung
-      ctx.beginPath();
-      ctx.arc(eyeX, eyeY, 5, Math.PI * 1.1, Math.PI * 1.9);
-      ctx.stroke();
-    } else {
-      // Mắt tròn sáng có đốm sáng trắng
-      ctx.beginPath();
-      ctx.arc(eyeX, eyeY, 3.8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.arc(eyeX + dir * 1.2, eyeY - 1.2, 1.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Lông mày quyết tâm khi kéo dây
-      ctx.strokeStyle = '#2d1e18';
-      ctx.lineWidth = 2.8;
-      ctx.beginPath();
-      ctx.moveTo(eyeX - dir * 6, eyeY - 9);
-      ctx.lineTo(eyeX + dir * 6, eyeY - (state === 'pull' ? 6.5 : 8.5));
-      ctx.stroke();
-    }
-
-    // Miệng biểu cảm
-    ctx.strokeStyle = '#7b241c';
-    ctx.lineWidth = 2.6;
-    if (state === 'pull' || pulse > 0) {
-      // Miệng nghiến răng gồng sức kéo
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(dir * 7, 8, 12, 7, 3);
-      ctx.fill();
-      ctx.stroke();
-    } else if (state === 'victory') {
-      // Miệng cười lớn chiến thắng
-      ctx.fillStyle = '#e53e3e';
-      ctx.beginPath();
-      ctx.arc(dir * 12, 8, 6.5, 0, Math.PI);
-      ctx.fill();
-      ctx.stroke();
-    } else {
-      // Nụ cười tự tin
-      ctx.beginPath();
-      ctx.arc(dir * 11, 7, 5, 0.15 * Math.PI, 0.85 * Math.PI);
-      ctx.stroke();
-    }
-    ctx.restore();
-
-    // 5. CÁNH TAY TRƯỚC NẮM CHẶT DÂY THỪNG
-    if (state === 'victory') {
-      drawLimb(shoulderX, shoulderY + 8, shoulderX + dir * 28, shoulderY - 48, 18, shirtColor, stripeColor);
-      ctx.fillStyle = '#ffdfc4';
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(shoulderX + dir * 28, shoulderY - 50, 9.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    } else {
-      const frontElbowX = shoulderX - dir * 8;
-      const frontElbowY = shoulderY + 26;
-      const frontHandX = dir * (16 - pulseWave * 10);
-      drawLimb(shoulderX, shoulderY + 8, frontElbowX, frontElbowY, 18, shirtColor, stripeColor);
-      drawLimb(frontElbowX, frontElbowY, frontHandX, ropeGrabY + 2, 17, shirtColor, stripeColor);
-
-      ctx.fillStyle = '#ffdfc4';
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(frontHandX, ropeGrabY + 2, 9.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    ctx.restore();
-  }
-
   drawStage2D(elapsed) {
     const ctx = this.ctx;
     const W = this.canvasW;
@@ -3556,163 +3588,146 @@ class TugOfWarScene {
     ctx.save();
     ctx.scale(scale, scale);
 
-    // 1. Nền sân trắng sáng sạch sẽ giống ảnh mẫu
+    // 1. Nền sân trắng sạch sẽ có chiều sâu nhẹ như ảnh mẫu
     const bgGrad = ctx.createLinearGradient(0, 0, 0, 840);
     bgGrad.addColorStop(0, '#ffffff');
-    bgGrad.addColorStop(0.72, '#f4f8fc');
-    bgGrad.addColorStop(1, '#e6eef7');
+    bgGrad.addColorStop(0.75, '#f8fafd');
+    bgGrad.addColorStop(1, '#eef3f9');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 1440, 840);
 
-    // Vùng sàn đấu bên dưới
-    ctx.fillStyle = '#edf3f9';
-    ctx.fillRect(0, 560, 1440, 280);
-
-    // 2. Hai vạch giới hạn thắng cuộc hai bên (Xanh & Đỏ mờ)
+    // 2. Vạch kẻ đứt nét màu xanh lá cây chính giữa sân (giống ảnh mẫu 100%)
     ctx.save();
-    ctx.setLineDash([12, 10]);
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(49, 130, 206, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(460, 60);
-    ctx.lineTo(460, 790);
-    ctx.stroke();
-
-    ctx.strokeStyle = 'rgba(229, 62, 62, 0.35)';
-    ctx.beginPath();
-    ctx.moveTo(980, 60);
-    ctx.lineTo(980, 790);
-    ctx.stroke();
-
-    // 3. VẠCH KẺ ĐỨT NÉT MÀU XANH LÁ Ở CHÍNH GIỮA SÂN (Giống hệt ảnh mẫu)
     ctx.setLineDash([16, 14]);
-    ctx.lineWidth = 7;
+    ctx.lineWidth = 7.5;
     ctx.strokeStyle = '#2ecc71';
     ctx.beginPath();
-    ctx.moveTo(720, 24);
-    ctx.lineTo(720, 816);
+    ctx.moveTo(720, 18);
+    ctx.lineTo(720, 822);
     ctx.stroke();
     ctx.restore();
 
-    // Độ dịch chuyển ngang của dây và 2 đội theo điểm số
-    const shiftPx = this.currentShiftRatio * 260;
-    const ropeY = 498;
+    const shiftPx = this.currentShiftRatio * 250;
+    const ropeY = 472;
 
-    // 4. VẼ DÂY THỪNG XOẮN VÀ NƠ ĐỎ Ở CHÍNH GIỮA DÂY
+    // 3. Bóng đổ tổng dưới chân 2 đội
+    ctx.fillStyle = 'rgba(20, 35, 60, 0.10)';
+    ctx.beginPath();
+    ctx.ellipse(415 + shiftPx, 646, 255, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(1025 + shiftPx, 646, 255, 22, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 4. Dây thừng giữa 2 đội (vẽ đoạn nối qua tâm và 2 đầu dây)
     ctx.save();
-    // Bóng dây thừng dưới sàn
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)';
-    ctx.lineWidth = 10;
-    ctx.beginPath();
-    ctx.moveTo(140 + shiftPx, 632);
-    ctx.lineTo(1300 + shiftPx, 632);
-    ctx.stroke();
-
-    // Thân dây thừng chính
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#3b2313';
-    ctx.lineWidth = 16;
+    const ropeWave = Math.sin(elapsed * 9) * (this.pullPulseA > 0 || this.pullPulseB > 0 ? 3.5 : 1.0);
+    ctx.strokeStyle = '#2b190e';
+    ctx.lineWidth = 15;
     ctx.beginPath();
-    ctx.moveTo(130 + shiftPx, ropeY);
-    ctx.lineTo(1310 + shiftPx, ropeY);
+    ctx.moveTo(115 + shiftPx, ropeY);
+    ctx.quadraticCurveTo(720 + shiftPx, ropeY + ropeWave, 1325 + shiftPx, ropeY);
     ctx.stroke();
 
-    ctx.strokeStyle = '#b77938';
-    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#a66c38';
+    ctx.lineWidth = 9.5;
     ctx.beginPath();
-    ctx.moveTo(130 + shiftPx, ropeY);
-    ctx.lineTo(1310 + shiftPx, ropeY);
+    ctx.moveTo(115 + shiftPx, ropeY);
+    ctx.quadraticCurveTo(720 + shiftPx, ropeY + ropeWave, 1325 + shiftPx, ropeY);
     ctx.stroke();
+    ctx.restore();
 
-    // 5. VẼ 6 HỌC SINH (3 ĐỘI XANH TRÁI – 3 ĐỘI ĐỎ PHẢI, NAM - NỮ - NAM)
-    const bluePositions = [-165, -310, -455];
-    bluePositions.forEach((offsetX, idx) => {
-      this.drawCartoonStudent(ctx, {
-        x: 720 + shiftPx + offsetX,
-        y: 500,
-        isBlue: true,
-        isFemale: idx === 1,
-        index: idx,
-        state: this.stateA,
-        pulse: this.pullPulseA,
-        elapsed
-      });
-    });
+    // 5. VẼ SPRITE 2 ĐỘI VỚI HIỆU ỨNG NHÚN KÉO 2.5D MƯỢT MÀ
+    const pulseA = this.pullPulseA > 0 ? Math.sin((this.pullPulseA / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
+    const pulseB = this.pullPulseB > 0 ? Math.sin((this.pullPulseB / GAME_3D_CONFIG.tug.pullPulseDuration) * Math.PI) : 0;
 
-    const redPositions = [165, 310, 455];
-    redPositions.forEach((offsetX, idx) => {
-      this.drawCartoonStudent(ctx, {
-        x: 720 + shiftPx + offsetX,
-        y: 500,
-        isBlue: false,
-        isFemale: idx === 1,
-        index: idx,
-        state: this.stateB,
-        pulse: this.pullPulseB,
-        elapsed
-      });
-    });
+    if (this.customCombinedImg) {
+      ctx.drawImage(this.customCombinedImg, 120 + shiftPx, 240, 1200, 440);
+    } else {
+      // Đội Xanh (Bên trái)
+      if (this.blueTeamImg.complete) {
+        ctx.save();
+        const bobA = this.stateA === 'victory'
+          ? -Math.abs(Math.sin(elapsed * 8.5)) * 26
+          : Math.sin(elapsed * 5.5) * 3.5;
+        const skewA = -pulseA * 0.08 - (this.stateA === 'pull' ? 0.03 : 0);
+        ctx.translate(405 + shiftPx, 640 + bobA);
+        ctx.transform(1, 0, skewA, 1, 0, 0);
+        ctx.drawImage(this.blueTeamImg, -320, -315, 640, 390);
+        ctx.restore();
+      }
+
+      // Đội Đỏ (Bên phải)
+      if (this.redTeamImg.complete) {
+        ctx.save();
+        const bobB = this.stateB === 'victory'
+          ? -Math.abs(Math.sin(elapsed * 8.5 + 1.2)) * 26
+          : Math.sin(elapsed * 5.5 + 1.5) * 3.5;
+        const skewB = pulseB * 0.08 + (this.stateB === 'pull' ? 0.03 : 0);
+        ctx.translate(1035 + shiftPx, 640 + bobB);
+        ctx.transform(1, 0, skewB, 1, 0, 0);
+        ctx.drawImage(this.redTeamImg, -320, -315, 640, 390);
+        ctx.restore();
+      }
+    }
 
     // 6. VẼ NƠ ĐỎ (RED BOW) NỔI BẬT Ở TÂM DÂY THỪNG
     const bowX = 720 + shiftPx;
-    const bowY = ropeY;
-    const bowSwing = Math.sin(elapsed * 5) * 0.08;
+    const bowY = ropeY + ropeWave * 0.5;
     ctx.save();
     ctx.translate(bowX, bowY);
-    ctx.rotate(bowSwing);
-    ctx.fillStyle = '#e53e3e';
-    ctx.strokeStyle = '#231f20';
+    ctx.rotate(Math.sin(elapsed * 5.5) * 0.07);
+    ctx.fillStyle = '#e53935';
+    ctx.strokeStyle = '#1e120a';
     ctx.lineWidth = 3.2;
 
-    // Hai cánh nơ
+    // Cánh nơ trái & phải
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-28, -22, -26, 4);
-    ctx.quadraticCurveTo(-24, 20, 0, 4);
+    ctx.bezierCurveTo(-30, -24, -34, 16, 0, 5);
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(28, -22, 26, 4);
-    ctx.quadraticCurveTo(24, 20, 0, 4);
+    ctx.bezierCurveTo(30, -24, 34, 16, 0, 5);
     ctx.fill();
     ctx.stroke();
 
-    // Hai dải ruy-băng rủ xuống
+    // Hai dải dây nơ rủ xuống
     ctx.beginPath();
-    ctx.moveTo(-4, 6);
-    ctx.lineTo(-16, 42);
-    ctx.lineTo(-4, 38);
+    ctx.moveTo(-3, 5);
+    ctx.lineTo(-16, 40);
+    ctx.lineTo(-5, 36);
     ctx.lineTo(0, 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(4, 6);
-    ctx.lineTo(16, 42);
-    ctx.lineTo(4, 38);
+    ctx.moveTo(3, 5);
+    ctx.lineTo(16, 40);
+    ctx.lineTo(5, 36);
     ctx.lineTo(0, 8);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Nút thắt giữa nơ
-    ctx.fillStyle = '#ff4d6d';
+    // Tâm nơ
+    ctx.fillStyle = '#ff5252';
     ctx.beginPath();
-    ctx.arc(0, 2, 7.5, 0, Math.PI * 2);
+    ctx.arc(0, 2, 7, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.restore();
-    ctx.restore();
 
-    // 7. VẼ HẠT BỤI DƯỚI GIÀY & PHÁO GIẤY CHIẾN THẮNG
+    // 7. Hạt bụi dưới giày & Pháo giấy chiến thắng
     this.particles.forEach(p => {
       ctx.save();
       const alpha = Math.max(0, p.life / p.maxLife);
       if (p.type === 'dust') {
-        ctx.fillStyle = `rgba(180, 195, 212, ${alpha * 0.7})`;
+        ctx.fillStyle = `rgba(175, 192, 210, ${alpha * 0.68})`;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
@@ -3732,7 +3747,7 @@ class TugOfWarScene {
 
   update(dt, elapsed) {
     const k = Math.min(1, dt * GAME_3D_CONFIG.animation.lerpSpeed);
-    const pulseShift = (this.pullPulseB > 0 ? 0.06 : 0) - (this.pullPulseA > 0 ? 0.06 : 0);
+    const pulseShift = (this.pullPulseB > 0 ? 0.055 : 0) - (this.pullPulseA > 0 ? 0.055 : 0);
     this.currentShiftRatio += ((this.targetShiftRatio + pulseShift) - this.currentShiftRatio) * k;
 
     if (this.pullPulseA > 0) this.pullPulseA = Math.max(0, this.pullPulseA - dt);
@@ -4315,7 +4330,6 @@ class Game3D {
     this.camera.aspect = aspect;
 
     if (this.mode === 'tug') {
-      // Căn chỉnh mặt phẳng sân kéo co lấp đầy khung hình trung tâm mà không cắt mất học sinh
       const planeW = 12.8;
       const planeH = 7.45;
       const vFovRad = (this.camera.fov * Math.PI) / 180;
@@ -4408,7 +4422,7 @@ class Game3D {
 }
 
 // ============================================================================
-// ĐIỀU KHIỂN LOGIC TRÒ CHƠI (1 CÂU HỎI TRUNG TÂM + ĐÁP ÁN 2 ĐỘI)
+// ĐIỀU KHIỂN LOGIC TRÒ CHƠI + BẢNG ĐÁP ÁN TRUNG TÂM (CÁCH B)
 // ============================================================================
 let gameTimerInterval = null;
 let gameTimeRemaining = 15;
@@ -4421,6 +4435,7 @@ function gameTimeLimit() {
 
 function startSelectedGame() {
   upgradeGamePlayLayoutV21();
+  closeCenterAnswerSpotlight();
   const pool = selectedQuestions.length ? selectedQuestions : questionBank;
   if (!pool.length) {
     toast('Chưa có câu hỏi! Hãy nhập file JSON hoặc tải câu hỏi từ Sheet trước.');
@@ -4487,6 +4502,7 @@ function renderGameScores() {
 const updateGameScoreHUD = renderGameScores;
 
 function nextQuestion() {
+  closeCenterAnswerSpotlight();
   if (victoryTriggered) return;
   stopGameTimer();
   const pool = selectedQuestions.length ? selectedQuestions : questionBank;
@@ -4512,12 +4528,11 @@ function nextQuestion() {
   $('#qMeta') && ($('#qMeta').textContent = metaText);
   $('#duelResponderBadge') && ($('#duelResponderBadge').textContent = 'Quyền trả lời: Cả 2 đội');
   $('#qExplain') && ($('#qExplain').innerHTML = 'Học sinh hai đội đọc câu hỏi ở trung tâm và chọn đáp án của đội mình.');
-  $('#revealAnswerBtn')?.classList.add('hide');
+  $('#revealAnswerBtn')?.classList.remove('hide');
 
   $('#teamPanelA')?.classList.add('active');
   $('#teamPanelB')?.classList.add('active');
 
-  // HIỂN THỊ CÂU HỎI 1 LẦN DUY NHẤT Ở KHUNG TRUNG TÂM VỚI CỠ CHỮ TỰ ĐỘNG TỐI ƯU CHO TV
   const imgs = questionImageUrls(q);
   const cleanText = stripUrls(q.question || '');
   const qHtml = renderQuestionOnlyText(q.question);
@@ -4534,7 +4549,6 @@ function nextQuestion() {
     body?.classList.add('no-image');
   }
 
-  // Tự động tính cỡ chữ câu hỏi lớn để cả lớp nhìn rõ từ cuối phòng
   const len = cleanText.length;
   const fontSize = len < 75
     ? (imgs.length ? 'clamp(30px, 2.6vw, 48px)' : 'clamp(36px, 3.2vw, 58px)')
@@ -4649,13 +4663,26 @@ function handleTeamCorrect(team) {
   if (team === 'A') game.a++; else game.b++;
 
   $(team === 'A' ? '#teamStatusA' : '#teamStatusB').textContent = '🎉 Chính xác (+1)';
-  $('#qExplain').innerHTML = `✅ <b>${esc(teamName)}</b> trả lời ĐÚNG và ghi được 1 điểm!`;
+  $('#qExplain').innerHTML = `✅ <b>${esc(teamName)}</b> trả lời ĐÚNG! Bấm <b>🎯 ĐÁP ÁN & GIẢI THÍCH (E)</b> để phóng to giữa màn hình.`;
   $('#revealAnswerBtn')?.classList.remove('hide');
 
   playGameSound('correct');
-  showAnswerBanner('good', `🎉 ${teamName} TRẢ LỜI CHÍNH XÁC! (+1 ĐIỂM)`);
   renderGameScores();
   game3d?.onCorrect(team);
+  highlightCorrectChoicesOnBothTeams(game.current);
+
+  // Mở Bảng Tuyên Bố Đáp Án Cỡ Lớn Giữa Màn Hình (Cách B) sau 650ms để học sinh kịp nhìn hiệu ứng kéo co / tăng tốc xe
+  if (!victoryTriggered) {
+    setTimeout(() => {
+      if (game.locked && !victoryTriggered) {
+        showCenterAnswerSpotlight({
+          title: `🎉 ${teamName.toUpperCase()} TRẢ LỜI CHÍNH XÁC! (+1 ĐIỂM)`,
+          theme: 'good',
+          showExplanation: false
+        });
+      }
+    }, 680);
+  }
 }
 
 function handleTeamWrong(team) {
@@ -4668,9 +4695,13 @@ function handleTeamWrong(team) {
     game.locked = true;
     stopGameTimer();
     game.wrongHistory.push(game.current);
-    $('#qExplain').innerHTML = '❌ Cả hai đội đều trả lời chưa đúng. Giáo viên bấm <b>💡 HIỆN GIẢI THÍCH</b> để chữa bài.';
+    $('#qExplain').innerHTML = '❌ Cả hai đội đều trả lời chưa đúng.';
     $('#revealAnswerBtn')?.classList.remove('hide');
-    showAnswerBanner('bad', '❌ CẢ HAI ĐỘI CHƯA CHÍNH XÁC!');
+    showCenterAnswerSpotlight({
+      title: '❌ CẢ HAI ĐỘI CHƯA TRẢ LỜI ĐÚNG',
+      theme: 'bad',
+      showExplanation: true
+    });
   } else {
     const otherName = $(other === 'A' ? '#tvAName' : '#tvBName')?.textContent || `Đội ${other}`;
     $('#duelResponderBadge').textContent = `Quyền trả lời: ${otherName}`;
@@ -4689,10 +4720,12 @@ function setGameReadMode(flag) {
 
 function revealTeacherAnswer() {
   const q = game.current; if (!q) return;
-  const exp = $('#qExplain');
-  exp.innerHTML = `🎯 <b>Đáp án đúng:</b> ${answerSummaryHtml(q)}${q.explanation ? ` • 💡 <b>Giải thích:</b> ${renderRich(q.explanation)}` : ''}`;
-  typeset(exp);
   playGameSound('reveal');
+  showCenterAnswerSpotlight({
+    title: '🎯 ĐÁP ÁN & GIẢI THÍCH CHI TIẾT',
+    theme: 'good',
+    showExplanation: true
+  });
 }
 
 function manualPoint(team) {
@@ -4727,7 +4760,11 @@ function startGameTimer() {
       game.locked = true;
       playGameSound('timeout');
       $('#revealAnswerBtn')?.classList.remove('hide');
-      showAnswerBanner('bad', '⏱️ HẾT THỜI GIAN!');
+      showCenterAnswerSpotlight({
+        title: '⏱️ HẾT THỜI GIAN SUY NGHĨ!',
+        theme: 'bad',
+        showExplanation: true
+      });
     }
   }, 1000);
 }
@@ -4745,6 +4782,7 @@ function finishGameWithWinner(winnerTeam) {
   if (victoryTriggered) return;
   victoryTriggered = true;
   stopGameTimer();
+  closeCenterAnswerSpotlight();
   game.locked = true;
 
   const aName = $('#tvAName')?.textContent || 'ĐỘI XANH';
@@ -4764,6 +4802,7 @@ const finishGame = finishGameWithWinner;
 
 function resetGame() {
   stopGameTimer();
+  closeCenterAnswerSpotlight();
   victoryTriggered = false;
   game3d?.reset();
   startSelectedGame();
@@ -4771,6 +4810,7 @@ function resetGame() {
 
 function exitGame() {
   stopGameTimer();
+  closeCenterAnswerSpotlight();
   victoryTriggered = false;
   document.body.classList.remove('game-presentation', 'v20-hide-answers');
   $('#winner')?.classList.remove('show');
@@ -5194,7 +5234,7 @@ window.addEventListener('keydown', e => {
     else if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) nextQuestion();
   } else if (k === 'E') {
     if (oralState.active) toggleOralExplanation();
-    else if ($('#games')?.classList.contains('active')) revealTeacherAnswer();
+    else if ($('#games')?.classList.contains('active') && !$('#gamePlay')?.classList.contains('hide')) toggleCenterExplanation();
   } else if (k === 'F') {
     toggleFullscreen();
   } else if (k === 'Z') {
@@ -5204,6 +5244,7 @@ window.addEventListener('keydown', e => {
     toggleBlackScreen();
   } else if (e.key === 'Escape') {
     if ($('#questionZoomModal')?.classList.contains('show')) closeV20Modal('questionZoomModal');
+    else if ($('#centerAnswerSpotlight')?.classList.contains('show')) closeCenterAnswerSpotlight();
     else if (oralState.active) closeOralCheckModal();
     else exitPresentation();
   } else if (oralState.active && ['A', 'B', 'C', 'D'].includes(k)) {
